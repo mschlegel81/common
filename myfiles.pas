@@ -64,7 +64,7 @@ IMPLEMENTATION
 PROCEDURE T_file.flushBuffer;
   begin
     if not(readMode) and stateOkay then begin
-      blockwrite(handle,buffer,bufFill);
+      BlockWrite(handle,buffer,bufFill);
       bufFill:=0;
     end;
   end;
@@ -73,7 +73,7 @@ PROCEDURE T_file.readBuffer;
   VAR actuallyRead:longint;
   begin
     if readMode and stateOkay then begin
-      blockread(handle,buffer[bufFill],bufferSize-bufFill,actuallyRead);
+      BlockRead(handle,buffer[bufFill],bufferSize-bufFill,actuallyRead);
       bufFill:=bufFill+actuallyRead;
     end;
   end;
@@ -199,7 +199,7 @@ PROCEDURE T_file.writeBuf(p:PByte; pSize:longint);
   begin
     if not(readMode) then begin
       flushBuffer;                 //write all that is stored in buffer
-      blockwrite(handle,p^,pSize); //write bytes from pointer
+      BlockWrite(handle,p^,pSize); //write bytes from pointer
     end;
   end;
 
@@ -213,7 +213,7 @@ PROCEDURE T_file.readBuf (p:PByte; pSize:longint);
         dec(bufFill,pSize);                          //decrement buffer-fill
       end else begin               //if buffer contains less than necessary...
         move(buffer[0],p^,bufFill);                                //read first bytes from buffer
-        blockread(handle,(p+bufFill)^,pSize-bufFill,actuallyRead); //read remaining bytes from file
+        BlockRead(handle,(p+bufFill)^,pSize-bufFill,actuallyRead); //read remaining bytes from file
         stateOkay:=stateOkay and (actuallyRead=pSize-bufFill);     //check the number of sucessfully read bytes
         bufFill:=0;                                                //buffer is empty now
       end;

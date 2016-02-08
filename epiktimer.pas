@@ -589,26 +589,26 @@ FUNCTION  TEpikTimer.ElapsedDHMS: string; begin result:=ElapsedDHMS(BuiltInTimer
 // is measured in "ticks"... which are different periods for each timebase.
 
 FUNCTION TEpikTimer.CalibrateCallOverheads(VAR TimeBase: TimeBaseData): integer;
-VAR i:integer; St,Fin,Total:TickType;
+VAR i:integer; St,Fin,total:TickType;
 begin
   with TimeBase, TimeBase.CalibrationParms do
   begin
-    Total:=0; result:=1;
+    total:=0; result:=1;
     for I:=1 to TicksIterations do // First get the base tick getting overhead
       begin
         St:=Ticks(); Fin:=Ticks();
-        Total:=Total+(Fin-St); // dump the first sample
+        total:=total+(Fin-St); // dump the first sample
       end;
-    TicksOverhead:=Total div TicksIterations;
-    Total:=0;
+    TicksOverhead:=total div TicksIterations;
+    total:=0;
     for I:=1 to SleepIterations do
     begin
       St:=Ticks();
       if SystemSleep(0)<>0 then exit;
       Fin:=Ticks();
-      Total:=Total+((Fin-St)-TicksOverhead);
+      total:=total+((Fin-St)-TicksOverhead);
     end;
-    SleepOverhead:=Total div SleepIterations;
+    SleepOverhead:=total div SleepIterations;
     OverheadCalibrated:=true; result:=0
   end
 end;
@@ -626,22 +626,22 @@ end;
 FUNCTION TEpikTimer.CalibrateTickFrequency(VAR TimeBase: TimeBaseData): integer;
 VAR
   i: integer;
-  Total, SS, SE: TickType;
+  total, SS, SE: TickType;
   ElapsedTicks, SampleTime: extended;
 begin
   with TimeBase, TimeBase.CalibrationParms do
   begin
     result:=1; //maintain unitialized default in case something goes wrong.
-    Total:=0;
+    total:=0;
     for i:=1 to FreqIterations do
       begin
         SS:=Ticks();
         SystemSleep(FrequencyGateTimeMS);
         SE:=Ticks();
-        Total:=Total+((SE-SS)-(SleepOverhead+TicksOverhead))
+        total:=total+((SE-SS)-(SleepOverhead+TicksOverhead))
       end;
     //doing the floating point conversion allows SampleTime parms of < 1 second
-    ElapsedTicks:=Total div FreqIterations;
+    ElapsedTicks:=total div FreqIterations;
     SampleTime:=FrequencyGateTimeMS;
 
     TicksFrequency:=trunc( ElapsedTicks / (SampleTime / MilliPerSec));

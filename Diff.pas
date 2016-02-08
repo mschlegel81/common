@@ -1,4 +1,4 @@
-UNIT Diff;
+UNIT diff;
 INTERFACE
 USES sysutils, Classes, math;
 CONST MAX_DIAGONAL = $FFFFFF; //~16 million
@@ -97,8 +97,8 @@ begin
 
     Len1Minus1 := len1 -1;
     fCompareList.Capacity := len1 + len2;
-    GetMem(DiagBufferF, sizeOf(integer)*(len1+len2+3));
-    GetMem(DiagBufferB, sizeOf(integer)*(len1+len2+3));
+    getMem(DiagBufferF, sizeOf(integer)*(len1+len2+3));
+    getMem(DiagBufferB, sizeOf(integer)*(len1+len2+3));
     Ints1 := pInts1;
     Ints2 := pInts2;
     try
@@ -131,9 +131,9 @@ FUNCTION TDiff.execute(CONST txt1,txt2:ansistring): boolean;
   VAR i:longint;
       pInts1,pInts2:PInteger;
   begin
-    GetMem(pInts1,length(txt1)*sizeOf(integer));
+    getMem(pInts1,length(txt1)*sizeOf(integer));
     for i:=1 to length(txt1) do pInts1[i-1]:=ord(txt1[i]);
-    GetMem(pInts2,length(txt2)*sizeOf(integer));
+    getMem(pInts2,length(txt2)*sizeOf(integer));
     for i:=1 to length(txt2) do pInts2[i-1]:=ord(txt2[i]);
     result:=execute(pInts1,pInts2,length(txt1),length(txt2));
     freeMem(pInts1,length(txt1)*sizeOf(integer));

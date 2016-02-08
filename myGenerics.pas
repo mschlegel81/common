@@ -537,7 +537,7 @@ FUNCTION G_list.elementArray:ENTRY_TYPE_ARRAY;
 
 CONSTRUCTOR G_hashMap.create(hashFunc:HASH_FUNC);
   begin
-    if hashFunc=nil then Raise Exception.create ('Hash func is nil!');
+    if hashFunc=nil then raise Exception.create ('Hash func is nil!');
     hash:=hashFunc;
     setLength(bucket,1);
     bitMask:=0;
