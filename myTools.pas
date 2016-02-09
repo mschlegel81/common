@@ -105,7 +105,7 @@ FUNCTION T_progressEstimator.estimatedRemainingTime: double;
 FUNCTION T_progressEstimator.getProgressString:ansistring;
   begin
     system.enterCriticalSection(cs);
-    with progress[length(progress)-1] do result:=IntToStr(round(fractionDone*100))+'%; rem: '+myTimeToStr(estimatedRemainingTime)+'; '+message;
+    with progress[length(progress)-1] do result:=intToStr(round(fractionDone*100))+'%; rem: '+myTimeToStr(estimatedRemainingTime)+'; '+message;
     system.leaveCriticalSection(cs);
   end;
 

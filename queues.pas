@@ -7,7 +7,6 @@ TYPE
                fts_ready); //set after evaluation
 
 
-
   P_task=^T_task;
   T_task=record
     task:pointer;
