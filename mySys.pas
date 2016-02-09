@@ -1,6 +1,6 @@
 UNIT mySys;
 INTERFACE
-USES dos,myGenerics,sysutils,process,{$ifdef WINDOWS}windows,{$endif}FileUtil;
+USES dos,myGenerics,sysutils,Process,{$ifdef WINDOWS}windows,{$endif}FileUtil,Classes;
 
 FUNCTION getEnvironment:T_arrayOfString;
 FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
@@ -8,9 +8,14 @@ PROCEDURE clearConsole;
 PROCEDURE getFileInfo(CONST filePath:string; OUT time:double; OUT size:int64; OUT isExistent, isArchive, isDirectory, isReadOnly, isSystem, isHidden:boolean);
 FUNCTION getNumberOfCPUs:longint;
 FUNCTION MemoryUsed: int64;
-{$ifdef WINDOWS}{$ifndef debugMode}
-FUNCTION GetConsoleWindow: HWND; stdcall; external kernel32;
-{$endif}{$endif}
+PROCEDURE writeString(VAR handle:file; CONST s:ansistring);
+FUNCTION readString(VAR handle:file):ansistring;
+{$ifdef WINDOWS}
+  PROCEDURE deleteMyselfOnExit;
+  {$ifndef debugMode}
+  FUNCTION GetConsoleWindow: HWND; stdcall; external kernel32;
+  {$endif}
+{$endif}
 PROCEDURE showConsole;
 PROCEDURE hideConsole;
 
@@ -19,7 +24,6 @@ VAR CMD_PATH,
     NOTEPAD_PATH:specialize G_lazyVar<ansistring>;
 
 IMPLEMENTATION
-
 FUNCTION getNumberOfCPUs:longint;
   VAR SystemInfo:SYSTEM_INFO;
   begin
@@ -49,16 +53,16 @@ FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
       end;
 
     begin
-      if (result='') and (findFirst(path+searchPattern, faAnyFile, info) = 0) then result:=path+info.name;
-      sysutils.findClose(info);
+      if (result='') and (FindFirst(path+searchPattern, faAnyFile, info) = 0) then result:=path+info.name;
+      sysutils.FindClose(info);
 
-      if findFirst(path+'*', faDirectory, info) = 0 then repeat
+      if FindFirst(path+'*', faDirectory, info) = 0 then repeat
         if ((info.Attr and faDirectory) = faDirectory) and
            (info.name<>'.') and
            (info.name<>'..')
         then recursePath(deeper);
       until (findNext(info)<>0) or (result<>'');
-      sysutils.findClose(info);
+      sysutils.FindClose(info);
     end;
 
   begin
@@ -121,7 +125,7 @@ PROCEDURE getFileInfo(CONST filePath:string;
       isSystem   :=(Attr and sysfile  )<>0;
       isHidden   :=(Attr and hidden   )<>0;
       if fileExists(filePath) then try
-        size:=FileSize(filePath);
+        size:=filesize(filePath);
       except
         size:=-2;
       end;
@@ -151,6 +155,95 @@ PROCEDURE hideConsole;
       ShowWindow(GetConsoleWindow, SW_HIDE);
       {$endif}{$endif}
       if consoleShowing<0 then consoleShowing:=0;
+    end;
+  end;
+
+FUNCTION isValidFilename(CONST fileName: string; CONST requirePathExistence:boolean=true) : boolean;
+  CONST ForbiddenChars  : set of char = ['<', '>', '|', '"', '\', ':', '*', '?'];
+  VAR i:integer;
+      name,path:string;
+  begin
+    if requirePathExistence then begin
+      path:=extractFilePath(fileName);
+      name:=extractFileName(fileName);
+      result:=(name<>'') and (DirectoryExists(path));
+      for i:=1 to length(name)-1 do result:=result and not(name[i] in ForbiddenChars) and not(name[i]='\');
+    end else begin
+      name:=fileName;
+      result:=(fileName<>'');
+      for i:=1 to length(name)-1 do result:=result and not(name[i] in ForbiddenChars);
+    end;
+  end;
+
+FUNCTION dateToSortable(t:TDateTime):ansistring;
+  begin
+    DateTimeToString(result,'YYYYMMDD_HHmmss',t);
+  end;
+
+{$ifdef WINDOWS}
+PROCEDURE deleteMyselfOnExit;
+  VAR handle:text;
+      batName:string;
+      counter:longint;
+      proc:TProcess;
+  begin
+    counter:=0;
+    repeat
+      batName:=paramStr(0)+'delete'+intToStr(counter)+'.bat';
+      inc(counter);
+    until not(fileExists(batName));
+    assign(handle,batName);
+    rewrite(handle);
+    writeln(handle,':Repeat');
+    writeln(handle,'@ping -n 2 127.0.0.1 > NUL');
+    writeln(handle,'@del "',paramStr(0),'"');
+    writeln(handle,'@if exist "',paramStr(0),'" goto Repeat');
+    writeln(handle,'@del %0');
+    close(handle);
+    proc:=TProcess.create(nil);
+    proc.CommandLine:='cmd /C '+batName;
+    proc.execute;
+  end;
+{$endif}
+
+PROCEDURE writeString(VAR handle:file; CONST s:ansistring);
+  VAR buffer:array[0..1023] of char;
+      bufferFill:longint=0;
+  PROCEDURE flushBuffer;
+    begin
+      if bufferFill=0 then exit;
+      BlockWrite(handle,buffer,bufferFill);
+      bufferFill:=0;
+    end;
+
+  PROCEDURE putChar(CONST c:char);
+    begin
+      buffer[bufferFill]:=c;
+      inc(bufferFill);
+      if bufferFill>=length(buffer) then flushBuffer;
+    end;
+
+  VAR size:SizeInt;
+      i:longint;
+  begin
+    size:=length(s);
+    move(size,buffer,sizeOf(SizeInt)); inc(bufferFill,sizeOf(SizeInt));
+    for i:=1 to length(s) do putChar(s[i]);
+    flushBuffer;
+  end;
+
+FUNCTION readString(VAR handle:file):ansistring;
+  VAR buffer:array[0..1023] of char;
+      size:SizeInt;
+      i,j1,j:longint;
+  begin
+    BlockRead(handle,size,sizeOf(SizeInt));
+    i:=0; result:='';
+    while i<size do begin
+      j1:=size-i; if j1>length(buffer) then j1:=length(buffer);
+      BlockRead(handle,buffer,j1);
+      for j:=0 to j1-1 do result:=result+buffer[j];
+      inc(i,j1);
     end;
   end;
 

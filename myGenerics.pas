@@ -34,6 +34,7 @@ TYPE
 
   T_listOfString=specialize G_list<ansistring>;
   T_listOfIntegers=specialize G_list<longint>;
+  T_listOfDoubles=specialize G_list<double>;  
 
   GENERIC G_sparseArray<ENTRY_TYPE>=object
     private
@@ -55,12 +56,14 @@ TYPE
   end;
 
   T_arrayOfString=array of ansistring;
+  T_arrayOfDouble=array of double;
   OPERATOR :=(x:ansistring):T_arrayOfString;
   PROCEDURE append(VAR x:T_arrayOfString; CONST y:ansistring);
   PROCEDURE appendIfNew(VAR x:T_arrayOfString; CONST y:ansistring);
   PROCEDURE append(VAR x:T_arrayOfString; CONST y:T_arrayOfString);
   PROCEDURE dropFirst(VAR x:T_arrayOfString; CONST dropCount:longint);
   FUNCTION C_EMPTY_STRING_ARRAY:T_arrayOfString;
+
   { G_stringKeyMap }
 TYPE
   GENERIC G_stringKeyMap<VALUE_TYPE>=object

@@ -12,6 +12,7 @@ CONST
   C_formFeedChar = #12;
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
+  FILENAME_CHARS:charSet=['a'..'z','A'..'Z','0'..'9','.','_','/','\'];
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
 FUNCTION isBlank(CONST s: ansistring): boolean;
@@ -21,8 +22,10 @@ FUNCTION replaceOne(CONST original, lookFor, replaceBy: ansistring): ansistring;
 FUNCTION escapeString(CONST s: ansistring): ansistring;
 FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parsedLength: longint): ansistring;
 FUNCTION isIdentifier(CONST s: ansistring; CONST allowDot: boolean): boolean;
+FUNCTION isFilename(CONST s: ansistring; CONST acceptedExtensions:array of string):boolean;
 PROCEDURE collectIdentifiers(CONST s:ansistring; VAR list:T_listOfString; CONST skipWordAtPosition:longint);
 FUNCTION startsWith(CONST input, head: ansistring): boolean;
+FUNCTION endsWith(CONST input, tail: ansistring): boolean;
 FUNCTION unbrace(CONST s:ansistring):ansistring;
 FUNCTION split(CONST s:ansistring):T_arrayOfString;
 FUNCTION reSplit(CONST s:T_arrayOfString):T_arrayOfString;
@@ -41,22 +44,22 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
     VAR i: longint;
         hasDot, hasExpo: boolean;
     begin
-      result := length(s)>0;
-      hasDot := false;
-      hasExpo := false;
-      for i := 1 to length(s)-1 do if s [i] = '.' then begin
-        result := result and not (hasDot);
-        hasDot := true;
+      result:=length(s)>0;
+      hasDot:=false;
+      hasExpo:=false;
+      for i:=1 to length(s)-1 do if s [i] = '.' then begin
+        result:=result and not (hasDot);
+        hasDot:=true;
       end else if (s [i] in ['e', 'E']) and (i>1) then begin
-        result := result and not (hasExpo);
-        hasExpo := true;
-      end else result := result and ((s [i] in ['0'..'9']) or ((i = 1) or (s [i-1] in ['e', 'E'])) and (s [i] in ['-', '+']));
+        result:=result and not (hasExpo);
+        hasExpo:=true;
+      end else result:=result and ((s [i] in ['0'..'9']) or ((i = 1) or (s [i-1] in ['e', 'E'])) and (s [i] in ['-', '+']));
     end;
 
   FUNCTION posOfDot(s: ansistring): longint;
     begin
-      result := pos('.', s);
-      if result = 0 then result := length(s)+1;
+      result:=pos('.', s);
+      if result = 0 then result:=length(s)+1;
     end;
 
   begin
@@ -65,34 +68,34 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
 
     result:=s;
     setLength(matrix,length(result));
-    j := -1;
-    maxJ := -1;
+    j:=-1;
+    maxJ:=-1;
     for i:=0 to length(result)-1 do begin
       matrix[i]:=split(result[i],C_tabChar);
       j:=length(matrix[i])-1;
       if j>maxJ then maxJ:=j;
     end;
     //expand columns to equal size:
-    for j := 0 to maxJ do begin
-      dotPos := 0;
-      for i := 0 to length(matrix)-1 do
+    for j:=0 to maxJ do begin
+      dotPos:=0;
+      for i:=0 to length(matrix)-1 do
         if (length(matrix [i])>j) and (isNumeric(matrix [i] [j])) and
           (posOfDot(matrix [i] [j])>dotPos) then
-          dotPos := posOfDot(matrix [i] [j]);
+          dotPos:=posOfDot(matrix [i] [j]);
       if dotPos>0 then
-        for i := 0 to length(matrix)-1 do
+        for i:=0 to length(matrix)-1 do
           if (length(matrix [i])>j) and (isNumeric(matrix [i] [j])) then
             while posOfDot(matrix [i] [j])<dotPos do
-              matrix[i][j] := ' '+matrix [i] [j];
+              matrix[i][j]:=' '+matrix [i] [j];
 
-      maxLength := 0;
-      for i := 0 to length(matrix)-1 do
+      maxLength:=0;
+      for i:=0 to length(matrix)-1 do
         if (length(matrix [i])>j) and (length(matrix [i] [j])>maxLength) then
-          maxLength := length(matrix [i] [j]);
-      for i := 0 to length(matrix)-1 do
+          maxLength:=length(matrix [i] [j]);
+      for i:=0 to length(matrix)-1 do
         if (length(matrix [i])>j) then
           while length(matrix [i] [j])<=maxLength do
-            matrix[i][j] := matrix [i] [j]+' ';
+            matrix[i][j]:=matrix [i] [j]+' ';
     end;
 
     //join matrix to result;
@@ -103,8 +106,8 @@ FUNCTION isBlank(CONST s: ansistring): boolean;
   VAR
     i: longint;
   begin
-    result := true;
-    for i := 1 to length(s) do
+    result:=true;
+    for i:=1 to length(s) do
       if not (s [i] in [C_lineBreakChar, C_carriageReturnChar, C_tabChar, ' ']) then
         exit(false);
   end;
@@ -113,12 +116,12 @@ FUNCTION replaceOne(CONST original, lookFor, replaceBy: ansistring): ansistring;
   VAR
     p: longint;
   begin
-    p := pos(lookFor, original);
+    p:=pos(lookFor, original);
     if p>0 then
-      result := copy(original, 1, p-1)+replaceBy+
+      result:=copy(original, 1, p-1)+replaceBy+
         copy(original, p+length(lookFor), length(original))
     else
-      result := original;
+      result:=original;
   end;
 
 FUNCTION replaceAll(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
@@ -151,9 +154,9 @@ FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT 
       i:longint;
   begin
     if pos(lookFor, replaceBy)>0 then begin
-      isValid := false;
+      isValid:=false;
       exit(replaceAll(original, lookFor, replaceBy));
-    end else isValid := true;
+    end else isValid:=true;
     if length(original)>65536 then begin
       i:=round(length(original)*0.49);
       while (i<=length(original)) and anyOfLookFor(original[i]) do inc(i);
@@ -287,19 +290,29 @@ FUNCTION isIdentifier(CONST s: ansistring; CONST allowDot: boolean): boolean;
   VAR i: longint;
       dotAllowed: boolean;
   begin
-    dotAllowed := allowDot;
-    result := (length(s)>=1) and (s [1] in ['a'..'z', 'A'..'Z']);
-    i := 2;
+    dotAllowed:=allowDot;
+    result:=(length(s)>=1) and (s[1] in ['a'..'z', 'A'..'Z']);
+    i:=2;
     while result and (i<=length(s)) do
-      if (s [i] in IDENTIFIER_CHARS) then
-        inc(i)
-      else if (s [i] = '.') and dotAllowed then
-        begin
+      if (s [i] in IDENTIFIER_CHARS) then inc(i)
+      else if (s [i] = '.') and dotAllowed then begin
         inc(i);
-        dotAllowed := false;
-        end
-      else
-        result := false;
+        dotAllowed:=false;
+      end else
+        result:=false;
+  end;
+
+FUNCTION isFilename(CONST s: ansistring; CONST acceptedExtensions:array of string):boolean;
+  VAR i:longint;
+      ext:string;
+  begin
+    if length(s)=0 then exit(false);
+    for i:=1 to length(s) do if not(s[i] in FILENAME_CHARS) then exit(false);
+    ext:=UpperCase(ExtractFileExt(s));
+    if length(acceptedExtensions)=0 then exit(true);
+    for i:=0 to length(acceptedExtensions)-1 do
+      if UpperCase(acceptedExtensions[i])=ext then exit(true);
+    result:=false;
   end;
 
 PROCEDURE collectIdentifiers(CONST s:ansistring; VAR list:T_listOfString; CONST skipWordAtPosition:longint);
@@ -318,7 +331,12 @@ PROCEDURE collectIdentifiers(CONST s:ansistring; VAR list:T_listOfString; CONST 
 
 FUNCTION startsWith(CONST input, head: ansistring): boolean;
   begin
-    result := copy(input, 1, length(head)) = head;
+    result:=copy(input, 1, length(head)) = head;
+  end;
+
+FUNCTION endsWith(CONST input, tail: ansistring): boolean;
+  begin
+    result:=(length(input)>=length(tail)) and (copy(input,length(input)-length(tail),length(tail))=tail);
   end;
 
 FUNCTION unbrace(CONST s:ansistring):ansistring;
