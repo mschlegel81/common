@@ -1,6 +1,6 @@
 UNIT myTools;
 INTERFACE
-USES sysutils;
+USES sysutils,myStringUtil;
 TYPE
   P_progressEstimator=^T_progressEstimator;
   T_progressEstimator=object
@@ -22,58 +22,61 @@ TYPE
       PROCEDURE logFractionDone(CONST fraction:double; CONST stepMessage:ansistring='');
       FUNCTION estimatedFinalTime:double;
       FUNCTION estimatedRemainingTime:double;
+      FUNCTION getProgressString:ansistring;
       PROCEDURE cancelCalculation;
       FUNCTION cancellationRequested:boolean;
-  end;  
-  
+      FUNCTION calculating:boolean;
+      PROCEDURE waitForEndOfCalculation;
+  end;
+
 IMPLEMENTATION
 
-constructor T_progressEstimator.createWithMessages;
+CONSTRUCTOR T_progressEstimator.createWithMessages;
   begin
     createSimple;
     messages:=true;
   end;
 
-constructor T_progressEstimator.createSimple;
+CONSTRUCTOR T_progressEstimator.createSimple;
   begin
     cancelled:=false;
     calculationRunning:=false;
     messages:=false;
-    system.InitCriticalSection(cs);
+    system.initCriticalSection(cs);
   end;
 
-destructor T_progressEstimator.destroy;
+DESTRUCTOR T_progressEstimator.destroy;
   begin
-    system.EnterCriticalsection(cs);
+    system.enterCriticalSection(cs);
     setLength(progress,0);
-    system.LeaveCriticalsection(cs);
-    system.DoneCriticalsection(cs);
+    system.leaveCriticalSection(cs);
+    system.doneCriticalSection(cs);
   end;
 
-procedure T_progressEstimator.logStart;
+PROCEDURE T_progressEstimator.logStart;
   begin
-    system.EnterCriticalsection(cs);
+    system.enterCriticalSection(cs);
     cancelled:=false;
     calculationRunning:=true;
     setLength(progress,1);
     progress[0].time:=now;
     progress[0].fractionDone:=0;
     progress[0].message:='';
-    system.LeaveCriticalsection(cs);
+    system.leaveCriticalSection(cs);
   end;
 
-procedure T_progressEstimator.logEnd;
+PROCEDURE T_progressEstimator.logEnd;
   begin
-    system.EnterCriticalsection(cs);
+    system.enterCriticalSection(cs);
     if not(cancelled) then logFractionDone(1);
     calculationRunning:=false;
-    system.LeaveCriticalsection(cs);
+    system.leaveCriticalSection(cs);
   end;
 
-procedure T_progressEstimator.logFractionDone(const fraction: double; CONST stepMessage:ansistring='');
+PROCEDURE T_progressEstimator.logFractionDone(CONST fraction: double; CONST stepMessage:ansistring='');
   VAR i:longint;
   begin
-    system.EnterCriticalsection(cs);
+    system.enterCriticalSection(cs);
     if (length(progress)<30) or (messages) then setLength(progress,length(progress)+1)
     else for i:=0 to length(progress)-2 do progress[i]:=progress[i+1];
     with progress[length(progress)-1] do begin
@@ -81,36 +84,56 @@ procedure T_progressEstimator.logFractionDone(const fraction: double; CONST step
       fractionDone:=fraction;
       message:=stepMessage;
     end;
-    system.LeaveCriticalsection(cs);
+    system.leaveCriticalSection(cs);
   end;
 
-function T_progressEstimator.estimatedFinalTime: double;
+FUNCTION T_progressEstimator.estimatedFinalTime: double;
   begin
-    system.EnterCriticalsection(cs);
+    system.enterCriticalSection(cs);
     result:=(1-progress[0].fractionDone)/(progress[length(progress)-1].fractionDone-progress[0].fractionDone)
                                         *(progress[length(progress)-1].time        -progress[0].time        )+progress[0].time;
-    system.LeaveCriticalsection(cs);
+    system.leaveCriticalSection(cs);
   end;
 
-function T_progressEstimator.estimatedRemainingTime: double;
+FUNCTION T_progressEstimator.estimatedRemainingTime: double;
   begin
-    system.EnterCriticalsection(cs);
+    system.enterCriticalSection(cs);
     result:=estimatedFinalTime-now;
-    system.LeaveCriticalsection(cs);
+    system.leaveCriticalSection(cs);
   end;
 
-procedure T_progressEstimator.cancelCalculation;
+FUNCTION T_progressEstimator.getProgressString:ansistring;
   begin
-    system.EnterCriticalsection(cs);
+    system.enterCriticalSection(cs);
+    with progress[length(progress)-1] do result:=IntToStr(round(fractionDone*100))+'%; rem: '+myTimeToStr(estimatedRemainingTime)+'; '+message;
+    system.leaveCriticalSection(cs);
+  end;
+
+PROCEDURE T_progressEstimator.cancelCalculation;
+  begin
+    system.enterCriticalSection(cs);
     cancelled:=true;
-    system.LeaveCriticalsection(cs);
+    system.leaveCriticalSection(cs);
   end;
 
-function T_progressEstimator.cancellationRequested: boolean;
+FUNCTION T_progressEstimator.cancellationRequested: boolean;
   begin
-    system.EnterCriticalsection(cs);
+    system.enterCriticalSection(cs);
     result:=cancelled;
-    system.LeaveCriticalsection(cs);
+    system.leaveCriticalSection(cs);
+  end;
+
+FUNCTION T_progressEstimator.calculating:boolean;
+  begin
+    system.enterCriticalSection(cs);
+    result:=calculationRunning;
+    system.leaveCriticalSection(cs);
+  end;
+
+PROCEDURE T_progressEstimator.waitForEndOfCalculation;
+  VAR sleepTime:longint=0;
+  begin
+    while calculating do begin inc(sleepTime); sleep(sleepTime); end;
   end;
 
 end.

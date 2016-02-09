@@ -308,10 +308,10 @@ FUNCTION isFilename(CONST s: ansistring; CONST acceptedExtensions:array of strin
   begin
     if length(s)=0 then exit(false);
     for i:=1 to length(s) do if not(s[i] in FILENAME_CHARS) then exit(false);
-    ext:=UpperCase(ExtractFileExt(s));
+    ext:=uppercase(extractFileExt(s));
     if length(acceptedExtensions)=0 then exit(true);
     for i:=0 to length(acceptedExtensions)-1 do
-      if UpperCase(acceptedExtensions[i])=ext then exit(true);
+      if uppercase(acceptedExtensions[i])=ext then exit(true);
     result:=false;
   end;
 

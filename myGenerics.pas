@@ -34,7 +34,7 @@ TYPE
 
   T_listOfString=specialize G_list<ansistring>;
   T_listOfIntegers=specialize G_list<longint>;
-  T_listOfDoubles=specialize G_list<double>;  
+  T_listOfDoubles=specialize G_list<double>;
 
   GENERIC G_sparseArray<ENTRY_TYPE>=object
     private
