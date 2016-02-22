@@ -336,7 +336,7 @@ FUNCTION startsWith(CONST input, head: ansistring): boolean;
 
 FUNCTION endsWith(CONST input, tail: ansistring): boolean;
   begin
-    result:=(length(input)>=length(tail)) and (copy(input,length(input)-length(tail),length(tail))=tail);
+    result:=(length(input)>=length(tail)) and (copy(input,length(input)-length(tail)+1,length(tail))=tail);
   end;
 
 FUNCTION unbrace(CONST s:ansistring):ansistring;
