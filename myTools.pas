@@ -49,14 +49,15 @@ TYPE
       poolThreadsRunning:longint;      //
       busyThreads:longint;             //
       queuedCount:longint;             //
-      PROCEDURE logFractionDone(CONST fraction:double; CONST stepMessage:ansistring='');
+      PROCEDURE logFractionDone(CONST fraction:double);
     public
       CONSTRUCTOR create(CONST child:P_progressEstimatorQueue=nil);
       PROCEDURE forceStart(CONST typ:T_estimatorType; CONST expectedTotalSteps:longint=0);
       DESTRUCTOR destroy;
       PROCEDURE logEnd;
-      PROCEDURE logStepDone(CONST stepMessage:ansistring='');
-      FUNCTION estimatedFinalTime:double;
+      PROCEDURE logStepDone;
+      PROCEDURE logStepMessage(CONST message:ansistring);
+      FUNCTION estimatedTotalTime:double;
       FUNCTION estimatedRemainingTime:double;
       FUNCTION getProgressString:ansistring;
       PROCEDURE cancelCalculation(CONST waitForTerminate:boolean=false);
@@ -142,7 +143,7 @@ PROCEDURE T_progressEstimatorQueue.logEnd;
     system.leaveCriticalSection(cs);
   end;
 
-PROCEDURE T_progressEstimatorQueue.logFractionDone(CONST fraction: double; CONST stepMessage:ansistring='');
+PROCEDURE T_progressEstimatorQueue.logFractionDone(CONST fraction: double);
   VAR i:longint;
   begin
     system.enterCriticalSection(cs);
@@ -151,34 +152,46 @@ PROCEDURE T_progressEstimatorQueue.logFractionDone(CONST fraction: double; CONST
     with progress[length(progress)-1] do begin
       time:=now;
       fractionDone:=fraction;
-      message:=stepMessage;
     end;
     system.leaveCriticalSection(cs);
   end;
 
-PROCEDURE T_progressEstimatorQueue.logStepDone(CONST stepMessage:ansistring='');
+PROCEDURE T_progressEstimatorQueue.logStepMessage(CONST message:ansistring);
+  VAR li:longint;
+  begin
+    system.enterCriticalSection(cs);
+    li:=length(progress)-1;
+    if (li>=0) then progress[li].message:=message;
+    system.leaveCriticalSection(cs);
+  end;
+
+PROCEDURE T_progressEstimatorQueue.logStepDone;
   begin
     system.enterCriticalSection(cs);
     inc(stepsDone);
-    logFractionDone(stepsDone/totalSteps,stepMessage);
+    logFractionDone(stepsDone/totalSteps);
     if stepsDone=totalSteps then logEnd;
     system.leaveCriticalSection(cs);
   end;
 
-FUNCTION T_progressEstimatorQueue.estimatedFinalTime: double;
+FUNCTION T_progressEstimatorQueue.estimatedTotalTime: double;
+  VAR li:longint;
   begin
     system.enterCriticalSection(cs);
-    result:=now+
-     (progress[0].time        -now )/
-     (progress[0].fractionDone-progress[length(progress)-1].fractionDone)*
-     (                       1-progress[length(progress)-1].fractionDone);
+    li:=length(progress)-1;
+    if li=0
+    then begin
+      if (childProgress<>nil) and (childProgress^.calculating) then begin
+        result:=childProgress^.estimatedTotalTime*totalSteps;
+      end else result:=1;
+    end else result:=(progress[li].time-progress[0].time)/(progress[li].fractionDone-progress[0].fractionDone);
     system.leaveCriticalSection(cs);
   end;
 
 FUNCTION T_progressEstimatorQueue.estimatedRemainingTime: double;
   begin
     system.enterCriticalSection(cs);
-    result:=estimatedFinalTime-now;
+    result:=(1-progress[length(progress)-1].fractionDone)*estimatedTotalTime;
     system.leaveCriticalSection(cs);
   end;
 
@@ -188,10 +201,11 @@ FUNCTION T_progressEstimatorQueue.getProgressString:ansistring;
     with progress[length(progress)-1] do case state of
       eqs_done:      result:='done ('+myTimeToStr(time-startOfCalculation)+')';
       eqs_cancelled: result:='cancelled ('+myTimeToStr(time-startOfCalculation)+')';
-      else begin
+      eqs_reset,eqs_running,eqs_cancelling: begin
         result:=intToStr(round(fractionDone*100))+'%; rem: '+myTimeToStr(estimatedRemainingTime)+'; '+message;
         if (message='') and (childProgress<>nil) then result:=result+childProgress^.getProgressString;
       end;
+      else result:='';
     end;
     system.leaveCriticalSection(cs);
   end;
