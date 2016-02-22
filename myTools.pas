@@ -1,63 +1,129 @@
 UNIT myTools;
 INTERFACE
-USES sysutils,myStringUtil;
+USES sysutils,myStringUtil,mySys,math;
+CONST ESTIMATOR_PROGRESS_STEP_AIM=32;
 TYPE
-  P_progressEstimator=^T_progressEstimator;
-  T_progressEstimator=object
+  T_callback=PROCEDURE of object;
+  T_estimatorType=(et_uninitialized,
+                   et_stepCounter_parallel,
+                   et_commentedStepsOfVaryingCost_serial);
+  T_estimatorQueueState=(eqs_invalid,   //on construction
+                         eqs_reset,     //on force start
+                         eqs_running,   //on enqueue
+                         eqs_cancelling,//on cancel calculation
+                         eqs_cancelled, //on eqs_cancelling and queuedCount=busyThreads=0
+                         eqs_done);     //on logEnd or eqs_running and queuedCount=busyThreads=0
+
+
+  T_taskState=(fts_pending,    //set on construction
+               fts_evaluating, //set on dequeue
+               fts_ready);     //set after evaluation
+
+  P_queueToDo=^T_queueToDo;
+  T_queueToDo=object
+    state:T_taskState;
+    next:P_queueToDo;
+    CONSTRUCTOR create;
+    DESTRUCTOR destroy; virtual;
+    PROCEDURE execute; virtual;
+  end;
+
+  P_progressEstimatorQueue=^T_progressEstimatorQueue;
+  T_progressEstimatorQueue=object
     private
-      cs:TRTLCriticalSection;
-      progress:array of record
-        time,fractionDone:double;
-        message:ansistring;
-      end;
-      cancelled:boolean;
-      calculationRunning:boolean;
-      messages:boolean;
-    public
-      CONSTRUCTOR createWithMessages;
-      CONSTRUCTOR createSimple;
-      DESTRUCTOR destroy;
-      PROCEDURE logStart;
-      PROCEDURE logEnd;
+      //shared variables:--------------//
+      onEndCallback:T_callback;        //
+      cs:TRTLCriticalSection;          //
+      state:T_estimatorQueueState;     //
+      childProgress:P_progressEstimatorQueue;
+      //progress estimator variables:--//
+      startOfCalculation:double;       //
+      estimatorType:T_estimatorType;   //
+      progress:array of record         //
+        time,fractionDone:double;      //
+        message:ansistring;            //
+      end;                             //
+      totalSteps,stepsDone:longint;    //
+      //queue variables:---------------//
+      first,last:P_queueToDo;          //
+      poolThreadsRunning:longint;      //
+      busyThreads:longint;             //
+      queuedCount:longint;             //
       PROCEDURE logFractionDone(CONST fraction:double; CONST stepMessage:ansistring='');
+    public
+      CONSTRUCTOR create(CONST child:P_progressEstimatorQueue=nil);
+      PROCEDURE forceStart(CONST typ:T_estimatorType; CONST expectedTotalSteps:longint=0);
+      DESTRUCTOR destroy;
+      PROCEDURE logEnd;
+      PROCEDURE logStepDone(CONST stepMessage:ansistring='');
       FUNCTION estimatedFinalTime:double;
       FUNCTION estimatedRemainingTime:double;
       FUNCTION getProgressString:ansistring;
-      PROCEDURE cancelCalculation;
+      PROCEDURE cancelCalculation(CONST waitForTerminate:boolean=false);
       FUNCTION cancellationRequested:boolean;
       FUNCTION calculating:boolean;
       PROCEDURE waitForEndOfCalculation;
+      PROCEDURE registerOnEndCallback(CONST callback:T_callback);
+      PROCEDURE ensureStop;
+
+      PROCEDURE enqueue(CONST task:P_queueToDo);
+      FUNCTION  dequeue:P_queueToDo;
+      FUNCTION  activeDeqeue:boolean;
   end;
 
 IMPLEMENTATION
 
-CONSTRUCTOR T_progressEstimator.createWithMessages;
+{ T_queueToDo }
+
+CONSTRUCTOR T_queueToDo.create;
   begin
-    createSimple;
-    messages:=true;
+    state:=fts_pending;
+    next:=nil;
   end;
 
-CONSTRUCTOR T_progressEstimator.createSimple;
+DESTRUCTOR T_queueToDo.destroy;
   begin
-    cancelled:=false;
-    calculationRunning:=false;
-    messages:=false;
+    state:=fts_pending;
+    next:=nil;
+  end;
+
+PROCEDURE T_queueToDo.execute;
+  begin writeln('Dummy-execute was called!!!!!'); end; //-dummy-
+
+CONSTRUCTOR T_progressEstimatorQueue.create(CONST child:P_progressEstimatorQueue=nil);
+  begin
+    state:=eqs_invalid;
+    estimatorType:=et_uninitialized;
     system.initCriticalSection(cs);
+    onEndCallback:=nil;
+    first:=nil;
+    last:=nil;
+    queuedCount:=0;
+    childProgress:=child;
   end;
 
-DESTRUCTOR T_progressEstimator.destroy;
+DESTRUCTOR T_progressEstimatorQueue.destroy;
   begin
+    cancelCalculation(true);
     system.enterCriticalSection(cs);
     setLength(progress,0);
     system.leaveCriticalSection(cs);
     system.doneCriticalSection(cs);
   end;
 
-PROCEDURE T_progressEstimator.logStart;
+PROCEDURE T_progressEstimatorQueue.forceStart(CONST typ:T_estimatorType; CONST expectedTotalSteps:longint=0);
   begin
+    cancelCalculation(true);
+    if typ=et_uninitialized then begin
+      writeln(stderr,'Invalid estimator type!');
+      halt;
+    end;
+    startOfCalculation:=now;
+    estimatorType:=typ;
+    totalSteps:=expectedTotalSteps;
+    stepsDone:=0;
     system.enterCriticalSection(cs);
-    cancelled:=false;
-    calculationRunning:=true;
+    state:=eqs_reset;
     setLength(progress,1);
     progress[0].time:=now;
     progress[0].fractionDone:=0;
@@ -65,19 +131,22 @@ PROCEDURE T_progressEstimator.logStart;
     system.leaveCriticalSection(cs);
   end;
 
-PROCEDURE T_progressEstimator.logEnd;
+PROCEDURE T_progressEstimatorQueue.logEnd;
   begin
     system.enterCriticalSection(cs);
-    if not(cancelled) then logFractionDone(1);
-    calculationRunning:=false;
+    if state in [eqs_reset,eqs_running] then begin
+      logFractionDone(1);
+      state:=eqs_done;
+      if onEndCallback<>nil then onEndCallback();
+    end;
     system.leaveCriticalSection(cs);
   end;
 
-PROCEDURE T_progressEstimator.logFractionDone(CONST fraction: double; CONST stepMessage:ansistring='');
+PROCEDURE T_progressEstimatorQueue.logFractionDone(CONST fraction: double; CONST stepMessage:ansistring='');
   VAR i:longint;
   begin
     system.enterCriticalSection(cs);
-    if (length(progress)<30) or (messages) then setLength(progress,length(progress)+1)
+    if (length(progress)<ESTIMATOR_PROGRESS_STEP_AIM) or (estimatorType=et_commentedStepsOfVaryingCost_serial) then setLength(progress,length(progress)+1)
     else for i:=0 to length(progress)-2 do progress[i]:=progress[i+1];
     with progress[length(progress)-1] do begin
       time:=now;
@@ -87,53 +156,178 @@ PROCEDURE T_progressEstimator.logFractionDone(CONST fraction: double; CONST step
     system.leaveCriticalSection(cs);
   end;
 
-FUNCTION T_progressEstimator.estimatedFinalTime: double;
+PROCEDURE T_progressEstimatorQueue.logStepDone(CONST stepMessage:ansistring='');
   begin
     system.enterCriticalSection(cs);
-    result:=(1-progress[0].fractionDone)/(progress[length(progress)-1].fractionDone-progress[0].fractionDone)
-                                        *(progress[length(progress)-1].time        -progress[0].time        )+progress[0].time;
+    inc(stepsDone);
+    logFractionDone(stepsDone/totalSteps,stepMessage);
+    if stepsDone=totalSteps then logEnd;
     system.leaveCriticalSection(cs);
   end;
 
-FUNCTION T_progressEstimator.estimatedRemainingTime: double;
+FUNCTION T_progressEstimatorQueue.estimatedFinalTime: double;
+  begin
+    system.enterCriticalSection(cs);
+    result:=now+
+     (progress[0].time        -now )/
+     (progress[0].fractionDone-progress[length(progress)-1].fractionDone)*
+     (                       1-progress[length(progress)-1].fractionDone);
+    system.leaveCriticalSection(cs);
+  end;
+
+FUNCTION T_progressEstimatorQueue.estimatedRemainingTime: double;
   begin
     system.enterCriticalSection(cs);
     result:=estimatedFinalTime-now;
     system.leaveCriticalSection(cs);
   end;
 
-FUNCTION T_progressEstimator.getProgressString:ansistring;
+FUNCTION T_progressEstimatorQueue.getProgressString:ansistring;
   begin
     system.enterCriticalSection(cs);
-    with progress[length(progress)-1] do result:=intToStr(round(fractionDone*100))+'%; rem: '+myTimeToStr(estimatedRemainingTime)+'; '+message;
+    with progress[length(progress)-1] do case state of
+      eqs_done:      result:='done ('+myTimeToStr(time-startOfCalculation)+')';
+      eqs_cancelled: result:='cancelled ('+myTimeToStr(time-startOfCalculation)+')';
+      else begin
+        result:=intToStr(round(fractionDone*100))+'%; rem: '+myTimeToStr(estimatedRemainingTime)+'; '+message;
+        if (message='') and (childProgress<>nil) then result:=result+childProgress^.getProgressString;
+      end;
+    end;
     system.leaveCriticalSection(cs);
   end;
 
-PROCEDURE T_progressEstimator.cancelCalculation;
+PROCEDURE T_progressEstimatorQueue.cancelCalculation(CONST waitForTerminate:boolean=false);
+  VAR task:P_queueToDo;
+  begin
+    if childProgress<>nil then childProgress^.cancelCalculation(waitForTerminate);
+    system.enterCriticalSection(cs);
+    state:=eqs_cancelling;
+    system.leaveCriticalSection(cs);
+    while queuedCount>0 do begin
+      task:=dequeue;
+      if task<>nil then dispose(task,destroy);
+    end;
+    if waitForTerminate then while (busyThreads>0) do sleep(10);
+  end;
+
+FUNCTION T_progressEstimatorQueue.cancellationRequested: boolean;
   begin
     system.enterCriticalSection(cs);
-    cancelled:=true;
+    result:=state in [eqs_cancelling,eqs_cancelled];
     system.leaveCriticalSection(cs);
   end;
 
-FUNCTION T_progressEstimator.cancellationRequested: boolean;
+FUNCTION T_progressEstimatorQueue.calculating:boolean;
   begin
     system.enterCriticalSection(cs);
-    result:=cancelled;
+    if (busyThreads=0) and (queuedCount=0) then case state of
+      eqs_running:    state:=eqs_done;
+      eqs_cancelling: state:=eqs_cancelled;
+    end;
+    result:=state in [eqs_running,eqs_cancelling];
     system.leaveCriticalSection(cs);
   end;
 
-FUNCTION T_progressEstimator.calculating:boolean;
+PROCEDURE T_progressEstimatorQueue.waitForEndOfCalculation;
+  begin
+    while calculating do sleep(10);
+  end;
+
+PROCEDURE T_progressEstimatorQueue.registerOnEndCallback(CONST callback:T_callback);
+  begin
+    onEndCallback:=callback;
+  end;
+
+PROCEDURE T_progressEstimatorQueue.ensureStop;
+  begin
+    if calculating then cancelCalculation(true);
+  end;
+
+FUNCTION queueThreadPoolThread(p:pointer):ptrint;
+  VAR currentTask:P_queueToDo;
+      queue:P_progressEstimatorQueue;
+      idleCount:longint=0;
+  begin
+    SetExceptionMask([exInvalidOp,exDenormalized,exZeroDivide,exOverflow,exUnderflow,exPrecision]);
+    randomize;
+    queue:=P_progressEstimatorQueue(p);
+    //Initially, the thread is considered busy
+    InterLockedIncrement(queue^.busyThreads);
+    repeat
+      currentTask:=queue^.dequeue;
+      if currentTask=nil then begin
+        //The thread was busy before, mark it as idle once
+        if idleCount=0 then interlockedDecrement(queue^.busyThreads);
+        inc(idleCount);
+
+        sleep(1);
+      end else begin
+        //If the thread was idle before, mark it as busy again
+        if idleCount>0 then InterLockedIncrement(queue^.busyThreads);
+        idleCount:=0;
+
+        currentTask^.execute;
+        dispose(currentTask,destroy);
+      end;
+    until (idleCount>10) or queue^.cancellationRequested;
+    //The thread was busy before, finally mark it as idle
+    if idleCount=0 then interlockedDecrement(queue^.busyThreads);
+    //Say goodbye before you go
+    interlockedDecrement(queue^.poolThreadsRunning);
+    result:=0;
+  end;
+
+PROCEDURE T_progressEstimatorQueue.enqueue(CONST task:P_queueToDo);
+  PROCEDURE ensurePoolThreads;
+    begin
+      if (poolThreadsRunning<getNumberOfCPUs) and (estimatorType=et_stepCounter_parallel)
+      or (poolThreadsRunning=0              ) and (estimatorType=et_commentedStepsOfVaryingCost_serial)
+      then begin
+        InterLockedIncrement(poolThreadsRunning);
+        beginThread(@queueThreadPoolThread,@self);
+      end;
+    end;
+
+  begin
+    task^.state:=fts_pending;
+    task^.next:=nil;
+    system.enterCriticalSection(cs);
+    state:=eqs_running;
+    if first=nil then begin
+      queuedCount:=1;
+      first:=task;
+      last:=task;
+    end else begin
+      inc(queuedCount);
+      last^.next:=task;
+      last:=task;
+    end;
+    system.leaveCriticalSection(cs);
+    ensurePoolThreads;
+  end;
+
+FUNCTION T_progressEstimatorQueue.dequeue:P_queueToDo;
   begin
     system.enterCriticalSection(cs);
-    result:=calculationRunning;
+    if first=nil then result:=nil
+    else begin
+      dec(queuedCount);
+      result:=first;
+      first:=first^.next;
+      result^.state:=fts_evaluating;
+    end;
     system.leaveCriticalSection(cs);
   end;
 
-PROCEDURE T_progressEstimator.waitForEndOfCalculation;
-  VAR sleepTime:longint=0;
+FUNCTION T_progressEstimatorQueue.activeDeqeue:boolean;
+  VAR task:P_queueToDo;
   begin
-    while calculating do begin inc(sleepTime); sleep(sleepTime); end;
+    task:=dequeue;
+    if task<>nil then begin
+      task^.execute;
+      dispose(task,destroy);
+      result:=true;
+    end else result:=false;
   end;
 
 end.
