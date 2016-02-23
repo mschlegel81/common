@@ -157,11 +157,11 @@ PROCEDURE T_progressEstimatorQueue.logFractionDone(CONST fraction: double);
   end;
 
 PROCEDURE T_progressEstimatorQueue.logStepMessage(CONST message:ansistring);
-  VAR li:longint;
+  VAR LI:longint;
   begin
     system.enterCriticalSection(cs);
-    li:=length(progress)-1;
-    if (li>=0) then progress[li].message:=message;
+    LI:=length(progress)-1;
+    if (LI>=0) then progress[LI].message:=message;
     system.leaveCriticalSection(cs);
   end;
 
@@ -175,23 +175,27 @@ PROCEDURE T_progressEstimatorQueue.logStepDone;
   end;
 
 FUNCTION T_progressEstimatorQueue.estimatedTotalTime: double;
-  VAR li:longint;
+  VAR LI:longint;
   begin
     system.enterCriticalSection(cs);
-    li:=length(progress)-1;
-    if li=0
-    then begin
-      if (childProgress<>nil) and (childProgress^.calculating) then begin
-        result:=childProgress^.estimatedTotalTime*totalSteps;
-      end else result:=1;
-    end else result:=(progress[li].time-progress[0].time)/(progress[li].fractionDone-progress[0].fractionDone);
+    LI:=length(progress)-1;
+    if LI=0 then begin
+      if (childProgress<>nil) and (childProgress^.calculating)
+      then result:=childProgress^.estimatedTotalTime*totalSteps
+      else result:=1;
+    end else begin
+      result:=(progress[LI].time-progress[0].time)/(progress[LI].fractionDone-progress[0].fractionDone);
+      if (childProgress<>nil) and (childProgress^.calculating)
+      then result:=result+childProgress^.estimatedTotalTime;
+    end;
     system.leaveCriticalSection(cs);
   end;
 
 FUNCTION T_progressEstimatorQueue.estimatedRemainingTime: double;
   begin
     system.enterCriticalSection(cs);
-    result:=(1-progress[length(progress)-1].fractionDone)*estimatedTotalTime;
+    result:=                 (1-progress[length(progress)-1].fractionDone)*estimatedTotalTime+(progress[length(progress)-1].time-now);
+    if result<0 then result:=(1-progress[length(progress)-1].fractionDone)*estimatedTotalTime;
     system.leaveCriticalSection(cs);
   end;
 
@@ -202,8 +206,11 @@ FUNCTION T_progressEstimatorQueue.getProgressString:ansistring;
       eqs_done:      result:='done ('+myTimeToStr(time-startOfCalculation)+')';
       eqs_cancelled: result:='cancelled ('+myTimeToStr(time-startOfCalculation)+')';
       eqs_reset,eqs_running,eqs_cancelling: begin
-        result:=intToStr(round(fractionDone*100))+'%; rem: '+myTimeToStr(estimatedRemainingTime)+'; '+message;
-        if (message='') and (childProgress<>nil) then result:=result+childProgress^.getProgressString;
+        if estimatorType=et_commentedStepsOfVaryingCost_serial
+        then result:=intToStr(stepsDone)+'/'+intToStr(totalSteps)
+        else result:=intToStr(round(fractionDone*100))+'%';
+        result:=result+'; rem: '+myTimeToStr(estimatedRemainingTime)+'; '+message;
+        if (childProgress<>nil) and (childProgress^.calculating) then result:=result+childProgress^.getProgressString;
       end;
       else result:='';
     end;
