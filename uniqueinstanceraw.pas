@@ -69,7 +69,7 @@ begin
       // an instance already exists
       if SendParameters then
       begin
-        Active := true;
+        active := true;
         SendStringMessage(paramCount, GetFormattedParams);
       end;
   finally

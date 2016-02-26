@@ -4,6 +4,7 @@ USES dos,myGenerics,sysutils,Process,{$ifdef WINDOWS}windows,{$endif}FileUtil,Cl
 
 FUNCTION getEnvironment:T_arrayOfString;
 FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
+FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
 PROCEDURE clearConsole;
 PROCEDURE getFileInfo(CONST filePath:string; OUT time:double; OUT size:int64; OUT isExistent, isArchive, isDirectory, isReadOnly, isSystem, isHidden:boolean);
 FUNCTION getNumberOfCPUs:longint;
@@ -68,6 +69,15 @@ FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
   begin
     result:='';
     recursePath(rootPath);
+  end;
+
+FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
+  VAR info: TSearchRec;
+  begin
+    if FindFirst(searchPattern,faAnyFile,info)=0
+    then result:=info.name
+    else result:='';
+    sysutils.FindClose(info);
   end;
 
 VAR clearConsoleProcess:TProcess=nil;

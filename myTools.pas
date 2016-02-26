@@ -28,6 +28,11 @@ TYPE
     PROCEDURE execute; virtual;
   end;
 
+  T_progressLog=array of record
+    message:ansistring;
+    timeUsed:double;
+  end;
+
   P_progressEstimatorQueue=^T_progressEstimatorQueue;
   T_progressEstimatorQueue=object
     private
@@ -70,6 +75,8 @@ TYPE
       PROCEDURE enqueue(CONST task:P_queueToDo);
       FUNCTION  dequeue:P_queueToDo;
       FUNCTION  activeDeqeue:boolean;
+
+      FUNCTION log:T_progressLog;
   end;
 
 IMPLEMENTATION
@@ -116,7 +123,7 @@ PROCEDURE T_progressEstimatorQueue.forceStart(CONST typ:T_estimatorType; CONST e
   begin
     cancelCalculation(true);
     if typ=et_uninitialized then begin
-      writeln(stderr,'Invalid estimator type!');
+      writeln(stdErr,'Invalid estimator type!');
       halt;
     end;
     startOfCalculation:=now;
@@ -220,7 +227,7 @@ FUNCTION T_progressEstimatorQueue.getProgressString:ansistring;
 PROCEDURE T_progressEstimatorQueue.cancelCalculation(CONST waitForTerminate:boolean=false);
   VAR task:P_queueToDo;
   begin
-    if childProgress<>nil then childProgress^.cancelCalculation(waitForTerminate);
+    if childProgress<>nil then childProgress^.cancelCalculation(false);
     system.enterCriticalSection(cs);
     state:=eqs_cancelling;
     system.leaveCriticalSection(cs);
@@ -349,6 +356,19 @@ FUNCTION T_progressEstimatorQueue.activeDeqeue:boolean;
       dispose(task,destroy);
       result:=true;
     end else result:=false;
+  end;
+
+FUNCTION T_progressEstimatorQueue.log:T_progressLog;
+  VAR i:longint;
+  begin
+    system.enterCriticalSection(cs);
+    setLength(result,length(progress));
+    for i:=0 to length(result)-1 do begin
+      result[i].message:=progress[i].message;
+      if i<length(result)-1 then result[i].timeUsed:=progress[i+1].time-progress[i].time
+                            else result[i].timeUsed:=-1;
+    end;
+    system.leaveCriticalSection(cs);
   end;
 
 end.
