@@ -214,10 +214,9 @@ FUNCTION T_progressEstimatorQueue.getProgressString:ansistring;
       eqs_cancelled: result:='cancelled ('+myTimeToStr(time-startOfCalculation)+')';
       eqs_reset,eqs_running,eqs_cancelling: begin
         if estimatorType=et_commentedStepsOfVaryingCost_serial
-        then result:=intToStr(stepsDone)+'/'+intToStr(totalSteps)
-        else result:=intToStr(round(fractionDone*100))+'%';
-        result:=result+'; rem: '+myTimeToStr(estimatedRemainingTime)+'; '+message;
-        if (childProgress<>nil) and (childProgress^.calculating) then result:=result+childProgress^.getProgressString;
+        then result:=intToStr(stepsDone)+'/'+intToStr(totalSteps)+'; '+message
+        else result:=intToStr(round(fractionDone*100))+'%; rem: '+myTimeToStr(estimatedRemainingTime);
+        if (childProgress<>nil) and (childProgress^.calculating) then result:=result+'; '+childProgress^.getProgressString;
       end;
       else result:='';
     end;
