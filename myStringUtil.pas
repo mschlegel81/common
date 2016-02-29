@@ -12,7 +12,7 @@ CONST
   C_formFeedChar = #12;
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
-  FILENAME_CHARS:charSet=['a'..'z','A'..'Z','0'..'9','.','_','/','\',':'];
+  FILENAME_CHARS:charSet=['a'..'z','A'..'Z','0'..'9','.','_','/','\',':',' '];
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
 FUNCTION isBlank(CONST s: ansistring): boolean;
