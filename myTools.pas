@@ -96,7 +96,7 @@ DESTRUCTOR T_queueToDo.destroy;
   end;
 
 PROCEDURE T_queueToDo.execute;
-  begin writeln('Dummy-execute was called!!!!!'); end; //-dummy-
+  begin writeln(stdErr,'Dummy-execute was called!!!!!'); end; //-dummy-
 
 CONSTRUCTOR T_progressEstimatorQueue.create(CONST child:P_progressEstimatorQueue=nil);
   begin

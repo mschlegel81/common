@@ -63,6 +63,7 @@ TYPE
   PROCEDURE append(VAR x:T_arrayOfString; CONST y:T_arrayOfString);
   PROCEDURE dropFirst(VAR x:T_arrayOfString; CONST dropCount:longint);
   FUNCTION C_EMPTY_STRING_ARRAY:T_arrayOfString;
+  FUNCTION C_EMPTY_DOUBLE_ARRAY:T_arrayOfDouble;
 
   { G_stringKeyMap }
 TYPE
@@ -194,6 +195,7 @@ PROCEDURE dropFirst(VAR x:T_arrayOfString; CONST dropCount:longint);
   end;
 
 FUNCTION C_EMPTY_STRING_ARRAY:T_arrayOfString; begin setLength(result,0); end;
+FUNCTION C_EMPTY_DOUBLE_ARRAY:T_arrayOfDouble; begin setLength(result,0); end;
 
 FUNCTION hashOfAnsiString(CONST x:ansistring):longint; inline;
   VAR i:longint;

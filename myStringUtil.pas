@@ -12,7 +12,6 @@ CONST
   C_formFeedChar = #12;
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
-  FILENAME_CHARS:charSet=['a'..'z','A'..'Z','0'..'9','.','_','/','\',':',' '];
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
 FUNCTION isBlank(CONST s: ansistring): boolean;
@@ -307,7 +306,6 @@ FUNCTION isFilename(CONST s: ansistring; CONST acceptedExtensions:array of strin
       ext:string;
   begin
     if length(s)=0 then exit(false);
-    for i:=1 to length(s) do if not(s[i] in FILENAME_CHARS) then exit(false);
     ext:=uppercase(extractFileExt(s));
     if length(acceptedExtensions)=0 then exit(true);
     for i:=0 to length(acceptedExtensions)-1 do
