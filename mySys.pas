@@ -19,6 +19,8 @@ FUNCTION readString(VAR handle:file):ansistring;
 {$endif}
 PROCEDURE showConsole;
 PROCEDURE hideConsole;
+PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
+FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 
 VAR CMD_PATH,
     SEVEN_ZIP_PATH,
@@ -255,6 +257,30 @@ FUNCTION readString(VAR handle:file):ansistring;
       for j:=0 to j1-1 do result:=result+buffer[j];
       inc(i,j1);
     end;
+  end;
+
+PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
+  VAR handle:text;
+      i:longint;
+  begin
+    assign(handle,fileName);
+    rewrite(handle);
+    for i:=0 to length(lines)-1 do writeln(handle,lines[i]);
+    close(handle);
+  end;
+
+FUNCTION readFile(CONST fileName:string):T_arrayOfString;
+  VAR handle:text;
+  begin
+    if not(fileExists(fileName)) then exit(C_EMPTY_STRING_ARRAY);
+    assign(handle,fileName);
+    reset(handle);
+    setLength(result,0);
+    while not(eof(handle)) do begin
+      setLength(result,length(result)+1);
+      readln(handle,result[length(result)-1]);
+    end;
+    close(handle);
   end;
 
 INITIALIZATION
