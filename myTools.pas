@@ -108,6 +108,7 @@ CONSTRUCTOR T_progressEstimatorQueue.create(CONST child:P_progressEstimatorQueue
     last:=nil;
     queuedCount:=0;
     childProgress:=child;
+    logEnd;
   end;
 
 DESTRUCTOR T_progressEstimatorQueue.destroy;
@@ -209,6 +210,7 @@ FUNCTION T_progressEstimatorQueue.estimatedRemainingTime: double;
 FUNCTION T_progressEstimatorQueue.getProgressString:ansistring;
   begin
     system.enterCriticalSection(cs);
+    if length(progress)<=0 then exit('');
     with progress[length(progress)-1] do case state of
       eqs_done:      result:='done ('+myTimeToStr(time-startOfCalculation)+')';
       eqs_cancelled: result:='cancelled ('+myTimeToStr(time-startOfCalculation)+')';
@@ -234,7 +236,7 @@ PROCEDURE T_progressEstimatorQueue.cancelCalculation(CONST waitForTerminate:bool
       task:=dequeue;
       if task<>nil then dispose(task,destroy);
     end;
-    if waitForTerminate then while (busyThreads>0) do sleep(10);
+    if waitForTerminate then while (busyThreads>0) and calculating do sleep(10);
   end;
 
 FUNCTION T_progressEstimatorQueue.cancellationRequested: boolean;
