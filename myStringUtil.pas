@@ -32,6 +32,9 @@ FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString):T_arrayOfStr
 FUNCTION join(CONST lines:T_arrayOfString; CONST joiner:ansistring):ansistring;
 FUNCTION cleanString(CONST s:ansistring; CONST whiteList:charSet; CONST instead:char):ansistring;
 FUNCTION myTimeToStr(dt:double):string;
+FUNCTION isAsciiEncoded(CONST s: ansistring): boolean;
+FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
+FUNCTION StripHTML(S: string): string;
 
 IMPLEMENTATION
 
@@ -429,6 +432,83 @@ FUNCTION myTimeToStr(dt:double):string;
         dt:=(dt-floor(dt))*60; result:=result+formatFloat('00',floor(dt));
       end
     else result:=timeToStr(dt);
+  end;
+
+FUNCTION isAsciiEncoded(CONST s: ansistring): boolean;
+  VAR i:longint;
+  begin
+    for i:=1 to length(s) do if ord(s[i])>127 then exit(false);
+    result:=true;
+  end;
+
+FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
+  VAR i:longint;
+  begin
+    if length(s)=0 then exit(true);
+    i:=1;
+    while i<=length(s) do begin
+      // ASCII
+      if (s[i] in [#$09,#$0A,#$0D,#$20..#$7E]) then begin
+        inc(i);
+        continue;
+      end;
+      // non-overlong 2-byte
+      if (i+1<=length(s)) and
+         (s[i  ] in [#$C2..#$DF]) and
+         (s[i+1] in [#$80..#$BF]) then begin
+        inc(i,2);
+        continue;
+      end;
+      // excluding overlongs
+      if (i+2<=length(s)) and
+         (((s[i]=#$E0) and
+           (s[i+1] in [#$A0..#$BF]) and
+           (s[i+2] in [#$80..#$BF])) or
+          ((s[i] in [#$E1..#$EC,#$EE,#$EF]) and
+           (s[i+1] in [#$80..#$BF]) and
+           (s[i+2] in [#$80..#$BF])) or
+          ((s[i]=#$ED) and
+           (s[i+1] in [#$80..#$9F]) and
+           (s[i+2] in [#$80..#$BF]))) then
+      begin
+        inc(i,3);
+        continue;
+      end;
+      // planes 1-3
+      if (i+3<=length(s)) and
+         (((s[i  ]=#$F0) and
+           (s[i+1] in [#$90..#$BF]) and
+           (s[i+2] in [#$80..#$BF]) and
+           (s[i+3] in [#$80..#$BF])) or
+          ((s[i  ] in [#$F1..#$F3]) and
+           (s[i+1] in [#$80..#$BF]) and
+           (s[i+2] in [#$80..#$BF]) and
+           (s[i+3] in [#$80..#$BF])) or
+          ((s[i]=#$F4) and
+           (s[i+1] in [#$80..#$8F]) and
+           (s[i+2] in [#$80..#$BF]) and
+           (s[i+3] in [#$80..#$BF]))) then
+      begin
+        inc(i,4);
+        continue;
+      end;
+      exit(false);
+    end;
+    exit(true);
+  end;
+
+FUNCTION StripHTML(S: string): string;
+  VAR TagBegin, TagEnd, TagLength: integer;
+  begin
+    TagBegin := pos( '<', S);      // search position of first <
+    while (TagBegin > 0) do begin  // while there is a < in S
+      TagEnd := pos('>', S);              // find the matching >
+      TagEnd := PosEx('>',S,TagBegin);
+      TagLength := TagEnd - TagBegin + 1;
+      Delete(S, TagBegin, TagLength);     // delete the tag
+      TagBegin:= pos( '<', S);            // search for next <
+    end;
+    result := S;
   end;
 
 end.
