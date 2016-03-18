@@ -246,7 +246,7 @@ PROCEDURE writeString(VAR handle:file; CONST s:ansistring);
 
 FUNCTION readString(VAR handle:file):ansistring;
   VAR buffer:array[0..1023] of char;
-      size:SizeInt;
+      size:SizeInt=0;
       i,j1,j:longint;
   begin
     BlockRead(handle,size,sizeOf(SizeInt));

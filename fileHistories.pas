@@ -17,8 +17,8 @@ PROCEDURE removeNonexistent;
     if FileExistsUTF8(history[i]) then begin
       history[j]:=history[i];
       inc(j);
-    end else if pos(':',history[i])>0 then begin
-      fileSet:=split(history[i],T_arrayOfString(':'));
+    end else if pos('&',history[i])>0 then begin
+      fileSet:=split(history[i],T_arrayOfString('&'));
       j2:=0;
       for i2:=0 to length(fileSet)-1 do
       if FileExistsUTF8(fileSet[i2]) then begin
@@ -27,10 +27,22 @@ PROCEDURE removeNonexistent;
       end;
       setLength(fileSet,j2);
       if (j2>0) then begin
-        history[j]:=join(fileSet,':');
+        history[j]:=join(fileSet,'&');
         inc(j);
       end;
     end;
+    setLength(history,j);
+
+    j:=1;
+    for i:=1 to length(history)-1 do begin
+      i2:=0;
+      while (i2<i) and (history[i2]<>history[i]) do inc(i2);
+      if i2>=i then begin
+        history[j]:=history[i];
+        inc(j);
+      end;
+    end;
+    setLength(history,j);
   end;
 
 PROCEDURE addToHistory(CONST utfFile1: ansistring; CONST utfFile2: ansistring; CONST utfFile3: ansistring; CONST utfFile4: ansistring);
@@ -38,9 +50,9 @@ PROCEDURE addToHistory(CONST utfFile1: ansistring; CONST utfFile2: ansistring; C
       i,j:longint;
   begin
     historyLine:=utfFile1;
-    if utfFile2<>'' then historyLine:=historyLine+':'+utfFile2;
-    if utfFile3<>'' then historyLine:=historyLine+':'+utfFile3;
-    if utfFile4<>'' then historyLine:=historyLine+':'+utfFile4;
+    if utfFile2<>'' then historyLine:=historyLine+'&'+utfFile2;
+    if utfFile3<>'' then historyLine:=historyLine+'&'+utfFile3;
+    if utfFile4<>'' then historyLine:=historyLine+'&'+utfFile4;
 
     j:=0;
     for i:=0 to length(history)-1 do if history[i]<>historyLine then begin
