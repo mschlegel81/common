@@ -36,8 +36,8 @@ FUNCTION isAsciiEncoded(CONST s: ansistring): boolean;
 FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
 FUNCTION StripHTML(S: string): string;
 
-FUNCTION compressString(const src: AnsiString):AnsiString;
-FUNCTION decompressString(const src:ansistring):ansistring;
+FUNCTION compressString(CONST src: ansistring):ansistring;
+FUNCTION decompressString(CONST src:ansistring):ansistring;
 
 IMPLEMENTATION
 
@@ -514,183 +514,173 @@ FUNCTION StripHTML(S: string): string;
     result := S;
   end;
 
-CONST
-  MOST_FREQUENT_SUCCESSOR:array[#32..#126] of char=(
-    #32,#45,#62,#82,#105,#115,#115,#44,#112,#59,#115,#39,#32,#45,#10,#47,#65,#48,#65,#65,#65,#65,
-    #65,#65,#65,#65,#32,#13,#47,#61,#60,#32,#115,#110,#101,#104,#97,#103,#111,#111,#101,#32,#101,
-    #105,#111,#111,#83,#78,#95,#117,#101,#84,#104,#78,#65,#104,#44,#101,#101,#39,#116,#44,#49,#95,
-    #32,#110,#101,#111,#32,#32,#32,#32,#101,#110,#117,#101,#108,#101,#100,#114,#101,#117,#101,#32,
-    #104,#110,#101,#105,#116,#32,#101,#36,#32,#13,#39);
+CONST ESCAPER:char=#30;
+      MAX_IDX :array['0'..'9'] of byte=(152,157,162,167,172,177,182,187,192,195);
+      UNUSED  :array[0..195] of char=(#0,#1,#2,#3,#4,#5,#6,#7,#8,#11,#12,#14,#15,#16,#17,#18,#19,#20,#21,#22,#23,#24,#25,#26,#27,#28,#29,#31,#127,#128,#129,#130,#131,#132,#133,#134,#135,#136,#137,#138,#139,#140,#141,#142,#143,#144,#145,#146,#147,#148,#149,#150,#151,#152,#153,#154,#155,#156,#157,#158,#160,#161,#162,#163,#165,#166,#167,#168,#169,#170,#171,#172,#173,#174,#175,#176,#177,#178,#179,#180,#181,#183,#184,#185,#186,#187,#189,#190,#191,#192,#193,#194,#196,#197,#198,#199,#200,#201,#202,#203,#204,#205,#206,#207,#208,#209,#210,#211,#212,#213,#214,#215,#216,#217,#218,#219,#220,#221,#222,#223,#224,#225,#226,#227,#228,#229,#230,#231,#232,#233,#234,#235,#236,#237,#238,#239,#240,#241,#242,#243,#244,#245,#246,#247,#248,#249,#250,#251,#252,#253,#254,#255,#96,#126,#159,#164,#182,#188,#195,#9,#81,#92,#38,#64,#124,#88,#37,#42,#35,#123,#125,#36,#33,#75,#90,#89,#43,#86,#113,#34,#85,#87,#122,#63,#106,#72,#93,#91,#77,#68,#47,#60,#82,#55,#71,#80);
+      FREQUENT:array[0..195] of string[2]=(#32#32,#116#104,#32#116,#101#32,#104#101,#10#32,#100#32,#32#97,#95#95,#110#100,#97#110,#44#32,#116#32,#105#110,#101#114,#32#115,#32#104,#115#32,#32#111,#114#101,#110#32,#32#119,#104#97,#101#110,#111#114,#97#116,#111#102,#102#32,#114#32,#97#108,#32#105,#111#110,#116#111,#104#105,#32#98,#111#32,#111#117,#121#32,#10#10,#101#115,#105#116,#105#115,#32#94,#110#116,#32#102,#115#116,#32#109,#115#101,#116#101,#97#114,#108#108,#104#32,#110#103,#101#100,#108#101,#108#32,#118#101,#32#99,#46#10,#101#97,#109#101,#98#101,#104#111,#97#115,#115#104,#110#101,#32#100,#114#105,#100#101,#32#112,#32#117,#13#10,#114#97,#101#116,#117#110,#102#111,#114#111,#32#110,#105#108,#101#108,#99#111,#119#105,#116#105,#32#101,#110#111,#97#105,#101#109,#101#10,#32#108,#99#104,#114#100,#115#97,#111#109,#109#97,#117#115,#117#116,#111#116,#109#32,#108#105,#117#114,#119#104,#99#97,#65#110,#97#109,#101#101,#58#32,#32#114,#115#44,#32#103,#105#109,#100#44,#119#101,#59#13,#105#100,#103#32,#115#111,#32#73,#107#101,#108#97,#99#101,#119#97,#101#44,#112#101,#114#115,#116#114,#105#99,#110#115,#97#121,#32#121,#97#100,#105#114,#105#111,#94#49,#101#121,#59#32,#108#111,#97#99,#111#119,#111#100,#97#32,#116#97,#115#115,#117#108,#108#100,#115#105,#103#104,#114#116,#109#111,#97#118,#101#105,#111#108,#32#76,#76#111,#112#114,#105#101,#73#32,#103#101,#112#97,#111#115,#100#97,#101#118,#100#111,#100#105,#94#50,#112#111,#104#116,#105#103,#101#99,#102#105,#84#104,#108#116,#121#101,#112#108,#44#10,#111#111,#105#118,#110#44,#105#102,#109#105,#100#10,#117#112,#32#107,#39#44,#119#111,#110#97,#32#74,#103#105,#115#117,#101#102,#97#98,#117#32,#98#114,#110#105,#103#97,#110#99,#97#103);
 
-FUNCTION RLE_compress(CONST s:ansistring):ansistring;
-  VAR prevChar:char=#32;
+FUNCTION pair_compress(CONST Source:ansistring):ansistring;
+  VAR lev:char;
+      newResult:ansistring;
       i:longint;
-      runLength:byte=0;
+      freqIdx:byte;
+
+  FUNCTION needsEscaping:boolean;
+    VAR j:longint;
+    begin
+      for j:=0 to MAX_IDX[lev]-1 do if UNUSED[j]=Source[i] then exit(true);
+      result:=false;
+    end;
+
+  FUNCTION getFreqIdx:byte;
+    VAR part:string[2];
+        j:longint;
+    begin
+      if i>=length(Source) then exit(255);
+      part:=Source[i]+Source[i+1];
+      for j:=0 to MAX_IDX[lev]-1 do if FREQUENT[j]=part then exit(j);
+      exit(255)
+    end;
+
   begin
-    if s='' then exit(s);
-    result:=s[1];
-    if s[1] in [#32..#126] then prevChar:=s[1];
-    for i:=2 to length(s) do begin
-      if (s[i]>#126) then begin
-        result:=result+#255;
-        result:=result+s[i];
-      end else if (s[i]=MOST_FREQUENT_SUCCESSOR[prevChar]) and (runLength<127) then inc(runLength)
-      else begin
-        if runLength>0 then result:=result+chr(runLength+127);
-        runLength:=0;
-        result:=result+s[i];
+    result:='';
+    for lev:='0' to '9' do begin
+      newResult:=lev;
+      i:=1;
+      while i<=length(Source) do begin
+        if needsEscaping then begin
+          newResult:=newResult+ESCAPER+Source[i];
+          inc(i);
+        end else begin
+          freqIdx:=getFreqIdx;
+          if freqIdx<255 then begin
+            newResult:=newResult+UNUSED[freqIdx];
+            inc(i,2);
+          end else begin
+            newResult:=newResult+Source[i];
+            inc(i);
+          end;
+        end;
       end;
-      if s[i] in [#32..#126] then prevChar:=s[i];
+      if (lev='0') or (length(newResult)<length(result)) then result:=newResult;
     end;
   end;
 
-FUNCTION RLE_decompress(CONST s:ansistring):ansistring;
-  VAR prevChar:char=#32;
-      i,j:longint;
-      runLength:byte;
+FUNCTION pair_decompress(CONST Source:ansistring):ansistring;
+  VAR lev:char;
+      freqIdx:byte;
+      i:longint;
+
+  FUNCTION getFreqIdx:byte;
+    VAR j:longint;
+    begin
+      for j:=0 to MAX_IDX[lev]-1 do if UNUSED[j]=Source[i] then exit(j);
+      exit(255)
+    end;
+
   begin
-    if s='' then exit(s);
-    result:=s[1];
-    if s[1] in [#32..#126] then prevChar:=s[1];
+    if (length(Source)=0) or not(Source[1] in ['0'..'9']) then exit(Source);
+    lev:=Source[1];
+    result:='';
     i:=2;
-    while i<=length(s) do begin
-      if s[i]=#255 then begin
+    while i<=length(Source) do begin
+      if (i<length(Source)) and (Source[i]=ESCAPER) then begin
         inc(i);
-        result:=result+s[i];
-        inc(i);
-      end else if s[i]>=#128 then begin
-        runLength:=ord(s[i])-127;
-        for j:=1 to runLength do begin
-          result:=result+MOST_FREQUENT_SUCCESSOR[prevChar];
-          prevChar:=MOST_FREQUENT_SUCCESSOR[prevChar];
-        end;
+        result:=result+Source[i];
         inc(i);
       end else begin
-        result:=result+s[i];
-        if s[i] in [#32..#126] then prevChar:=s[i];
+        freqIdx:=getFreqIdx;
+        if freqIdx<255 then result:=result+FREQUENT[freqIdx]
+                       else result:=result+Source[i];
         inc(i);
       end;
     end;
   end;
 
-CONST
-  MOST_FREQUENT_PAIRS:array[#128..#255] of string[2]=(
-    #32#32,#116#104,#32#116,#101#32,#104#101,#10#32,#100#32,#32#97,#95#95,#110#100,#97#110,#44#32,
-    #116#32,#105#110,#101#114,#32#115,#32#104,#115#32,#32#111,#114#101,#110#32,#32#119,#104#97,
-    #101#110,#111#114,#97#116,#111#102,#102#32,#114#32,#97#108,#32#105,#111#110,#116#111,#104#105,
-    #32#98,#111#32,#111#117,#121#32,#10#10,#101#115,#105#116,#105#115,#32#94,#110#116,#32#102,
-    #115#116,#32#109,#115#101,#116#101,#97#114,#108#108,#104#32,#110#103,#101#100,#108#101,#108#32,
-    #118#101,#32#99,#46#10,#101#97,#109#101,#98#101,#104#111,#97#115,#115#104,#110#101,#32#100,
-    #114#105,#100#101,#32#112,#32#117,#13#10,#114#97,#101#116,#117#110,#102#111,#114#111,#32#110,
-    #105#108,#101#108,#99#111,#119#105,#116#105,#32#101,#110#111,#97#105,#101#10,#101#109,#32#108,
-    #99#104,#114#100,#115#97,#111#109,#109#97,#117#115,#117#116,#111#116,#109#32,#108#105,#117#114,
-    #119#104,#99#97,#65#110,#97#109,#101#101,#58#32,#32#114,#115#44,#32#103,#105#109,#100#44,#119#101,
-    #59#13,#105#100,#103#32,#115#111,#32#73,#107#101,#108#97,#99#101,#119#97,#101#44,#112#101,
-    #114#115,#116#114,#105#99,#110#115,#97#121);
 
-FUNCTION pair_Compress(CONST source:ansistring):ansistring;
-  VAR c:char;
-  begin
-    result:=source;
-    for c:=#128 to #255 do result:=replaceAll(result,MOST_FREQUENT_PAIRS[c],c);
-  end;
-
-FUNCTION pair_decompress(CONST source:ansistring):ansistring;
-  VAR c:char;
-  begin
-    result:=source;
-    for c:=#255 downto #128 do result:=replaceAll(result,c,MOST_FREQUENT_PAIRS[c]);
-  end;
-
-
-FUNCTION gzip_compressString(const ASrc: AnsiString):AnsiString;
-  var vDest: TStringStream;
+FUNCTION gzip_compressString(CONST ASrc: ansistring):ansistring;
+  VAR vDest: TStringStream;
       vSource: TStream;
       vCompressor: TCompressionStream;
   begin
     result:='';
-    vDest := TStringStream.Create('');
+    vDest := TStringStream.create('');
     try
-      vCompressor := TCompressionStream.Create(clMax, vDest);
+      vCompressor := TCompressionStream.create(clMax, vDest);
       try
-	vSource := TStringStream.Create(ASrc);
+	vSource := TStringStream.create(ASrc);
 	try     vCompressor.CopyFrom(vSource, 0);
-	finally vSource.Free; end;
+	finally vSource.free; end;
       finally
-	vCompressor.Free;
+	vCompressor.free;
       end;
-      vDest.Position := 0;
+      vDest.position := 0;
       result := vDest.DataString;
     finally
-      vDest.Free;
+      vDest.free;
     end;
   end;
 
-FUNCTION gzip_decompressString(const ASrc; const ASrcSize: Int64):ansistring;
+FUNCTION gzip_decompressString(CONST ASrc; CONST ASrcSize: int64):ansistring;
   CONST MAXWORD=65535;
-  var vDest: TStringStream;
+  VAR vDest: TStringStream;
       vSource: TStream;
       vDecompressor: TDecompressionStream;
-      vBuffer: Pointer;
-      vCount : Integer;
+      vBuffer: pointer;
+      vCount : integer;
   begin
     result:='';
-    vSource := TMemoryStream.Create;
+    vSource := TMemoryStream.create;
     try
-      vSource.Write(ASrc, ASrcSize);
-      vSource.Position := 0;
-      vDecompressor := TDecompressionStream.Create(vSource);
+      vSource.write(ASrc, ASrcSize);
+      vSource.position := 0;
+      vDecompressor := TDecompressionStream.create(vSource);
       try
-	vDest := TStringStream.Create('');
+	vDest := TStringStream.create('');
 	try
-	  GetMem(vBuffer, MAXWORD);
+	  getMem(vBuffer, MAXWORD);
 	  try
 	    repeat
-	      vCount := vDecompressor.Read(vBuffer^, MAXWORD);
+	      vCount := vDecompressor.read(vBuffer^, MAXWORD);
 	      if vCount > 0 then vDest.WriteBuffer(vBuffer^, vCount);
 	    until vCount < MAXWORD;
 	  finally
-	    FreeMem(vBuffer);
+	    freeMem(vBuffer);
 	  end;
-	  vDest.Position := 0;
+	  vDest.position := 0;
 	  result := vDest.DataString;
 	finally
-	  vDest.Free;
+	  vDest.free;
 	end;
       finally
-	vDecompressor.Free;
+	vDecompressor.free;
       end;
     finally
-      vSource.Free;
+      vSource.free;
     end;
   end;
 
-FUNCTION gzip_decompressString(const src:ansistring):ansistring;
+FUNCTION gzip_decompressString(CONST src:ansistring):ansistring;
   begin
     result:=gzip_decompressString(src[1],length(src));
   end;
 
-FUNCTION compressString(const src: AnsiString):AnsiString;
+FUNCTION compressString(CONST src: ansistring):ansistring;
   VAR alternative:ansistring;
   begin
     result:=' '+src;
     alternative:=gzip_compressString(src);
-    if length(escapeString(alternative))<length(escapeString(result)) then Result:=alternative;
-    alternative:='y'+RLE_compress(src);
-    if length(escapeString(alternative))<length(escapeString(result)) then Result:=alternative;
-    if isAsciiEncoded(src) then begin
-      alternative:='z'+pair_Compress(src);
-      if length(escapeString(alternative))<length(escapeString(result)) then result:=alternative;
-    end;
+    if length(escapeString(alternative))<length(escapeString(result)) then result:=alternative;
+    alternative:=pair_Compress(src);
+    if length(escapeString(alternative))<length(escapeString(result)) then result:=alternative;
   end;
 
-FUNCTION decompressString(const src:ansistring):ansistring;
+FUNCTION decompressString(CONST src:ansistring):ansistring;
   begin
     if length(src)=0 then exit(src);
     case src[1] of
       'x': exit(gzip_decompressString(src));
-      'y': exit(RLE_decompress(copy(src,2,length(src)-1)));
-      'z': exit(pair_decompress(copy(src,2,length(src)-1)));
+      '0'..'9': exit(pair_decompress(src));
     end;
     result:=src;
   end;
