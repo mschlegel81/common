@@ -671,7 +671,7 @@ FUNCTION compressString(CONST src: ansistring):ansistring;
     result:=' '+src;
     alternative:=gzip_compressString(src);
     if length(escapeString(alternative))<length(escapeString(result)) then result:=alternative;
-    alternative:=pair_Compress(src);
+    alternative:=pair_compress(src);
     if length(escapeString(alternative))<length(escapeString(result)) then result:=alternative;
   end;
 
