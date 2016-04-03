@@ -6,7 +6,8 @@ TYPE
   T_callback=PROCEDURE of object;
   T_estimatorType=(et_uninitialized,
                    et_stepCounter_parallel,
-                   et_commentedStepsOfVaryingCost_serial);
+                   et_commentedStepsOfVaryingCost_serial,
+                   et_stepCounterWithoutQueue);
   T_estimatorQueueState=(eqs_invalid,   //on construction
                          eqs_reset,     //on force start
                          eqs_running,   //on enqueue
@@ -77,6 +78,8 @@ TYPE
       FUNCTION  activeDeqeue:boolean;
 
       FUNCTION log:T_progressLog;
+      PROCEDURE setTemporaryChildProgress(OUT previousChild:P_progressEstimatorQueue; CONST newChild:P_progressEstimatorQueue);
+      PROCEDURE setTemporaryChildProgress(CONST newChild:P_progressEstimatorQueue);
   end;
 
 IMPLEMENTATION
@@ -132,7 +135,10 @@ PROCEDURE T_progressEstimatorQueue.forceStart(CONST typ:T_estimatorType; CONST e
     totalSteps:=expectedTotalSteps;
     stepsDone:=0;
     system.enterCriticalSection(cs);
-    state:=eqs_reset;
+    if typ in [et_stepCounterWithoutQueue]
+    then state:=eqs_running
+    else state:=eqs_reset;
+
     setLength(progress,1);
     progress[0].time:=now;
     progress[0].fractionDone:=0;
@@ -249,7 +255,7 @@ FUNCTION T_progressEstimatorQueue.cancellationRequested: boolean;
 FUNCTION T_progressEstimatorQueue.calculating:boolean;
   begin
     system.enterCriticalSection(cs);
-    if (busyThreads=0) and (queuedCount=0) then case state of
+    if (busyThreads=0) and (queuedCount=0) and (estimatorType in [et_stepCounter_parallel,et_commentedStepsOfVaryingCost_serial]) then case state of
       eqs_running:    state:=eqs_done;
       eqs_cancelling: state:=eqs_cancelled;
     end;
@@ -369,6 +375,21 @@ FUNCTION T_progressEstimatorQueue.log:T_progressLog;
       if i<length(result)-1 then result[i].timeUsed:=progress[i+1].time-progress[i].time
                             else result[i].timeUsed:=-1;
     end;
+    system.leaveCriticalSection(cs);
+  end;
+
+PROCEDURE T_progressEstimatorQueue.setTemporaryChildProgress(OUT previousChild:P_progressEstimatorQueue; CONST newChild:P_progressEstimatorQueue);
+  begin
+    system.enterCriticalSection(cs);
+    previousChild:=childProgress;
+    childProgress:=newChild;
+    system.leaveCriticalSection(cs);
+  end;
+
+PROCEDURE T_progressEstimatorQueue.setTemporaryChildProgress(CONST newChild:P_progressEstimatorQueue);
+  begin
+    system.enterCriticalSection(cs);
+    childProgress:=newChild;
     system.leaveCriticalSection(cs);
   end;
 
