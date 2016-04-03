@@ -1,7 +1,7 @@
 UNIT myStringUtil;
 
 INTERFACE
-USES math, strutils, sysutils,  myGenerics, zstream, Classes;
+USES math, strutils, sysutils,  myGenerics, zstream, Classes, huffman;
 
 TYPE charSet=set of char;
 
@@ -668,17 +668,23 @@ FUNCTION gzip_decompressString(CONST src:ansistring):ansistring;
 FUNCTION compressString(CONST src: ansistring):ansistring;
   VAR alternative:ansistring;
   begin
-    result:=' '+src;
+    if length(src)=0 then exit(src);
+    if src[1] in [' ','x','%','$','0'..'9'] then result:='$'+src
+                                            else result:=    src;
     alternative:=gzip_compressString(src);
-    if length(escapeString(alternative))<length(escapeString(result)) then result:=alternative;
+    if length(alternative)<length(result) then result:=alternative;
     alternative:=pair_compress(src);
-    if length(escapeString(alternative))<length(escapeString(result)) then result:=alternative;
+    if length(alternative)<length(result) then result:=alternative;
+    alternative:='%'+huffyEncode(src);
+    if length(alternative)<length(result) then result:=alternative;
   end;
 
 FUNCTION decompressString(CONST src:ansistring):ansistring;
   begin
     if length(src)=0 then exit(src);
     case src[1] of
+      '$': exit(copy(src,2,length(src)-1));
+      '%': exit(huffyDecode(copy(src,2,length(src)-1)));
       'x': exit(gzip_decompressString(src));
       '0'..'9': exit(pair_decompress(src));
     end;
