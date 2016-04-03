@@ -144,11 +144,13 @@ TYPE
       obtainer:T_obtainer;
       disposer:T_disposer;
       v :ENTRY_TYPE;
+      saveCS:TRTLCriticalSection;
       FUNCTION getValue:ENTRY_TYPE;
     public
       CONSTRUCTOR create(CONST o:T_obtainer; CONST d:T_disposer);
       DESTRUCTOR destroy;
       PROPERTY value:ENTRY_TYPE read getValue;
+      FUNCTION isObtained:boolean;
   end;
 
 FUNCTION hashOfAnsiString(CONST x:ansistring):longint; inline;
@@ -282,10 +284,12 @@ DESTRUCTOR G_safeArray.destroy;
 
 FUNCTION G_lazyVar.getValue: ENTRY_TYPE;
   begin
+    enterCriticalSection(saveCS);
     if not(valueObtained) then begin
       v:=obtainer();
       valueObtained:=true;
     end;
+    leaveCriticalSection(saveCS);
     result:=v;
   end;
 
@@ -294,11 +298,18 @@ CONSTRUCTOR G_lazyVar.create(CONST o:T_obtainer; CONST d:T_disposer);
     obtainer:=o;
     disposer:=d;
     valueObtained:=false;
+    initCriticalSection(saveCS);
   end;
 
 DESTRUCTOR G_lazyVar.destroy;
   begin
     if valueObtained and (disposer<>nil) then disposer(v);
+    doneCriticalSection(saveCS);
+  end;
+
+FUNCTION G_lazyVar.isObtained:boolean;
+  begin
+    result:=valueObtained;
   end;
 
 { G_safeVar }
