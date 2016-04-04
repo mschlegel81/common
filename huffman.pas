@@ -210,7 +210,7 @@ CONST INNER_FREQ:array[9..125] of T_symbolFrequency=(
 DESTRUCTOR T_twoLevelHuffmanCode.destroy;
   VAR i:longint;
   begin
-    for i:=0 to length(subCodes)-1 do subCodes[i].destroy;
+    for i:=9 to 125 do subCodes[i].destroy;
   end;
 
 FUNCTION T_twoLevelHuffmanCode.encode(CONST s: ansistring): ansistring;
