@@ -201,9 +201,8 @@ FUNCTION escapeString(CONST s: ansistring): ansistring;
     end;
 
   VAR tmp:ansistring;
-      i:longint;
   begin
-    for i:=1 to length(escapes)-2 do if pos(escapes[i,0],s)>0 then exit(javaStyle);
+    if (pos(C_lineBreakChar,s)>0) or (pos(C_tabChar,s)>0) then exit(javaStyle);
     tmp:=javaStyle;
     result:=pascalStyle;
     if length(tmp)<length(result) then result:=tmp;
