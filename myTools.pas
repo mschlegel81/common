@@ -21,7 +21,9 @@ TYPE
                fts_ready);     //set after evaluation
 
   P_queueToDo=^T_queueToDo;
+  P_progressEstimatorQueue=^T_progressEstimatorQueue;
   T_queueToDo=object
+    parentQueue:P_progressEstimatorQueue;
     state:T_taskState;
     next:P_queueToDo;
     CONSTRUCTOR create;
@@ -34,7 +36,6 @@ TYPE
     timeUsed:double;
   end;
 
-  P_progressEstimatorQueue=^T_progressEstimatorQueue;
   T_progressEstimatorQueue=object
     private
       //shared variables:--------------//
@@ -300,7 +301,6 @@ FUNCTION queueThreadPoolThread(p:pointer):ptrint;
         //If the thread was idle before, mark it as busy again
         if idleCount>0 then InterLockedIncrement(queue^.busyThreads);
         idleCount:=0;
-
         currentTask^.execute;
         dispose(currentTask,destroy);
       end;
@@ -325,6 +325,7 @@ PROCEDURE T_progressEstimatorQueue.enqueue(CONST task:P_queueToDo);
 
   begin
     task^.state:=fts_pending;
+    task^.parentQueue:=@self;
     task^.next:=nil;
     system.enterCriticalSection(cs);
     state:=eqs_running;
