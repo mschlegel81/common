@@ -1,5 +1,6 @@
 UNIT huffman;
 INTERFACE
+USES myGenerics;
 CONST END_OF_INPUT=256;
 TYPE
   T_symbolFrequency=array[0..255] of longint;
@@ -170,27 +171,26 @@ FUNCTION huffyEncode(CONST s:ansistring):ansistring;
 FUNCTION huffyDecode2(CONST s:ansistring):ansistring;
 FUNCTION huffyEncode2(CONST s:ansistring):ansistring;
 IMPLEMENTATION
-VAR twoLevelCode:T_twoLevelHuffmanCode;
-    luckyCode:T_twoLevelHuffmanCode;
+VAR twoLevelCode,luckyCode:specialize G_lazyVar<T_twoLevelHuffmanCode>;
 
 FUNCTION huffyDecode(CONST s: ansistring): ansistring;
   begin
-    result:=twoLevelCode.decode(s);
+    result:=twoLevelCode.value.decode(s);
   end;
 
 FUNCTION huffyEncode(CONST s: ansistring): ansistring;
   begin
-    result:=twoLevelCode.encode(s);
+    result:=twoLevelCode.value.encode(s);
   end;
 
 FUNCTION huffyDecode2(CONST s: ansistring): ansistring;
   begin
-    result:=luckyCode.decode(s);
+    result:=luckyCode.value.decode(s);
   end;
 
 FUNCTION huffyEncode2(CONST s: ansistring): ansistring;
   begin
-    result:=luckyCode.encode(s);
+    result:=luckyCode.value.encode(s);
   end;
 
 CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST conservative:boolean);
@@ -469,9 +469,24 @@ FUNCTION T_bitArray.hasNextBit: boolean;
     result:=cursorIndex<size;
   end;
 
+FUNCTION initConservative:T_twoLevelHuffmanCode;
+  begin
+    result.create(true);
+  end;
+
+FUNCTION initLucky:T_twoLevelHuffmanCode;
+  begin
+    result.create(false);
+  end;
+
+PROCEDURE clearCode(c:T_twoLevelHuffmanCode);
+  begin
+    c.destroy;
+  end;
+
 INITIALIZATION
-  twoLevelCode.create(true);
-  luckyCode.create(false);
+  twoLevelCode.create(@initConservative,@clearCode);
+  luckyCode.create(@initLucky,@clearCode);
 FINALIZATION;
   twoLevelCode.destroy;
   luckyCode.destroy;

@@ -289,8 +289,8 @@ FUNCTION G_lazyVar.getValue: ENTRY_TYPE;
       v:=obtainer();
       valueObtained:=true;
     end;
-    leaveCriticalSection(saveCS);
     result:=v;
+    leaveCriticalSection(saveCS);
   end;
 
 CONSTRUCTOR G_lazyVar.create(CONST o:T_obtainer; CONST d:T_disposer);
@@ -309,7 +309,9 @@ DESTRUCTOR G_lazyVar.destroy;
 
 FUNCTION G_lazyVar.isObtained:boolean;
   begin
+    enterCriticalSection(saveCS);
     result:=valueObtained;
+    leaveCriticalSection(saveCS);
   end;
 
 { G_safeVar }
