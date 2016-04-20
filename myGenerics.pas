@@ -75,16 +75,18 @@ TYPE
            value:VALUE_TYPE;
          end;
          KEY_VALUE_LIST=array of KEY_VALUE_PAIR;
+         VALUE_DISPOSER=PROCEDURE(VAR v:VALUE_TYPE);
     private VAR
       cs:TRTLCriticalSection;
       entryCount:longint;
       rebalanceFac:double;
       bitMask:longint;
       bucket:array of KEY_VALUE_LIST;
+      disposer:VALUE_DISPOSER;
       PROCEDURE rehash(grow:boolean);
     public
-      CONSTRUCTOR create(rebalanceFactor:double);
-      CONSTRUCTOR create();
+      CONSTRUCTOR create(rebalanceFactor:double; CONST disposer_:VALUE_DISPOSER=nil);
+      CONSTRUCTOR create(CONST disposer_:VALUE_DISPOSER=nil);
       DESTRUCTOR destroy;
       FUNCTION containsKey(CONST key:ansistring; OUT value:VALUE_TYPE):boolean;
       FUNCTION containsKey(CONST key:ansistring):boolean;
@@ -96,7 +98,6 @@ TYPE
       FUNCTION valueSet:VALUE_TYPE_ARRAY;
       FUNCTION entrySet:KEY_VALUE_LIST;
       FUNCTION size:longint;
-      FUNCTION dropAny:VALUE_TYPE;
   end;
 
   { G_safeVar }
@@ -862,7 +863,7 @@ PROCEDURE G_stringKeyMap.rehash(grow: boolean);
     end;
   end;
 
-CONSTRUCTOR G_stringKeyMap.create(rebalanceFactor: double);
+CONSTRUCTOR G_stringKeyMap.create(rebalanceFactor: double; CONST disposer_:VALUE_DISPOSER=nil);
   begin
     system.initCriticalSection(cs);
     rebalanceFac:=rebalanceFactor;
@@ -870,22 +871,26 @@ CONSTRUCTOR G_stringKeyMap.create(rebalanceFactor: double);
     setLength(bucket[0],0);
     bitMask:=0;
     entryCount:=0;
+    disposer:=disposer_;
   end;
 
 PROCEDURE G_stringKeyMap.clear;
-  VAR i:longint;
+  VAR i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    for i:=0 to length(bucket)-1 do setLength(bucket[i],0);
+    for i:=0 to length(bucket)-1 do begin
+      if disposer<>nil then for j:=0 to length(bucket[i])-1 do disposer(bucket[i,j].value);
+      setLength(bucket[i],0);
+    end;
     setLength(bucket,1);
     bitMask:=0;
     entryCount:=0;
     system.leaveCriticalSection(cs);
   end;
 
-CONSTRUCTOR G_stringKeyMap.create;
+CONSTRUCTOR G_stringKeyMap.create(CONST disposer_:VALUE_DISPOSER=nil);
   begin
-    create(4);
+    create(4,disposer_);
   end;
 
 DESTRUCTOR G_stringKeyMap.destroy;
@@ -944,6 +949,7 @@ PROCEDURE G_stringKeyMap.put(CONST key: ansistring; CONST value: VALUE_TYPE);
       inc(entryCount);
       if entryCount>length(bucket)*rebalanceFac then rehash(true);
     end else begin
+      if disposer<>nil then disposer(bucket[i][j].value);
       bucket[i][j].value:=value;
     end;
     system.leaveCriticalSection(cs);
@@ -957,6 +963,7 @@ PROCEDURE G_stringKeyMap.dropKey(CONST key: ansistring);
     j:=0;
     while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
     if j<length(bucket[i]) then begin
+      if disposer<>nil then disposer(bucket[i][j].value);
       while j<length(bucket[i])-1 do begin
         bucket[i][j]:=bucket[i][j+1];
         inc(j);
@@ -964,24 +971,6 @@ PROCEDURE G_stringKeyMap.dropKey(CONST key: ansistring);
       setLength(bucket[i],length(bucket[i])-1);
       dec(entryCount);
       if entryCount<0.4*length(bucket)*rebalanceFac then rehash(false);
-    end;
-    system.leaveCriticalSection(cs);
-  end;
-
-FUNCTION G_stringKeyMap.dropAny: VALUE_TYPE;
-  VAR i,j:longint;
-  begin
-    system.enterCriticalSection(cs);
-    for i:=0 to length(bucket)-1 do begin
-      j:=length(bucket[i]);
-      if j>0 then begin
-        dec(j);
-        result:=bucket[i][j].value;
-        setLength(bucket[i],j);
-        dec(entryCount);
-        system.leaveCriticalSection(cs);
-        exit(result);
-      end;
     end;
     system.leaveCriticalSection(cs);
   end;
