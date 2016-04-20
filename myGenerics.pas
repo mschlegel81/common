@@ -1,7 +1,5 @@
 UNIT myGenerics;
-
-{mode objfpc}{H+}
-
+{H+}
 INTERFACE
 USES sysutils;
 TYPE
@@ -134,8 +132,6 @@ TYPE
       PROCEDURE lock;
       PROCEDURE unlock;
   end;
-
-  { G_lazyVar }
 
   GENERIC G_lazyVar<ENTRY_TYPE>=object
     TYPE T_obtainer=FUNCTION():ENTRY_TYPE;
