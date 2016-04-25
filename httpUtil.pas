@@ -1,11 +1,8 @@
 UNIT httpUtil;
 INTERFACE
-USES Classes, blcksock, sockets, Synautil, sysutils, myGenerics,myStringUtil;
+USES Classes, blcksock, sockets, synautil, sysutils, myGenerics,myStringUtil;
 TYPE
   P_socketPair=^T_socketPair;
-
-  { T_socketPair }
-
   T_socketPair=object
     private
       ListenerSocket,
@@ -21,9 +18,24 @@ TYPE
       FUNCTION toString:ansistring;
   end;
 
+  F_stringToString=FUNCTION(CONST request:string):string;
+
+  P_customSocketListener=^T_customSocketListener;
+  T_customSocketListener=object
+    private
+      Socket:T_socketPair;
+      requestToResponseMapper:F_stringToString;
+      killSignalled:boolean;
+    public
+      CONSTRUCTOR create(CONST ipAndPort:string; CONST requestToResponseMapper_:F_stringToString);
+      DESTRUCTOR destroy;
+      PROCEDURE attend;
+      PROCEDURE kill;
+  end;
+
 CONST HTTP_404_RESPONSE='HTTP/1.0 404' + CRLF;
 
-FUNCTION wrapTextInHttp(CONST OutputDataString:string):string;
+FUNCTION wrapTextInHttp(CONST OutputDataString:string; CONST contentType:string='Text/Html'):string;
 FUNCTION cleanIp(CONST dirtyIp:ansistring):ansistring;
 IMPLEMENTATION
 PROCEDURE disposeSocket(VAR socket:P_socketPair);
@@ -31,10 +43,10 @@ PROCEDURE disposeSocket(VAR socket:P_socketPair);
     dispose(socket,destroy);
   end;
 
-FUNCTION wrapTextInHttp(CONST OutputDataString: string): string;
+FUNCTION wrapTextInHttp(CONST OutputDataString: string; CONST contentType:string='Text/Html'): string;
   begin
     result:='HTTP/1.0 200' + CRLF +
-            'Content-type: Text/Html' + CRLF +
+            'Content-type: '+ contentType + CRLF +
             'Content-length: ' + intToStr(length(OutputDataString)) + CRLF +
             'Connection: close' + CRLF +
             'Date: ' + Rfc822DateTime(now) + CRLF +
@@ -73,6 +85,50 @@ FUNCTION cleanIp(CONST dirtyIp:ansistring):ansistring;
   begin
     result:=dirtyIp;
     cleanSocket(result,ip,port);
+  end;
+
+FUNCTION customSocketListenerThread(p:pointer):ptrint;
+  begin
+    P_customSocketListener(p)^.attend;
+    dispose(P_customSocketListener(p),destroy);
+    result:=0;
+  end;
+
+CONSTRUCTOR T_customSocketListener.create(CONST ipAndPort: string; CONST requestToResponseMapper_: F_stringToString);
+  begin
+    Socket.create(ipAndPort);
+    requestToResponseMapper:=requestToResponseMapper_;
+    killSignalled:=false;
+    beginThread(@customSocketListenerThread,@self);
+  end;
+
+DESTRUCTOR T_customSocketListener.destroy;
+  begin
+    Socket.destroy;
+  end;
+
+PROCEDURE T_customSocketListener.attend;
+  CONST minSleepTime=1;
+        maxSleepTime=1000;
+  VAR request:ansistring;
+      sleepTime:longint=minSleepTime;
+  begin
+    repeat
+      request:=Socket.getRequest;
+      if request<>'' then begin
+        Socket.SendString(requestToResponseMapper(request));
+        sleepTime:=minSleepTime;
+      end else begin
+        sleep(sleepTime);
+        inc(sleepTime);
+        if sleepTime>maxSleepTime then sleepTime:=maxSleepTime;
+      end;
+    until killSignalled;
+  end;
+
+PROCEDURE T_customSocketListener.kill;
+  begin
+    killSignalled:=true;
   end;
 
 CONSTRUCTOR T_socketPair.create(CONST ipAndPort: string);
