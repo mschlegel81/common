@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 005.002.001 |
+| Project : Ararat Synapse                                       | 005.002.001 |
 |==============================================================================|
-| content: Socket Independent Platform Layer                                   |
+| Content: Socket Independent Platform Layer                                   |
 |==============================================================================|
 | Copyright (c)1999-2011, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,31 +20,31 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2001-2011.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@exclude}
 
-UNIT synsock;
+unit synsock;
 
 {$MINENUMSIZE 4}
 

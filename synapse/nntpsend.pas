@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.005.003 |
+| Project : Ararat Synapse                                       | 001.005.003 |
 |==============================================================================|
-| content: NNTP Client                                                         |
+| Content: NNTP client                                                         |
 |==============================================================================|
 | Copyright (c)1999-2011, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,32 +20,32 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c) 1999-2011.               |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(NNTP client)
 NNTP (network news transfer protocol)
 
-used RFC: RFC-977, RFC-2980
+Used RFC: RFC-977, RFC-2980
 }
 
 {$IFDEF FPC}
@@ -59,185 +59,185 @@ used RFC: RFC-977, RFC-2980
   {$WARN SUSPICIOUS_TYPECAST OFF}
 {$ENDIF}
 
-UNIT nntpsend;
+unit nntpsend;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes,
+uses
+  SysUtils, Classes,
   blcksock, synautil;
 
-CONST
+const
   cNNTPProtocol = '119';
 
-TYPE
+type
 
   {:abstract(Implementation of Network News Transfer Protocol.
 
    Note: Are you missing properties for setting Username and Password? Look to
    parent @link(TSynaClient) object!
 
-   Are you missing properties for specify Server address and port? Look to
+   Are you missing properties for specify server address and port? Look to
    parent @link(TSynaClient) too!}
   TNNTPSend = class(TSynaClient)
   private
     FSock: TTCPBlockSocket;
-    FResultCode: integer;
+    FResultCode: Integer;
     FResultString: string;
     FData: TStringList;
     FDataToSend: TStringList;
-    FAutoTLS: boolean;
-    FFullSSL: boolean;
+    FAutoTLS: Boolean;
+    FFullSSL: Boolean;
     FNNTPcap: TStringList;
-    FUNCTION ReadResult: integer;
-    FUNCTION ReadData: boolean;
-    FUNCTION SendData: boolean;
-    FUNCTION Connect: boolean;
+    function ReadResult: Integer;
+    function ReadData: boolean;
+    function SendData: boolean;
+    function Connect: Boolean;
   public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
+    constructor Create;
+    destructor Destroy; override;
 
     {:Connects to NNTP server and begin session.}
-    FUNCTION Login: boolean;
+    function Login: Boolean;
 
     {:Logout from NNTP server and terminate session.}
-    FUNCTION Logout: boolean;
+    function Logout: Boolean;
 
     {:By this you can call any NNTP command.}
-    FUNCTION DoCommand(CONST command: string): boolean;
+    function DoCommand(const Command: string): boolean;
 
     {:by this you can call any NNTP command. This variant is used for commands
-     for download information from Server.}
-    FUNCTION DoCommandRead(CONST command: string): boolean;
+     for download information from server.}
+    function DoCommandRead(const Command: string): boolean;
 
     {:by this you can call any NNTP command. This variant is used for commands
-     for upload information to Server.}
-    FUNCTION DoCommandWrite(CONST command: string): boolean;
+     for upload information to server.}
+    function DoCommandWrite(const Command: string): boolean;
 
     {:Download full message to @link(data) property. Value can be number of
      message or message-id (in brackets).}
-    FUNCTION GetArticle(CONST value: string): boolean;
+    function GetArticle(const Value: string): Boolean;
 
     {:Download only body of message to @link(data) property. Value can be number
      of message or message-id (in brackets).}
-    FUNCTION GetBody(CONST value: string): boolean;
+    function GetBody(const Value: string): Boolean;
 
     {:Download only headers of message to @link(data) property. Value can be
      number of message or message-id (in brackets).}
-    FUNCTION GetHead(CONST value: string): boolean;
+    function GetHead(const Value: string): Boolean;
 
     {:Get message status. Value can be number of message or message-id
      (in brackets).}
-    FUNCTION GetStat(CONST value: string): boolean;
+    function GetStat(const Value: string): Boolean;
 
     {:Select given group.}
-    FUNCTION SelectGroup(CONST value: string): boolean;
+    function SelectGroup(const Value: string): Boolean;
 
     {:Tell to server 'I have mesage with given message-ID.' If server need this
-     message, message is uploaded to Server.}
-    FUNCTION IHave(CONST MessID: string): boolean;
+     message, message is uploaded to server.}
+    function IHave(const MessID: string): Boolean;
 
     {:Move message pointer to last item in group.}
-    FUNCTION GotoLast: boolean;
+    function GotoLast: Boolean;
 
     {:Move message pointer to next item in group.}
-    FUNCTION GotoNext: boolean;
+    function GotoNext: Boolean;
 
     {:Download to @link(data) property list of all groups on NNTP server.}
-    FUNCTION ListGroups: boolean;
+    function ListGroups: Boolean;
 
     {:Download to @link(data) property list of all groups created after given time.}
-    FUNCTION ListNewGroups(Since: TDateTime): boolean;
+    function ListNewGroups(Since: TDateTime): Boolean;
 
     {:Download to @link(data) property list of message-ids in given group since
      given time.}
-    FUNCTION NewArticles(CONST Group: string; Since: TDateTime): boolean;
+    function NewArticles(const Group: string; Since: TDateTime): Boolean;
 
     {:Upload new article to server. (for new messages by you)}
-    FUNCTION PostArticle: boolean;
+    function PostArticle: Boolean;
 
     {:Tells to remote NNTP server 'I am not NNTP client, but I am another NNTP
-     Server'.}
-    FUNCTION SwitchToSlave: boolean;
+     server'.}
+    function SwitchToSlave: Boolean;
 
     {:Call NNTP XOVER command.}
-    FUNCTION Xover(xoStart, xoEnd: string): boolean;
+    function Xover(xoStart, xoEnd: string): boolean;
 
     {:Call STARTTLS command for upgrade connection to SSL/TLS mode.}
-    FUNCTION StartTLS: boolean;
+    function StartTLS: Boolean;
 
     {:Try to find given capability in extension list. This list is getted after
-     successful login to NNTP Server. if extension capability is not found,
+     successful login to NNTP server. If extension capability is not found,
      then return is empty string.}
-    FUNCTION FindCap(CONST value: string): string;
+    function FindCap(const Value: string): string;
 
     {:Try get list of server extensions. List is returned in @link(data) property.}
-    FUNCTION ListExtensions: boolean;
-  Published
+    function ListExtensions: Boolean;
+  published
     {:Result code number of last operation.}
-    PROPERTY ResultCode: integer read FResultCode;
+    property ResultCode: Integer read FResultCode;
 
     {:String description of last result code from NNTP server.}
-    PROPERTY resultString: string read FResultString;
+    property ResultString: string read FResultString;
 
     {:Readed data. (message, etc.)}
-    PROPERTY data: TStringList read FData;
+    property Data: TStringList read FData;
 
     {:If is set to @true, then upgrade to SSL/TLS mode after login if remote
-     Server support it.}
-    PROPERTY AutoTLS: boolean read FAutoTLS write FAutoTLS;
+     server support it.}
+    property AutoTLS: Boolean read FAutoTLS Write FAutoTLS;
 
     {:SSL/TLS mode is used from first contact to server. Servers with full
      SSL/TLS mode usualy using non-standard TCP port!}
-    PROPERTY FullSSL: boolean read FFullSSL write FFullSSL;
+    property FullSSL: Boolean read FFullSSL Write FFullSSL;
 
     {:Socket object used for TCP/IP operation. Good for seting OnStatus hook, etc.}
-    PROPERTY Sock: TTCPBlockSocket read FSock;
+    property Sock: TTCPBlockSocket read FSock;
   end;
 
-IMPLEMENTATION
+implementation
 
-CONSTRUCTOR TNNTPSend.create;
+constructor TNNTPSend.Create;
 begin
-  inherited create;
-  FSock := TTCPBlockSocket.create;
+  inherited Create;
+  FSock := TTCPBlockSocket.Create;
   FSock.Owner := self;
-  FData := TStringList.create;
-  FDataToSend := TStringList.create;
-  FNNTPcap := TStringList.create;
-  FSock.ConvertLineEnd := true;
+  FData := TStringList.Create;
+  FDataToSend := TStringList.Create;
+  FNNTPcap := TStringList.Create;
+  FSock.ConvertLineEnd := True;
   FTimeout := 60000;
   FTargetPort := cNNTPProtocol;
-  FAutoTLS := false;
-  FFullSSL := false;
+  FAutoTLS := False;
+  FFullSSL := False;
 end;
 
-DESTRUCTOR TNNTPSend.destroy;
+destructor TNNTPSend.Destroy;
 begin
-  FSock.free;
-  FDataToSend.free;
-  FData.free;
-  FNNTPcap.free;
-  inherited destroy;
+  FSock.Free;
+  FDataToSend.Free;
+  FData.Free;
+  FNNTPcap.Free;
+  inherited Destroy;
 end;
 
-FUNCTION TNNTPSend.ReadResult: integer;
-VAR
+function TNNTPSend.ReadResult: Integer;
+var
   s: string;
 begin
-  result := 0;
-  FData.clear;
+  Result := 0;
+  FData.Clear;
   s := FSock.RecvString(FTimeout);
-  FResultString := copy(s, 5, length(s) - 4);
+  FResultString := Copy(s, 5, Length(s) - 4);
   if FSock.LastError <> 0 then
-    exit;
-  if length(s) >= 3 then
-    result := strToIntDef(copy(s, 1, 3), 0);
-  FResultCode := result;
+    Exit;
+  if Length(s) >= 3 then
+    Result := StrToIntDef(Copy(s, 1, 3), 0);
+  FResultCode := Result;
 end;
 
-FUNCTION TNNTPSend.ReadData: boolean;
-VAR
+function TNNTPSend.ReadData: boolean;
+var
   s: string;
 begin
   repeat
@@ -245,18 +245,18 @@ begin
     if s = '.' then
       break;
     if (s <> '') and (s[1] = '.') then
-      s := copy(s, 2, length(s) - 1);
-    FData.add(s);
+      s := Copy(s, 2, Length(s) - 1);
+    FData.Add(s);
   until FSock.LastError <> 0;
-  result := FSock.LastError = 0;
+  Result := FSock.LastError = 0;
 end;
 
-FUNCTION TNNTPSend.SendData: boolean;
-VAR
+function TNNTPSend.SendData: boolean;
+var
   s: string;
   n: integer;
 begin
-  for n := 0 to FDataToSend.count - 1 do
+  for n := 0 to FDataToSend.Count - 1 do
   begin
     s := FDataToSend[n];
     if (s <> '') and (s[1] = '.') then
@@ -265,15 +265,15 @@ begin
     if FSock.LastError <> 0 then
       break;
   end;
-  if FDataToSend.count = 0 then
+  if FDataToSend.Count = 0 then
     FSock.SendString(CRLF);
   if FSock.LastError = 0 then
     FSock.SendString('.' + CRLF);
-  FDataToSend.clear;
-  result := FSock.LastError = 0;
+  FDataToSend.Clear;
+  Result := FSock.LastError = 0;
 end;
 
-FUNCTION TNNTPSend.Connect: boolean;
+function TNNTPSend.Connect: Boolean;
 begin
   FSock.CloseSocket;
   FSock.Bind(FIPInterface, cAnyPort);
@@ -282,199 +282,199 @@ begin
   if FSock.LastError = 0 then
     if FFullSSL then
       FSock.SSLDoConnect;
-  result := FSock.LastError = 0;
+  Result := FSock.LastError = 0;
 end;
 
-FUNCTION TNNTPSend.Login: boolean;
+function TNNTPSend.Login: Boolean;
 begin
-  result := false;
-  FNNTPcap.clear;
+  Result := False;
+  FNNTPcap.Clear;
   if not Connect then
-    exit;
-  result := (ReadResult div 100) = 2;
-  if result then
+    Exit;
+  Result := (ReadResult div 100) = 2;
+  if Result then
   begin
     ListExtensions;
-    FNNTPcap.assign(Fdata);
+    FNNTPcap.Assign(Fdata);
     if (not FullSSL) and FAutoTLS and (FindCap('STARTTLS') <> '') then
-      result := StartTLS;
+      Result := StartTLS;
   end;
-  if (FUsername <> '') and result then
+  if (FUsername <> '') and Result then
   begin
     FSock.SendString('AUTHINFO USER ' + FUsername + CRLF);
     if (ReadResult div 100) = 3 then
     begin
       FSock.SendString('AUTHINFO PASS ' + FPassword + CRLF);
-      result := (ReadResult div 100) = 2;
+      Result := (ReadResult div 100) = 2;
     end;
   end;
 end;
 
-FUNCTION TNNTPSend.Logout: boolean;
+function TNNTPSend.Logout: Boolean;
 begin
   FSock.SendString('QUIT' + CRLF);
-  result := (ReadResult div 100) = 2;
+  Result := (ReadResult div 100) = 2;
   FSock.CloseSocket;
 end;
 
-FUNCTION TNNTPSend.DoCommand(CONST command: string): boolean;
+function TNNTPSend.DoCommand(const Command: string): Boolean;
 begin
-  FSock.SendString(command + CRLF);
-  result := (ReadResult div 100) = 2;
-  result := result and (FSock.LastError = 0);
+  FSock.SendString(Command + CRLF);
+  Result := (ReadResult div 100) = 2;
+  Result := Result and (FSock.LastError = 0);
 end;
 
-FUNCTION TNNTPSend.DoCommandRead(CONST command: string): boolean;
+function TNNTPSend.DoCommandRead(const Command: string): Boolean;
 begin
-  result := DoCommand(command);
-  if result then
+  Result := DoCommand(Command);
+  if Result then
   begin
-    result := ReadData;
-    result := result and (FSock.LastError = 0);
+    Result := ReadData;
+    Result := Result and (FSock.LastError = 0);
   end;
 end;
 
-FUNCTION TNNTPSend.DoCommandWrite(CONST command: string): boolean;
-VAR
+function TNNTPSend.DoCommandWrite(const Command: string): Boolean;
+var
   x: integer;
 begin
-  FDataToSend.assign(FData);
-  FSock.SendString(command + CRLF);
+  FDataToSend.Assign(FData);
+  FSock.SendString(Command + CRLF);
   x := (ReadResult div 100);
   if x = 3 then
   begin
     SendData;
     x := (ReadResult div 100);
   end;
-  result := x = 2;
-  result := result and (FSock.LastError = 0);
+  Result := x = 2;
+  Result := Result and (FSock.LastError = 0);
 end;
 
-FUNCTION TNNTPSend.GetArticle(CONST value: string): boolean;
-VAR
+function TNNTPSend.GetArticle(const Value: string): Boolean;
+var
   s: string;
 begin
   s := 'ARTICLE';
-  if value <> '' then
-    s := s + ' ' + value;
-  result := DoCommandRead(s);
+  if Value <> '' then
+    s := s + ' ' + Value;
+  Result := DoCommandRead(s);
 end;
 
-FUNCTION TNNTPSend.GetBody(CONST value: string): boolean;
-VAR
+function TNNTPSend.GetBody(const Value: string): Boolean;
+var
   s: string;
 begin
   s := 'BODY';
-  if value <> '' then
-    s := s + ' ' + value;
-  result := DoCommandRead(s);
+  if Value <> '' then
+    s := s + ' ' + Value;
+  Result := DoCommandRead(s);
 end;
 
-FUNCTION TNNTPSend.GetHead(CONST value: string): boolean;
-VAR
+function TNNTPSend.GetHead(const Value: string): Boolean;
+var
   s: string;
 begin
   s := 'HEAD';
-  if value <> '' then
-    s := s + ' ' + value;
-  result := DoCommandRead(s);
+  if Value <> '' then
+    s := s + ' ' + Value;
+  Result := DoCommandRead(s);
 end;
 
-FUNCTION TNNTPSend.GetStat(CONST value: string): boolean;
-VAR
+function TNNTPSend.GetStat(const Value: string): Boolean;
+var
   s: string;
 begin
   s := 'STAT';
-  if value <> '' then
-    s := s + ' ' + value;
-  result := DoCommand(s);
+  if Value <> '' then
+    s := s + ' ' + Value;
+  Result := DoCommand(s);
 end;
 
-FUNCTION TNNTPSend.SelectGroup(CONST value: string): boolean;
+function TNNTPSend.SelectGroup(const Value: string): Boolean;
 begin
-  result := DoCommand('GROUP ' + value);
+  Result := DoCommand('GROUP ' + Value);
 end;
 
-FUNCTION TNNTPSend.IHave(CONST MessID: string): boolean;
+function TNNTPSend.IHave(const MessID: string): Boolean;
 begin
-  result := DoCommandWrite('IHAVE ' + MessID);
+  Result := DoCommandWrite('IHAVE ' + MessID);
 end;
 
-FUNCTION TNNTPSend.GotoLast: boolean;
+function TNNTPSend.GotoLast: Boolean;
 begin
-  result := DoCommand('LAST');
+  Result := DoCommand('LAST');
 end;
 
-FUNCTION TNNTPSend.GotoNext: boolean;
+function TNNTPSend.GotoNext: Boolean;
 begin
-  result := DoCommand('NEXT');
+  Result := DoCommand('NEXT');
 end;
 
-FUNCTION TNNTPSend.ListGroups: boolean;
+function TNNTPSend.ListGroups: Boolean;
 begin
-  result := DoCommandRead('LIST');
+  Result := DoCommandRead('LIST');
 end;
 
-FUNCTION TNNTPSend.ListNewGroups(Since: TDateTime): boolean;
+function TNNTPSend.ListNewGroups(Since: TDateTime): Boolean;
 begin
-  result := DoCommandRead('NEWGROUPS ' + SimpleDateTime(Since) + ' GMT');
+  Result := DoCommandRead('NEWGROUPS ' + SimpleDateTime(Since) + ' GMT');
 end;
 
-FUNCTION TNNTPSend.NewArticles(CONST Group: string; Since: TDateTime): boolean;
+function TNNTPSend.NewArticles(const Group: string; Since: TDateTime): Boolean;
 begin
-  result := DoCommandRead('NEWNEWS ' + Group + ' ' + SimpleDateTime(Since) + ' GMT');
+  Result := DoCommandRead('NEWNEWS ' + Group + ' ' + SimpleDateTime(Since) + ' GMT');
 end;
 
-FUNCTION TNNTPSend.PostArticle: boolean;
+function TNNTPSend.PostArticle: Boolean;
 begin
-  result := DoCommandWrite('POST');
+  Result := DoCommandWrite('POST');
 end;
 
-FUNCTION TNNTPSend.SwitchToSlave: boolean;
+function TNNTPSend.SwitchToSlave: Boolean;
 begin
-  result := DoCommand('SLAVE');
+  Result := DoCommand('SLAVE');
 end;
 
-FUNCTION TNNTPSend.Xover(xoStart, xoEnd: string): boolean;
-VAR
+function TNNTPSend.Xover(xoStart, xoEnd: string): Boolean;
+var
   s: string;
 begin
   s := 'XOVER ' + xoStart;
   if xoEnd <> xoStart then
     s := s + '-' + xoEnd;
-  result := DoCommandRead(s);
+  Result := DoCommandRead(s);
 end;
 
-FUNCTION TNNTPSend.StartTLS: boolean;
+function TNNTPSend.StartTLS: Boolean;
 begin
-  result := false;
+  Result := False;
   if FindCap('STARTTLS') <> '' then
   begin
     if DoCommand('STARTTLS') then
     begin
       Fsock.SSLDoConnect;
-      result := FSock.LastError = 0;
+      Result := FSock.LastError = 0;
     end;
   end;
 end;
 
-FUNCTION TNNTPSend.ListExtensions: boolean;
+function TNNTPSend.ListExtensions: Boolean;
 begin
-  result := DoCommandRead('LIST EXTENSIONS');
+  Result := DoCommandRead('LIST EXTENSIONS');
 end;
 
-FUNCTION TNNTPSend.FindCap(CONST value: string): string;
-VAR
-  n: integer;
+function TNNTPSend.FindCap(const Value: string): string;
+var
+  n: Integer;
   s: string;
 begin
-  s := uppercase(value);
-  result := '';
-  for n := 0 to FNNTPcap.count - 1 do
-    if pos(s, uppercase(FNNTPcap[n])) = 1 then
+  s := UpperCase(Value);
+  Result := '';
+  for n := 0 to FNNTPcap.Count - 1 do
+    if Pos(s, UpperCase(FNNTPcap[n])) = 1 then
     begin
-      result := FNNTPcap[n];
-      break;
+      Result := FNNTPcap[n];
+      Break;
     end;
 end;
 

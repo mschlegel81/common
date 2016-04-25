@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.004.004 |
+| Project : Ararat Synapse                                       | 001.004.004 |
 |==============================================================================|
-| content: support for ASN.1 BER coding and decoding                           |
+| Content: support for ASN.1 BER coding and decoding                           |
 |==============================================================================|
 | Copyright (c)1999-2003, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,32 +20,32 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c) 1999-2003                |
 | Portions created by Hernan Sanchez are Copyright (c) 2000.                   |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |   Hernan Sanchez (hernan.sanchez@iname.com)                                  |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {: @abstract(Utilities for handling ASN.1 BER encoding)
-by this UNIT you can parse ASN.1 BER encoded data to elements or build back any
+By this unit you can parse ASN.1 BER encoded data to elements or build back any
  elements to ASN.1 BER encoded buffer. You can dump ASN.1 BER encoded data to
  human readable form for easy debugging, too.
 
@@ -53,7 +53,7 @@ Supported element types are: ASN1_BOOL, ASN1_INT, ASN1_OCTSTR, ASN1_NULL,
  ASN1_OBJID, ASN1_ENUM, ASN1_SEQ, ASN1_SETOF, ASN1_IPADDR, ASN1_COUNTER,
  ASN1_GAUGE, ASN1_TIMETICKS, ASN1_OPAQUE
 
-for sample of using, look to @link(TSnmpSend) or @link(TLdapSend)class.
+For sample of using, look to @link(TSnmpSend) or @link(TLdapSend)class.
 }
 
 {$Q-}
@@ -67,14 +67,14 @@ for sample of using, look to @link(TSnmpSend) or @link(TLdapSend)class.
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT asn1util;
+unit asn1util;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes, synautil;
+uses
+  SysUtils, Classes, synautil;
 
-CONST
+const
   ASN1_BOOL = $01;
   ASN1_INT = $02;
   ASN1_OCTSTR = $04;
@@ -90,251 +90,251 @@ CONST
   ASN1_OPAQUE = $44;
 
 {:Encodes OID item to binary form.}
-FUNCTION ASNEncOIDItem(value: integer): ansistring;
+function ASNEncOIDItem(Value: Integer): AnsiString;
 
 {:Decodes an OID item of the next element in the "Buffer" from the "Start"
  position.}
-FUNCTION ASNDecOIDItem(VAR start: integer; CONST buffer: ansistring): integer;
+function ASNDecOIDItem(var Start: Integer; const Buffer: AnsiString): Integer;
 
 {:Encodes the length of ASN.1 element to binary.}
-FUNCTION ASNEncLen(len: integer): ansistring;
+function ASNEncLen(Len: Integer): AnsiString;
 
 {:Decodes length of next element in "Buffer" from the "Start" position.}
-FUNCTION ASNDecLen(VAR start: integer; CONST buffer: ansistring): integer;
+function ASNDecLen(var Start: Integer; const Buffer: AnsiString): Integer;
 
 {:Encodes a signed integer to ASN.1 binary}
-FUNCTION ASNEncInt(value: integer): ansistring;
+function ASNEncInt(Value: Integer): AnsiString;
 
 {:Encodes unsigned integer into ASN.1 binary}
-FUNCTION ASNEncUInt(value: integer): ansistring;
+function ASNEncUInt(Value: Integer): AnsiString;
 
 {:Encodes ASN.1 object to binary form.}
-FUNCTION ASNObject(CONST data: ansistring; ASNType: integer): ansistring;
+function ASNObject(const Data: AnsiString; ASNType: Integer): AnsiString;
 
 {:Beginning with the "Start" position, decode the ASN.1 item of the next element
- in "buffer". TYPE of item is stored in "ValueType."}
-FUNCTION ASNItem(VAR start: integer; CONST buffer: ansistring;
-  VAR ValueType: integer): ansistring;
+ in "Buffer". Type of item is stored in "ValueType."}
+function ASNItem(var Start: Integer; const Buffer: AnsiString;
+  var ValueType: Integer): AnsiString;
 
 {:Encodes an MIB OID string to binary form.}
-FUNCTION MibToId(Mib: string): ansistring;
+function MibToId(Mib: String): AnsiString;
 
 {:Decodes MIB OID from binary form to string form.}
-FUNCTION IdToMib(CONST id: ansistring): string;
+function IdToMib(const Id: AnsiString): String;
 
 {:Encodes an one number from MIB OID to binary form. (used internally from
 @link(MibToId))}
-FUNCTION IntMibToStr(CONST value: ansistring): ansistring;
+function IntMibToStr(const Value: AnsiString): AnsiString;
 
 {:Convert ASN.1 BER encoded buffer to human readable form for debugging.}
-FUNCTION ASNdump(CONST value: ansistring): ansistring;
+function ASNdump(const Value: AnsiString): AnsiString;
 
-IMPLEMENTATION
+implementation
 
 {==============================================================================}
-FUNCTION ASNEncOIDItem(value: integer): ansistring;
-VAR
-  x, xm: integer;
-  b: boolean;
+function ASNEncOIDItem(Value: Integer): AnsiString;
+var
+  x, xm: Integer;
+  b: Boolean;
 begin
-  x := value;
-  b := false;
-  result := '';
+  x := Value;
+  b := False;
+  Result := '';
   repeat
     xm := x mod 128;
     x := x div 128;
     if b then
       xm := xm or $80;
     if x > 0 then
-      b := true;
-    result := AnsiChar(xm) + result;
+      b := True;
+    Result := AnsiChar(xm) + Result;
   until x = 0;
 end;
 
 {==============================================================================}
-FUNCTION ASNDecOIDItem(VAR start: integer; CONST buffer: ansistring): integer;
-VAR
-  x: integer;
-  b: boolean;
+function ASNDecOIDItem(var Start: Integer; const Buffer: AnsiString): Integer;
+var
+  x: Integer;
+  b: Boolean;
 begin
-  result := 0;
+  Result := 0;
   repeat
-    result := result * 128;
-    x := ord(buffer[start]);
-    inc(start);
+    Result := Result * 128;
+    x := Ord(Buffer[Start]);
+    Inc(Start);
     b := x > $7F;
     x := x and $7F;
-    result := result + x;
+    Result := Result + x;
   until not b;
 end;
 
 {==============================================================================}
-FUNCTION ASNEncLen(len: integer): ansistring;
-VAR
-  x, y: integer;
+function ASNEncLen(Len: Integer): AnsiString;
+var
+  x, y: Integer;
 begin
-  if len < $80 then
-    result := AnsiChar(len)
+  if Len < $80 then
+    Result := AnsiChar(Len)
   else
   begin
-    x := len;
-    result := '';
+    x := Len;
+    Result := '';
     repeat
       y := x mod 256;
       x := x div 256;
-      result := AnsiChar(y) + result;
+      Result := AnsiChar(y) + Result;
     until x = 0;
-    y := length(result);
+    y := Length(Result);
     y := y or $80;
-    result := AnsiChar(y) + result;
+    Result := AnsiChar(y) + Result;
   end;
 end;
 
 {==============================================================================}
-FUNCTION ASNDecLen(VAR start: integer; CONST buffer: ansistring): integer;
-VAR
-  x, n: integer;
+function ASNDecLen(var Start: Integer; const Buffer: AnsiString): Integer;
+var
+  x, n: Integer;
 begin
-  x := ord(buffer[start]);
-  inc(start);
+  x := Ord(Buffer[Start]);
+  Inc(Start);
   if x < $80 then
-    result := x
+    Result := x
   else
   begin
-    result := 0;
+    Result := 0;
     x := x and $7F;
     for n := 1 to x do
     begin
-      result := result * 256;
-      x := ord(buffer[start]);
-      inc(start);
-      result := result + x;
+      Result := Result * 256;
+      x := Ord(Buffer[Start]);
+      Inc(Start);
+      Result := Result + x;
     end;
   end;
 end;
 
 {==============================================================================}
-FUNCTION ASNEncInt(value: integer): ansistring;
-VAR
+function ASNEncInt(Value: Integer): AnsiString;
+var
   x, y: Cardinal;
-  neg: boolean;
+  neg: Boolean;
 begin
-  neg := value < 0;
-  x := abs(value);
+  neg := Value < 0;
+  x := Abs(Value);
   if neg then
     x := not (x - 1);
-  result := '';
+  Result := '';
   repeat
     y := x mod 256;
     x := x div 256;
-    result := AnsiChar(y) + result;
+    Result := AnsiChar(y) + Result;
   until x = 0;
-  if (not neg) and (result[1] > #$7F) then
-    result := #0 + result;
+  if (not neg) and (Result[1] > #$7F) then
+    Result := #0 + Result;
 end;
 
 {==============================================================================}
-FUNCTION ASNEncUInt(value: integer): ansistring;
-VAR
-  x, y: integer;
-  neg: boolean;
+function ASNEncUInt(Value: Integer): AnsiString;
+var
+  x, y: Integer;
+  neg: Boolean;
 begin
-  neg := value < 0;
-  x := value;
+  neg := Value < 0;
+  x := Value;
   if neg then
-    x := x and $7fffffff;
-  result := '';
+    x := x and $7FFFFFFF;
+  Result := '';
   repeat
     y := x mod 256;
     x := x div 256;
-    result := AnsiChar(y) + result;
+    Result := AnsiChar(y) + Result;
   until x = 0;
   if neg then
-    result[1] := AnsiChar(ord(result[1]) or $80);
+    Result[1] := AnsiChar(Ord(Result[1]) or $80);
 end;
 
 {==============================================================================}
-FUNCTION ASNObject(CONST data: ansistring; ASNType: integer): ansistring;
+function ASNObject(const Data: AnsiString; ASNType: Integer): AnsiString;
 begin
-  result := AnsiChar(ASNType) + ASNEncLen(length(data)) + data;
+  Result := AnsiChar(ASNType) + ASNEncLen(Length(Data)) + Data;
 end;
 
 {==============================================================================}
-FUNCTION ASNItem(VAR start: integer; CONST buffer: ansistring;
-  VAR ValueType: integer): ansistring;
-VAR
-  ASNType: integer;
-  ASNSize: integer;
-  y, n: integer;
+function ASNItem(var Start: Integer; const Buffer: AnsiString;
+  var ValueType: Integer): AnsiString;
+var
+  ASNType: Integer;
+  ASNSize: Integer;
+  y, n: Integer;
   x: byte;
-  s: ansistring;
+  s: AnsiString;
   c: AnsiChar;
-  neg: boolean;
-  l: integer;
+  neg: Boolean;
+  l: Integer;
 begin
-  result := '';
+  Result := '';
   ValueType := ASN1_NULL;
-  l := length(buffer);
-  if l < (start + 1) then
-    exit;
-  ASNType := ord(buffer[start]);
+  l := Length(Buffer);
+  if l < (Start + 1) then
+    Exit;
+  ASNType := Ord(Buffer[Start]);
   ValueType := ASNType;
-  inc(start);
-  ASNSize := ASNDecLen(start, buffer);
-  if (start + ASNSize - 1) > l then
-    exit;
+  Inc(Start);
+  ASNSize := ASNDecLen(Start, Buffer);
+  if (Start + ASNSize - 1) > l then
+    Exit;
   if (ASNType and $20) > 0 then
 //    Result := '$' + IntToHex(ASNType, 2)
-    result := copy(buffer, start, ASNSize)
+    Result := Copy(Buffer, Start, ASNSize)
   else
     case ASNType of
       ASN1_INT, ASN1_ENUM, ASN1_BOOL:
         begin
           y := 0;
-          neg := false;
+          neg := False;
           for n := 1 to ASNSize do
           begin
-            x := ord(buffer[start]);
+            x := Ord(Buffer[Start]);
             if (n = 1) and (x > $7F) then
-              neg := true;
+              neg := True;
             if neg then
               x := not x;
             y := y * 256 + x;
-            inc(start);
+            Inc(Start);
           end;
           if neg then
             y := -(y + 1);
-          result := intToStr(y);
+          Result := IntToStr(y);
         end;
       ASN1_COUNTER, ASN1_GAUGE, ASN1_TIMETICKS:
         begin
           y := 0;
           for n := 1 to ASNSize do
           begin
-            y := y * 256 + ord(buffer[start]);
-            inc(start);
+            y := y * 256 + Ord(Buffer[Start]);
+            Inc(Start);
           end;
-          result := intToStr(y);
+          Result := IntToStr(y);
         end;
       ASN1_OCTSTR, ASN1_OPAQUE:
         begin
           for n := 1 to ASNSize do
           begin
-            c := AnsiChar(buffer[start]);
-            inc(start);
+            c := AnsiChar(Buffer[Start]);
+            Inc(Start);
             s := s + c;
           end;
-          result := s;
+          Result := s;
         end;
       ASN1_OBJID:
         begin
           for n := 1 to ASNSize do
           begin
-            c := AnsiChar(buffer[start]);
-            inc(start);
+            c := AnsiChar(Buffer[Start]);
+            Inc(Start);
             s := s + c;
           end;
-          result := IdToMib(s);
+          Result := IdToMib(s);
         end;
       ASN1_IPADDR:
         begin
@@ -343,41 +343,41 @@ begin
           begin
             if (n <> 1) then
               s := s + '.';
-            y := ord(buffer[start]);
-            inc(start);
-            s := s + intToStr(y);
+            y := Ord(Buffer[Start]);
+            Inc(Start);
+            s := s + IntToStr(y);
           end;
-          result := s;
+          Result := s;
         end;
       ASN1_NULL:
         begin
-          result := '';
-          start := start + ASNSize;
+          Result := '';
+          Start := Start + ASNSize;
         end;
     else // unknown
       begin
         for n := 1 to ASNSize do
         begin
-          c := AnsiChar(buffer[start]);
-          inc(start);
+          c := AnsiChar(Buffer[Start]);
+          Inc(Start);
           s := s + c;
         end;
-        result := s;
+        Result := s;
       end;
     end;
 end;
 
 {==============================================================================}
-FUNCTION MibToId(Mib: string): ansistring;
-VAR
-  x: integer;
+function MibToId(Mib: String): AnsiString;
+var
+  x: Integer;
 
-  FUNCTION WalkInt(VAR s: string): integer;
-  VAR
-    x: integer;
-    t: ansistring;
+  function WalkInt(var s: String): Integer;
+  var
+    x: Integer;
+    t: AnsiString;
   begin
-    x := pos('.', s);
+    x := Pos('.', s);
     if x < 1 then
     begin
       t := s;
@@ -385,123 +385,123 @@ VAR
     end
     else
     begin
-      t := copy(s, 1, x - 1);
-      s := copy(s, x + 1, length(s) - x);
+      t := Copy(s, 1, x - 1);
+      s := Copy(s, x + 1, Length(s) - x);
     end;
-    result := strToIntDef(t, 0);
+    Result := StrToIntDef(t, 0);
   end;
 
 begin
-  result := '';
+  Result := '';
   x := WalkInt(Mib);
   x := x * 40 + WalkInt(Mib);
-  result := ASNEncOIDItem(x);
+  Result := ASNEncOIDItem(x);
   while Mib <> '' do
   begin
     x := WalkInt(Mib);
-    result := result + ASNEncOIDItem(x);
+    Result := Result + ASNEncOIDItem(x);
   end;
 end;
 
 {==============================================================================}
-FUNCTION IdToMib(CONST id: ansistring): string;
-VAR
-  x, y, n: integer;
+function IdToMib(const Id: AnsiString): String;
+var
+  x, y, n: Integer;
 begin
-  result := '';
+  Result := '';
   n := 1;
-  while length(id) + 1 > n do
+  while Length(Id) + 1 > n do
   begin
-    x := ASNDecOIDItem(n, id);
+    x := ASNDecOIDItem(n, Id);
     if (n - 1) = 1 then
     begin
       y := x div 40;
       x := x mod 40;
-      result := intToStr(y);
+      Result := IntToStr(y);
     end;
-    result := result + '.' + intToStr(x);
+    Result := Result + '.' + IntToStr(x);
   end;
 end;
 
 {==============================================================================}
-FUNCTION IntMibToStr(CONST value: ansistring): ansistring;
-VAR
-  n, y: integer;
+function IntMibToStr(const Value: AnsiString): AnsiString;
+var
+  n, y: Integer;
 begin
   y := 0;
-  for n := 1 to length(value) - 1 do
-    y := y * 256 + ord(value[n]);
-  result := intToStr(y);
+  for n := 1 to Length(Value) - 1 do
+    y := y * 256 + Ord(Value[n]);
+  Result := IntToStr(y);
 end;
 
 {==============================================================================}
-FUNCTION ASNdump(CONST value: ansistring): ansistring;
-VAR
+function ASNdump(const Value: AnsiString): AnsiString;
+var
   i, at, x, n: integer;
-  s, indent: ansistring;
+  s, indent: AnsiString;
   il: TStringList;
 begin
-  il := TStringList.create;
+  il := TStringList.Create;
   try
-    result := '';
+    Result := '';
     i := 1;
     indent := '';
-    while i < length(value) do
+    while i < Length(Value) do
     begin
-      for n := il.count - 1 downto 0 do
+      for n := il.Count - 1 downto 0 do
       begin
-        x := strToIntDef(il[n], 0);
+        x := StrToIntDef(il[n], 0);
         if x <= i then
         begin
           il.Delete(n);
           Delete(indent, 1, 2);
         end;
       end;
-      s := ASNItem(i, value, at);
-      result := result + indent + '$' + IntToHex(at, 2);
+      s := ASNItem(i, Value, at);
+      Result := Result + indent + '$' + IntToHex(at, 2);
       if (at and $20) > 0 then
       begin
-        x := length(s);
-        result := result + ' constructed: length ' + intToStr(x);
+        x := Length(s);
+        Result := Result + ' constructed: length ' + IntToStr(x);
         indent := indent + '  ';
-        il.add(intToStr(x + i - 1));
+        il.Add(IntToStr(x + i - 1));
       end
       else
       begin
         case at of
           ASN1_BOOL:
-            result := result + ' BOOL: ';
+            Result := Result + ' BOOL: ';
           ASN1_INT:
-            result := result + ' INT: ';
+            Result := Result + ' INT: ';
           ASN1_ENUM:
-            result := result + ' ENUM: ';
+            Result := Result + ' ENUM: ';
           ASN1_COUNTER:
-            result := result + ' COUNTER: ';
+            Result := Result + ' COUNTER: ';
           ASN1_GAUGE:
-            result := result + ' GAUGE: ';
+            Result := Result + ' GAUGE: ';
           ASN1_TIMETICKS:
-            result := result + ' TIMETICKS: ';
+            Result := Result + ' TIMETICKS: ';
           ASN1_OCTSTR:
-            result := result + ' OCTSTR: ';
+            Result := Result + ' OCTSTR: ';
           ASN1_OPAQUE:
-            result := result + ' OPAQUE: ';
+            Result := Result + ' OPAQUE: ';
           ASN1_OBJID:
-            result := result + ' OBJID: ';
+            Result := Result + ' OBJID: ';
           ASN1_IPADDR:
-            result := result + ' IPADDR: ';
+            Result := Result + ' IPADDR: ';
           ASN1_NULL:
-            result := result + ' NULL: ';
+            Result := Result + ' NULL: ';
         else // other
-          result := result + ' unknown: ';
+          Result := Result + ' unknown: ';
         end;
         if IsBinaryString(s) then
           s := DumpExStr(s);
-        result := result + s;
+        Result := Result + s;
       end;
-      result := result + #$0d + #$0a;
+      Result := Result + #$0d + #$0a;
     end;
   finally
-    il.free;
+    il.Free;
   end;
 end;
 

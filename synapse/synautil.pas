@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 004.015.000 |
+| Project : Ararat Synapse                                       | 004.015.000 |
 |==============================================================================|
-| content: support procedures and functions                                    |
+| Content: support procedures and functions                                    |
 |==============================================================================|
 | Copyright (c)1999-2012, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,29 +20,29 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c) 1999-2012.               |
 | Portions created by Hernan Sanchez are Copyright (c) 2000.                   |
 | Portions created by Petr Fejfar are Copyright (c)2011-2012.                  |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |   Hernan Sanchez (hernan.sanchez@iname.com)                                  |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(Support procedures and functions)}
@@ -67,72 +67,72 @@
   {$WARN SUSPICIOUS_TYPECAST OFF}
 {$ENDIF}
 
-UNIT synautil;
+unit synautil;
 
-INTERFACE
+interface
 
-USES
+uses
 {$IFDEF MSWINDOWS}
-  windows,
+  Windows,
 {$ELSE}
   {$IFDEF FPC}
-    unixutil, unix, baseunix,
+    UnixUtil, Unix, BaseUnix,
   {$ELSE}
     Libc,
   {$ENDIF}
 {$ENDIF}
 {$IFDEF CIL}
-  system.IO,
+  System.IO,
 {$ENDIF}
-  sysutils, Classes, SynaFpc;
+  SysUtils, Classes, SynaFpc;
 
 {$IFDEF VER100}
-TYPE
+type
   int64 = integer;
 {$ENDIF}
 
 {:Return your timezone bias from UTC time in minutes.}
-FUNCTION TimeZoneBias: integer;
+function TimeZoneBias: integer;
 
 {:Return your timezone bias from UTC time in string representation like "+0200".}
-FUNCTION TimeZone: string;
+function TimeZone: string;
 
 {:Returns current time in format defined in RFC-822. Useful for SMTP messages,
  but other protocols use this time format as well. Results contains the timezone
- specification. Four digit year is used to break any Y2K concerns. (example
+ specification. Four digit year is used to break any Y2K concerns. (Example
  'Fri, 15 Oct 1999 21:14:56 +0200')}
-FUNCTION Rfc822DateTime(t: TDateTime): string;
+function Rfc822DateTime(t: TDateTime): string;
 
 {:Returns date and time in format defined in C compilers in format "mmm dd hh:nn:ss"}
-FUNCTION CDateTime(t: TDateTime): string;
+function CDateTime(t: TDateTime): string;
 
 {:Returns date and time in format defined in format 'yymmdd hhnnss'}
-FUNCTION SimpleDateTime(t: TDateTime): string;
+function SimpleDateTime(t: TDateTime): string;
 
 {:Returns date and time in format defined in ANSI C compilers in format
- "ddd mmm d hh:NN:SS yyyy" }
-FUNCTION AnsiCDateTime(t: TDateTime): string;
+ "ddd mmm d hh:nn:ss yyyy" }
+function AnsiCDateTime(t: TDateTime): string;
 
 {:Decode three-letter string with name of month to their month number. If string
- not match any month name, then is returned 0. for parsing are used predefined
+ not match any month name, then is returned 0. For parsing are used predefined
  names for English, French and German and names from system locale too.}
-FUNCTION GetMonthNumber(value: string): integer;
+function GetMonthNumber(Value: String): integer;
 
 {:Return decoded time from given string. Time must be witch separator ':'. You
- can use "hh:mm" or "hh:mm:SS".}
-FUNCTION GetTimeFromStr(value: string): TDateTime;
+ can use "hh:mm" or "hh:mm:ss".}
+function GetTimeFromStr(Value: string): TDateTime;
 
 {:Decode string in format "m-d-y" to TDateTime type.}
-FUNCTION GetDateMDYFromStr(value: string): TDateTime;
+function GetDateMDYFromStr(Value: string): TDateTime;
 
 {:Decode various string representations of date and time to Tdatetime type.
- This FUNCTION do all timezone corrections too! This FUNCTION can decode lot of
+ This function do all timezone corrections too! This function can decode lot of
   formats like:
  @longcode(#
- ddd, d mmm yyyy hh:mm:SS
- ddd, d mmm yy hh:mm:SS
- ddd, mmm d yyyy hh:mm:SS
- ddd mmm dd hh:mm:SS yyyy #)
+ ddd, d mmm yyyy hh:mm:ss
+ ddd, d mmm yy hh:mm:ss
+ ddd, mmm d yyyy hh:mm:ss
+ ddd mmm dd hh:mm:ss yyyy #)
 
 and more with lot of modifications, include:
 @longcode(#
@@ -141,238 +141,238 @@ Sunday, 06-Nov-94 08:49:37 GMT   ; RFC 850, obsoleted by RFC 1036
 Sun Nov  6 08:49:37 1994         ; ANSI C's asctime() Format
 #)
 Timezone corrections known lot of symbolic timezone names (like CEST, EDT, etc.)
-or numeric representation (like +0200). by convention defined in RFC timezone
+or numeric representation (like +0200). By convention defined in RFC timezone
  +0000 is GMT and -0000 is current your system timezone.}
-FUNCTION DecodeRfcDateTime(value: string): TDateTime;
+function DecodeRfcDateTime(Value: string): TDateTime;
 
 {:Return current system date and time in UTC timezone.}
-FUNCTION GetUTTime: TDateTime;
+function GetUTTime: TDateTime;
 
 {:Set Newdt as current system date and time in UTC timezone. This function work
  only if you have administrator rights!}
-FUNCTION SetUTTime(Newdt: TDateTime): boolean;
+function SetUTTime(Newdt: TDateTime): Boolean;
 
 {:Return current value of system timer with precizion 1 millisecond. Good for
  measure time difference.}
-FUNCTION GetTick: Longword;
+function GetTick: LongWord;
 
 {:Return difference between two timestamps. It working fine only for differences
- smaller then MAXINT. (difference must be smaller then 24 days.)}
-FUNCTION TickDelta(TickOld, TickNew: Longword): Longword;
+ smaller then maxint. (difference must be smaller then 24 days.)}
+function TickDelta(TickOld, TickNew: LongWord): LongWord;
 
 {:Return two characters, which ordinal values represents the value in byte
- format. (high-endian)}
-FUNCTION CodeInt(value: word): ansistring;
+ format. (High-endian)}
+function CodeInt(Value: Word): Ansistring;
 
 {:Decodes two characters located at "Index" offset position of the "Value"
- string to word values.}
-FUNCTION DecodeInt(CONST value: ansistring; index: integer): word;
+ string to Word values.}
+function DecodeInt(const Value: Ansistring; Index: Integer): Word;
 
 {:Return four characters, which ordinal values represents the value in byte
- format. (high-endian)}
-FUNCTION CodeLongInt(value: longint): ansistring;
+ format. (High-endian)}
+function CodeLongInt(Value: LongInt): Ansistring;
 
 {:Decodes four characters located at "Index" offset position of the "Value"
- string to longint values.}
-FUNCTION DecodeLongInt(CONST value: ansistring; index: integer): longint;
+ string to LongInt values.}
+function DecodeLongInt(const Value: Ansistring; Index: Integer): LongInt;
 
 {:Dump binary buffer stored in a string to a result string.}
-FUNCTION DumpStr(CONST buffer: ansistring): string;
+function DumpStr(const Buffer: Ansistring): string;
 
 {:Dump binary buffer stored in a string to a result string. All bytes with code
  of character is written as character, not as hexadecimal value.}
-FUNCTION DumpExStr(CONST buffer: ansistring): string;
+function DumpExStr(const Buffer: Ansistring): string;
 
 {:Dump binary buffer stored in a string to a file with DumpFile filename.}
-PROCEDURE Dump(CONST buffer: ansistring; DumpFile: string);
+procedure Dump(const Buffer: AnsiString; DumpFile: string);
 
 {:Dump binary buffer stored in a string to a file with DumpFile filename. All
  bytes with code of character is written as character, not as hexadecimal value.}
-PROCEDURE DumpEx(CONST buffer: ansistring; DumpFile: string);
+procedure DumpEx(const Buffer: AnsiString; DumpFile: string);
 
 {:Like TrimLeft, but remove only spaces, not control characters!}
-FUNCTION TrimSPLeft(CONST S: string): string;
+function TrimSPLeft(const S: string): string;
 
 {:Like TrimRight, but remove only spaces, not control characters!}
-FUNCTION TrimSPRight(CONST S: string): string;
+function TrimSPRight(const S: string): string;
 
 {:Like Trim, but remove only spaces, not control characters!}
-FUNCTION TrimSP(CONST S: string): string;
+function TrimSP(const S: string): string;
 
 {:Returns a portion of the "Value" string located to the left of the "Delimiter"
- string. if a delimiter is not found, results is original string.}
-FUNCTION SeparateLeft(CONST value, Delimiter: string): string;
+ string. If a delimiter is not found, results is original string.}
+function SeparateLeft(const Value, Delimiter: string): string;
 
 {:Returns the portion of the "Value" string located to the right of the
- "Delimiter" string. if a delimiter is not found, results is original string.}
-FUNCTION SeparateRight(CONST value, Delimiter: string): string;
+ "Delimiter" string. If a delimiter is not found, results is original string.}
+function SeparateRight(const Value, Delimiter: string): string;
 
 {:Returns parameter value from string in format:
  parameter1="value1"; parameter2=value2}
-FUNCTION getParameter(CONST value, Parameter: string): string;
+function GetParameter(const Value, Parameter: string): string;
 
 {:parse value string with elements differed by Delimiter into stringlist.}
-PROCEDURE ParseParametersEx(value, Delimiter: string; CONST parameters: TStrings);
+procedure ParseParametersEx(Value, Delimiter: string; const Parameters: TStrings);
 
 {:parse value string with elements differed by ';' into stringlist.}
-PROCEDURE ParseParameters(value: string; CONST parameters: TStrings);
+procedure ParseParameters(Value: string; const Parameters: TStrings);
 
 {:Index of string in stringlist with same beginning as Value is returned.}
-FUNCTION IndexByBegin(value: string; CONST list: TStrings): integer;
+function IndexByBegin(Value: string; const List: TStrings): integer;
 
 {:Returns only the e-mail portion of an address from the full address format.
  i.e. returns 'nobody@@somewhere.com' from '"someone" <nobody@@somewhere.com>'}
-FUNCTION GetEmailAddr(CONST value: string): string;
+function GetEmailAddr(const Value: string): string;
 
 {:Returns only the description part from a full address format. i.e. returns
  'someone' from '"someone" <nobody@@somewhere.com>'}
-FUNCTION GetEmailDesc(value: string): string;
+function GetEmailDesc(Value: string): string;
 
 {:Returns a string with hexadecimal digits representing the corresponding values
- of the bytes found in "value" string.}
-FUNCTION StrToHex(CONST value: ansistring): string;
+ of the bytes found in "Value" string.}
+function StrToHex(const Value: Ansistring): string;
 
 {:Returns a string of binary "Digits" representing "Value".}
-FUNCTION IntToBin(value: integer; digits: byte): string;
+function IntToBin(Value: Integer; Digits: Byte): string;
 
 {:Returns an integer equivalent of the binary string in "Value".
  (i.e. ('10001010') returns 138)}
-FUNCTION BinToInt(CONST value: string): integer;
+function BinToInt(const Value: string): Integer;
 
 {:Parses a URL to its various components.}
-FUNCTION ParseURL(URL: string; VAR Prot, User, Pass, Host, Port, path,
+function ParseURL(URL: string; var Prot, User, Pass, Host, Port, Path,
   Para: string): string;
 
 {:Replaces all "Search" string values found within "Value" string, with the
  "Replace" string value.}
-FUNCTION ReplaceString(value, Search, Replace: ansistring): ansistring;
+function ReplaceString(Value, Search, Replace: AnsiString): AnsiString;
 
 {:It is like RPos, but search is from specified possition.}
-FUNCTION RPosEx(CONST sub, value: string; From: integer): integer;
+function RPosEx(const Sub, Value: string; From: integer): Integer;
 
 {:It is like POS function, but from right side of Value string.}
-FUNCTION RPos(CONST sub, value: string): integer;
+function RPos(const Sub, Value: String): Integer;
 
 {:Like @link(fetch), but working with binary strings, not with text.}
-FUNCTION FetchBin(VAR value: string; CONST Delimiter: string): string;
+function FetchBin(var Value: string; const Delimiter: string): string;
 
 {:Fetch string from left of Value string.}
-FUNCTION Fetch(VAR value: string; CONST Delimiter: string): string;
+function Fetch(var Value: string; const Delimiter: string): string;
 
 {:Fetch string from left of Value string. This function ignore delimitesr inside
  quotations.}
-FUNCTION FetchEx(VAR value: string; CONST Delimiter, Quotation: string): string;
+function FetchEx(var Value: string; const Delimiter, Quotation: string): string;
 
 {:If string is binary string (contains non-printable characters), then is
  returned true.}
-FUNCTION IsBinaryString(CONST value: ansistring): boolean;
+function IsBinaryString(const Value: AnsiString): Boolean;
 
 {:return position of string terminator in string. If terminator found, then is
  returned in terminator parameter.
  Possible line terminators are: CRLF, LFCR, CR, LF}
-FUNCTION PosCRLF(CONST value: ansistring; VAR Terminator: ansistring): integer;
+function PosCRLF(const Value: AnsiString; var Terminator: AnsiString): integer;
 
 {:Delete empty strings from end of stringlist.}
-PROCEDURE StringsTrim(CONST value: TStrings);
+Procedure StringsTrim(const value: TStrings);
 
 {:Like Pos function, buf from given string possition.}
-FUNCTION PosFrom(CONST SubStr, value: string; From: integer): integer;
+function PosFrom(const SubStr, Value: String; From: integer): integer;
 
 {$IFNDEF CIL}
 {:Increase pointer by value.}
-FUNCTION IncPoint(CONST p: pointer; value: integer): pointer;
+function IncPoint(const p: pointer; Value: integer): pointer;
 {$ENDIF}
 
 {:Get string between PairBegin and PairEnd. This function respect nesting.
- for example:
+ For example:
  @longcode(#
- value is: 'Hi! (hello(yes!))'
+ Value is: 'Hi! (hello(yes!))'
  pairbegin is: '('
  pairend is: ')'
- in this case result is: 'hello(yes!)'#)}
-FUNCTION GetBetween(CONST PairBegin, PairEnd, value: string): string;
+ In this case result is: 'hello(yes!)'#)}
+function GetBetween(const PairBegin, PairEnd, Value: string): string;
 
 {:Return count of Chr in Value string.}
-FUNCTION CountOfChar(CONST value: string; chr: char): integer;
+function CountOfChar(const Value: string; Chr: char): integer;
 
 {:Remove quotation from Value string. If Value is not quoted, then return same
  string without any modification. }
-FUNCTION UnquoteStr(CONST value: string; Quote: char): string;
+function UnquoteStr(const Value: string; Quote: Char): string;
 
 {:Quote Value string. If Value contains some Quote chars, then it is doubled.}
-FUNCTION QuoteStr(CONST value: string; Quote: char): string;
+function QuoteStr(const Value: string; Quote: Char): string;
 
 {:Convert lines in stringlist from 'name: value' form to 'name=value' form.}
-PROCEDURE HeadersToList(CONST value: TStrings);
+procedure HeadersToList(const Value: TStrings);
 
 {:Convert lines in stringlist from 'name=value' form to 'name: value' form.}
-PROCEDURE ListToHeaders(CONST value: TStrings);
+procedure ListToHeaders(const Value: TStrings);
 
 {:swap bytes in integer.}
-FUNCTION SwapBytes(value: integer): integer;
+function SwapBytes(Value: integer): integer;
 
 {:read string with requested length form stream.}
-FUNCTION ReadStrFromStream(CONST Stream: TStream; len: integer): ansistring;
+function ReadStrFromStream(const Stream: TStream; len: integer): AnsiString;
 
 {:write string to stream.}
-PROCEDURE WriteStrToStream(CONST Stream: TStream; value: ansistring);
+procedure WriteStrToStream(const Stream: TStream; Value: AnsiString);
 
 {:Return filename of new temporary file in Dir (if empty, then default temporary
- directory is used) and with optional fileName prefix.}
-FUNCTION GetTempFile(CONST dir, prefix: ansistring): ansistring;
+ directory is used) and with optional filename prefix.}
+function GetTempFile(const Dir, prefix: AnsiString): AnsiString;
 
 {:Return padded string. If length is greater, string is truncated. If length is
  smaller, string is padded by Pad character.}
-FUNCTION PadString(CONST value: ansistring; len: integer; Pad: AnsiChar): ansistring;
+function PadString(const Value: AnsiString; len: integer; Pad: AnsiChar): AnsiString;
 
 {:XOR each byte in the strings}
-FUNCTION XorString(Indata1, Indata2: ansistring): ansistring;
+function XorString(Indata1, Indata2: AnsiString): AnsiString;
 
 {:Read header from "Value" stringlist beginning at "Index" position. If header
- is Splitted into multiple lines, then this PROCEDURE de-split it into one line.}
-FUNCTION NormalizeHeader(value: TStrings; VAR index: integer): string;
+ is Splitted into multiple lines, then this procedure de-split it into one line.}
+function NormalizeHeader(Value: TStrings; var Index: Integer): string;
 
 {pf}
 {:Search for one of line terminators CR, LF or NUL. Return position of the
  line beginning and length of text.}
-PROCEDURE SearchForLineBreak(VAR APtr:PAnsiChar; AEtx:PAnsiChar; OUT ABol:PAnsiChar; OUT ALength:integer);
+procedure SearchForLineBreak(var APtr:PANSIChar; AEtx:PANSIChar; out ABol:PANSIChar; out ALength:integer);
 {:Skip both line terminators CR LF (if any). Move APtr position forward.}
-PROCEDURE SkipLineBreak(VAR APtr:PAnsiChar; AEtx:PAnsiChar);
+procedure SkipLineBreak(var APtr:PANSIChar; AEtx:PANSIChar);
 {:Skip all blank lines in a buffer starting at APtr and move APtr position forward.}
-PROCEDURE SkipNullLines                   (VAR APtr:PAnsiChar; AEtx:PAnsiChar);
+procedure SkipNullLines                   (var APtr:PANSIChar; AEtx:PANSIChar);
 {:Copy all lines from a buffer starting at APtr to ALines until empty line
- or end of the buffer is reached. move APtr position forward).}
-PROCEDURE CopyLinesFromStreamUntilNullLine(VAR APtr:PAnsiChar; AEtx:PAnsiChar; ALines:TStrings);
+ or end of the buffer is reached. Move APtr position forward).}
+procedure CopyLinesFromStreamUntilNullLine(var APtr:PANSIChar; AEtx:PANSIChar; ALines:TStrings);
 {:Copy all lines from a buffer starting at APtr to ALines until ABoundary
- or end of the buffer is reached. move APtr position forward).}
-PROCEDURE CopyLinesFromStreamUntilBoundary(VAR APtr:PAnsiChar; AEtx:PAnsiChar; ALines:TStrings; CONST ABoundary:ansistring);
+ or end of the buffer is reached. Move APtr position forward).}
+procedure CopyLinesFromStreamUntilBoundary(var APtr:PANSIChar; AEtx:PANSIChar; ALines:TStrings; const ABoundary:ANSIString);
 {:Search ABoundary in a buffer starting at APtr.
- Return beginning of the ABoundary. move APtr forward behind a trailing CRLF if any).}
-FUNCTION  SearchForBoundary               (VAR APtr:PAnsiChar; AEtx:PAnsiChar; CONST ABoundary:ansistring): PAnsiChar;
+ Return beginning of the ABoundary. Move APtr forward behind a trailing CRLF if any).}
+function  SearchForBoundary               (var APtr:PANSIChar; AEtx:PANSIChar; const ABoundary:ANSIString): PANSIChar;
 {:Compare a text at position ABOL with ABoundary and return position behind the
  match (including a trailing CRLF if any).}
-FUNCTION  MatchBoundary                   (ABOL,AETX:PAnsiChar; CONST ABoundary:ansistring): PAnsiChar;
+function  MatchBoundary                   (ABOL,AETX:PANSIChar; const ABoundary:ANSIString): PANSIChar;
 {:Compare a text at position ABOL with ABoundary + the last boundary suffix
  and return position behind the match (including a trailing CRLF if any).}
-FUNCTION  MatchLastBoundary               (ABOL,AETX:PAnsiChar; CONST ABoundary:ansistring): PAnsiChar;
+function  MatchLastBoundary               (ABOL,AETX:PANSIChar; const ABoundary:ANSIString): PANSIChar;
 {:Copy data from a buffer starting at position APtr and delimited by AEtx
- position into ansistring.}
-FUNCTION  BuildStringFromBuffer           (AStx,AEtx:PAnsiChar): ansistring;
+ position into ANSIString.}
+function  BuildStringFromBuffer           (AStx,AEtx:PANSIChar): ANSIString;
 {/pf}
 
-VAR
+var
   {:can be used for your own months strings for @link(getmonthnumber)}
   CustomMonthNames: array[1..12] of string;
 
-IMPLEMENTATION
+implementation
 
 {==============================================================================}
 
-CONST
-  MyDayNames: array[1..7] of ansistring =
+const
+  MyDayNames: array[1..7] of AnsiString =
     ('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
-VAR
-  MyMonthNames: array[0..6, 1..12] of string =
+var
+  MyMonthNames: array[0..6, 1..12] of String =
     (
     ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',  //rewrited by system locales
      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'),
@@ -393,24 +393,24 @@ VAR
 
 {==============================================================================}
 
-FUNCTION TimeZoneBias: integer;
+function TimeZoneBias: integer;
 {$IFNDEF MSWINDOWS}
 {$IFNDEF FPC}
-VAR
+var
   t: TTime_T;
   UT: TUnixTime;
 begin
   __time(@T);
   localtime_r(@T, UT);
-  result := ut.__tm_gmtoff div 60;
+  Result := ut.__tm_gmtoff div 60;
 {$ELSE}
 begin
-  result := TZSeconds div 60;
+  Result := TZSeconds div 60;
 {$ENDIF}
 {$ELSE}
-VAR
+var
   zoneinfo: TTimeZoneInformation;
-  bias: integer;
+  bias: Integer;
 begin
   case GetTimeZoneInformation(Zoneinfo) of
     2:
@@ -420,92 +420,92 @@ begin
   else
     bias := zoneinfo.Bias;
   end;
-  result := bias * (-1);
+  Result := bias * (-1);
 {$ENDIF}
 end;
 
 {==============================================================================}
 
-FUNCTION TimeZone: string;
-VAR
-  bias: integer;
-  h, m: integer;
+function TimeZone: string;
+var
+  bias: Integer;
+  h, m: Integer;
 begin
   bias := TimeZoneBias;
   if bias >= 0 then
-    result := '+'
+    Result := '+'
   else
-    result := '-';
-  bias := abs(bias);
+    Result := '-';
+  bias := Abs(bias);
   h := bias div 60;
   m := bias mod 60;
-  result := result + format('%.2d%.2d', [h, m]);
+  Result := Result + Format('%.2d%.2d', [h, m]);
 end;
 
 {==============================================================================}
 
-FUNCTION Rfc822DateTime(t: TDateTime): string;
-VAR
+function Rfc822DateTime(t: TDateTime): string;
+var
   wYear, wMonth, wDay: word;
 begin
   DecodeDate(t, wYear, wMonth, wDay);
-  result := format('%s, %d %s %s %s', [MyDayNames[DayOfWeek(t)], wDay,
+  Result := Format('%s, %d %s %s %s', [MyDayNames[DayOfWeek(t)], wDay,
     MyMonthNames[1, wMonth], FormatDateTime('yyyy hh":"nn":"ss', t), TimeZone]);
 end;
 
 {==============================================================================}
 
-FUNCTION CDateTime(t: TDateTime): string;
-VAR
+function CDateTime(t: TDateTime): string;
+var
   wYear, wMonth, wDay: word;
 begin
   DecodeDate(t, wYear, wMonth, wDay);
-  result:= format('%s %2d %s', [MyMonthNames[1, wMonth], wDay,
+  Result:= Format('%s %2d %s', [MyMonthNames[1, wMonth], wDay,
     FormatDateTime('hh":"nn":"ss', t)]);
 end;
 
 {==============================================================================}
 
-FUNCTION SimpleDateTime(t: TDateTime): string;
+function SimpleDateTime(t: TDateTime): string;
 begin
-  result := FormatDateTime('yymmdd hhnnss', t);
+  Result := FormatDateTime('yymmdd hhnnss', t);
 end;
 
 {==============================================================================}
 
-FUNCTION AnsiCDateTime(t: TDateTime): string;
-VAR
+function AnsiCDateTime(t: TDateTime): string;
+var
   wYear, wMonth, wDay: word;
 begin
   DecodeDate(t, wYear, wMonth, wDay);
-  result := format('%s %s %d %s', [MyDayNames[DayOfWeek(t)], MyMonthNames[1, wMonth],
+  Result := Format('%s %s %d %s', [MyDayNames[DayOfWeek(t)], MyMonthNames[1, wMonth],
     wDay, FormatDateTime('hh":"nn":"ss yyyy ', t)]);
 end;
 
 {==============================================================================}
 
-FUNCTION DecodeTimeZone(value: string; VAR Zone: integer): boolean;
-VAR
+function DecodeTimeZone(Value: string; var Zone: integer): Boolean;
+var
   x: integer;
   zh, zm: integer;
   s: string;
 begin
-  result := false;
-  s := value;
-  if (pos('+', s) = 1) or (pos('-',s) = 1) then
+  Result := false;
+  s := Value;
+  if (Pos('+', s) = 1) or (Pos('-',s) = 1) then
   begin
     if s = '-0000' then
       Zone := TimeZoneBias
     else
-      if length(s) > 4 then
+      if Length(s) > 4 then
       begin
-        zh := strToIntDef(s[2] + s[3], 0);
-        zm := strToIntDef(s[4] + s[5], 0);
+        zh := StrToIntdef(s[2] + s[3], 0);
+        zm := StrToIntdef(s[4] + s[5], 0);
         zone := zh * 60 + zm;
         if s[1] = '-' then
           zone := zone * (-1);
       end;
-    result := true;
+    Result := True;
   end
   else
   begin
@@ -564,52 +564,52 @@ begin
     if x <> 32767 then
     begin
       zone := x * 60;
-      result := true;
+      Result := True;
     end;
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION GetMonthNumber(value: string): integer;
-VAR
+function GetMonthNumber(Value: String): integer;
+var
   n: integer;
-  FUNCTION TestMonth(value: string; index: integer): boolean;
-  VAR
+  function TestMonth(Value: String; Index: Integer): Boolean;
+  var
     n: integer;
   begin
-    result := false;
+    Result := False;
     for n := 0 to 6 do
-      if value = AnsiUppercase(MyMonthNames[n, index]) then
+      if Value = AnsiUppercase(MyMonthNames[n, Index]) then
       begin
-        result := true;
-        break;
+        Result := True;
+        Break;
       end;
   end;
 begin
-  result := 0;
-  value := AnsiUppercase(value);
+  Result := 0;
+  Value := AnsiUppercase(Value);
   for n := 1 to 12 do
-    if TestMonth(value, n) or (value = AnsiUppercase(CustomMonthNames[n])) then
+    if TestMonth(Value, n) or (Value = AnsiUppercase(CustomMonthNames[n])) then
     begin
-      result := n;
-      break;
+      Result := n;
+      Break;
     end;
 end;
 
 {==============================================================================}
 
-FUNCTION GetTimeFromStr(value: string): TDateTime;
-VAR
+function GetTimeFromStr(Value: string): TDateTime;
+var
   x: integer;
 begin
-  x := rpos(':', value);
-  if (x > 0) and ((length(value) - x) > 2) then
-    value := copy(value, 1, x + 2);
-  value := ReplaceString(value, ':', TimeSeparator);
-  result := -1;
+  x := rpos(':', Value);
+  if (x > 0) and ((Length(Value) - x) > 2) then
+    Value := Copy(Value, 1, x + 2);
+  Value := ReplaceString(Value, ':', TimeSeparator);
+  Result := -1;
   try
-    result := StrToTime(value);
+    Result := StrToTime(Value);
   except
     on Exception do ;
   end;
@@ -617,17 +617,17 @@ end;
 
 {==============================================================================}
 
-FUNCTION GetDateMDYFromStr(value: string): TDateTime;
-VAR
+function GetDateMDYFromStr(Value: string): TDateTime;
+var
   wYear, wMonth, wDay: word;
   s: string;
 begin
-  result := 0;
-  s := Fetch(value, '-');
-  wMonth := strToIntDef(s, 12);
-  s := Fetch(value, '-');
-  wDay := strToIntDef(s, 30);
-  wYear := strToIntDef(value, 1899);
+  Result := 0;
+  s := Fetch(Value, '-');
+  wMonth := StrToIntDef(s, 12);
+  s := Fetch(Value, '-');
+  wDay := StrToIntDef(s, 30);
+  wYear := StrToIntDef(Value, 1899);
   if wYear < 1000 then
     if (wYear > 99) then
       wYear := wYear + 1900
@@ -637,7 +637,7 @@ begin
       else
         wYear := wYear + 2000;
   try
-    result := EncodeDate(wYear, wMonth, wDay);
+    Result := EncodeDate(wYear, wMonth, wDay);
   except
     on Exception do ;
   end;
@@ -645,9 +645,9 @@ end;
 
 {==============================================================================}
 
-FUNCTION DecodeRfcDateTime(value: string): TDateTime;
-VAR
-  day, month, year: word;
+function DecodeRfcDateTime(Value: string): TDateTime;
+var
+  day, month, year: Word;
   zone: integer;
   x, y: integer;
   s: string;
@@ -661,19 +661,19 @@ begin
 // Sunday, 06-Nov-94 08:49:37 GMT   ; RFC 850, obsoleted by RFC 1036
 // Sun Nov  6 08:49:37 1994         ; ANSI C's asctime() Format
 
-  result := 0;
-  if value = '' then
-    exit;
+  Result := 0;
+  if Value = '' then
+    Exit;
   day := 0;
   month := 0;
   year := 0;
   zone := 0;
-  value := ReplaceString(value, ' -', ' #');
-  value := ReplaceString(value, '-', ' ');
-  value := ReplaceString(value, ' #', ' -');
-  while value <> '' do
+  Value := ReplaceString(Value, ' -', ' #');
+  Value := ReplaceString(Value, '-', ' ');
+  Value := ReplaceString(Value, ' #', ' -');
+  while Value <> '' do
   begin
-    s := Fetch(value, ' ');
+    s := Fetch(Value, ' ');
     s := uppercase(s);
     // timezone
     if DecodetimeZone(s, x) then
@@ -681,7 +681,7 @@ begin
       zone := x;
       continue;
     end;
-    x := strToIntDef(s, 0);
+    x := StrToIntDef(s, 0);
     // day or year
     if x > 0 then
       if (x < 32) and (day = 0) then
@@ -702,11 +702,11 @@ begin
         end;
       end;
     // time
-    if rpos(':', s) > pos(':', s) then
+    if rpos(':', s) > Pos(':', s) then
     begin
       t := GetTimeFromStr(s);
       if t <> -1 then
-        result := t;
+        Result := t;
       continue;
     end;
     //timezone daylight saving time
@@ -731,37 +731,37 @@ begin
   x := MonthDays[IsLeapYear(year), month];
   if day > x then
     day := x;
-  result := result + EncodeDate(year, month, day);
+  Result := Result + Encodedate(year, month, day);
   zone := zone - TimeZoneBias;
   x := zone div 1440;
-  result := result - x;
+  Result := Result - x;
   zone := zone mod 1440;
-  t := EncodeTime(abs(zone) div 60, abs(zone) mod 60, 0, 0);
+  t := EncodeTime(Abs(zone) div 60, Abs(zone) mod 60, 0, 0);
   if zone < 0 then
     t := 0 - t;
-  result := result - t;
+  Result := Result - t;
 end;
 
 {==============================================================================}
 
-FUNCTION GetUTTime: TDateTime;
+function GetUTTime: TDateTime;
 {$IFDEF MSWINDOWS}
 {$IFNDEF FPC}
-VAR
+var
   st: TSystemTime;
 begin
   GetSystemTime(st);
   result := SystemTimeToDateTime(st);
 {$ELSE}
-VAR
-  st: sysutils.TSystemTime;
-  stw: windows.TSystemTime;
+var
+  st: SysUtils.TSystemTime;
+  stw: Windows.TSystemTime;
 begin
   GetSystemTime(stw);
   st.Year := stw.wYear;
   st.Month := stw.wMonth;
   st.Day := stw.wDay;
-  st.hour := stw.wHour;
+  st.Hour := stw.wHour;
   st.Minute := stw.wMinute;
   st.Second := stw.wSecond;
   st.Millisecond := stw.wMilliseconds;
@@ -769,71 +769,71 @@ begin
 {$ENDIF}
 {$ELSE}
 {$IFNDEF FPC}
-VAR
+var
   TV: TTimeVal;
 begin
   gettimeofday(TV, nil);
-  result := UnixDateDelta + (TV.tv_sec + TV.tv_usec / 1000000) / 86400;
+  Result := UnixDateDelta + (TV.tv_sec + TV.tv_usec / 1000000) / 86400;
 {$ELSE}
-VAR
-  TV: timeval;
+var
+  TV: TimeVal;
 begin
   fpgettimeofday(@TV, nil);
-  result := UnixDateDelta + (TV.tv_sec + TV.tv_usec / 1000000) / 86400;
+  Result := UnixDateDelta + (TV.tv_sec + TV.tv_usec / 1000000) / 86400;
 {$ENDIF}
 {$ENDIF}
 end;
 
 {==============================================================================}
 
-FUNCTION SetUTTime(Newdt: TDateTime): boolean;
+function SetUTTime(Newdt: TDateTime): Boolean;
 {$IFDEF MSWINDOWS}
 {$IFNDEF FPC}
-VAR
+var
   st: TSystemTime;
 begin
   DateTimeToSystemTime(newdt,st);
-  result := SetSystemTime(st);
+  Result := SetSystemTime(st);
 {$ELSE}
-VAR
-  st: sysutils.TSystemTime;
-  stw: windows.TSystemTime;
+var
+  st: SysUtils.TSystemTime;
+  stw: Windows.TSystemTime;
 begin
   DateTimeToSystemTime(newdt,st);
   stw.wYear := st.Year;
   stw.wMonth := st.Month;
   stw.wDay := st.Day;
-  stw.wHour := st.hour;
+  stw.wHour := st.Hour;
   stw.wMinute := st.Minute;
   stw.wSecond := st.Second;
   stw.wMilliseconds := st.Millisecond;
-  result := SetSystemTime(stw);
+  Result := SetSystemTime(stw);
 {$ENDIF}
 {$ELSE}
 {$IFNDEF FPC}
-VAR
+var
   TV: TTimeVal;
   d: double;
-  tz: Ttimezone;
+  TZ: Ttimezone;
   PZ: PTimeZone;
 begin
-  tz.tz_minuteswest := 0;
-  tz.tz_dsttime := 0;
-  PZ := @tz;
+  TZ.tz_minuteswest := 0;
+  TZ.tz_dsttime := 0;
+  PZ := @TZ;
   gettimeofday(TV, PZ);
   d := (newdt - UnixDateDelta) * 86400;
   TV.tv_sec := trunc(d);
   TV.tv_usec := trunc(frac(d) * 1000000);
-  result := settimeofday(TV, tz) <> -1;
+  Result := settimeofday(TV, TZ) <> -1;
 {$ELSE}
-VAR
-  TV: timeval;
+var
+  TV: TimeVal;
   d: double;
 begin
   d := (newdt - UnixDateDelta) * 86400;
   TV.tv_sec := trunc(d);
   TV.tv_usec := trunc(frac(d) * 1000000);
-  result := fpsettimeofday(@TV, nil) <> -1;
+  Result := fpsettimeofday(@TV, nil) <> -1;
 {$ENDIF}
 {$ENDIF}
 end;
@@ -841,94 +841,94 @@ end;
 {==============================================================================}
 
 {$IFNDEF MSWINDOWS}
-FUNCTION GetTick: Longword;
-VAR
+function GetTick: LongWord;
+var
   Stamp: TTimeStamp;
 begin
-  Stamp := DateTimeToTimeStamp(now);
-  result := Stamp.time;
+  Stamp := DateTimeToTimeStamp(Now);
+  Result := Stamp.Time;
 end;
 {$ELSE}
-FUNCTION GetTick: Longword;
-VAR
+function GetTick: LongWord;
+var
   tick, freq: TLargeInteger;
 {$IFDEF VER100}
   x: TLargeInteger;
 {$ENDIF}
 begin
-  if windows.QueryPerformanceFrequency(freq) then
+  if Windows.QueryPerformanceFrequency(freq) then
   begin
-    windows.QueryPerformanceCounter(tick);
+    Windows.QueryPerformanceCounter(tick);
 {$IFDEF VER100}
     x.QuadPart := (tick.QuadPart / freq.QuadPart) * 1000;
-    result := x.LowPart;
+    Result := x.LowPart;
 {$ELSE}
-    result := trunc((tick / freq) * 1000) and high(Longword)
+    Result := Trunc((tick / freq) * 1000) and High(LongWord)
 {$ENDIF}
   end
   else
-    result := windows.GetTickCount;
+    Result := Windows.GetTickCount;
 end;
 {$ENDIF}
 
 {==============================================================================}
 
-FUNCTION TickDelta(TickOld, TickNew: Longword): Longword;
+function TickDelta(TickOld, TickNew: LongWord): LongWord;
 begin
 //if DWord is signed type (older Deplhi),
 // then it not work properly on differencies larger then maxint!
-  result := 0;
+  Result := 0;
   if TickOld <> TickNew then
   begin
     if TickNew < TickOld then
     begin
-      TickNew := TickNew + Longword(MAXINT) + 1;
-      TickOld := TickOld + Longword(MAXINT) + 1;
+      TickNew := TickNew + LongWord(MaxInt) + 1;
+      TickOld := TickOld + LongWord(MaxInt) + 1;
     end;
-    result := TickNew - TickOld;
+    Result := TickNew - TickOld;
     if TickNew < TickOld then
-      if result > 0 then
-        result := 0 - result;
+      if Result > 0 then
+        Result := 0 - Result;
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION CodeInt(value: word): ansistring;
+function CodeInt(Value: Word): Ansistring;
 begin
-  setLength(result, 2);
-  result[1] := AnsiChar(value div 256);
-  result[2] := AnsiChar(value mod 256);
+  setlength(result, 2);
+  result[1] := AnsiChar(Value div 256);
+  result[2] := AnsiChar(Value mod 256);
 //  Result := AnsiChar(Value div 256) + AnsiChar(Value mod 256)
 end;
 
 {==============================================================================}
 
-FUNCTION DecodeInt(CONST value: ansistring; index: integer): word;
-VAR
-  x, y: byte;
+function DecodeInt(const Value: Ansistring; Index: Integer): Word;
+var
+  x, y: Byte;
 begin
-  if length(value) > index then
-    x := ord(value[index])
+  if Length(Value) > Index then
+    x := Ord(Value[Index])
   else
     x := 0;
-  if length(value) >= (index + 1) then
-    y := ord(value[index + 1])
+  if Length(Value) >= (Index + 1) then
+    y := Ord(Value[Index + 1])
   else
     y := 0;
-  result := x * 256 + y;
+  Result := x * 256 + y;
 end;
 
 {==============================================================================}
 
-FUNCTION CodeLongInt(value: longint): ansistring;
-VAR
+function CodeLongInt(Value: Longint): Ansistring;
+var
   x, y: word;
 begin
   // this is fix for negative numbers on systems where longint = integer
-  x := (value shr 16) and integer($FFFF);
-  y := value and integer($FFFF);
-  setLength(result, 4);
+  x := (Value shr 16) and integer($ffff);
+  y := Value and integer($ffff);
+  setlength(result, 4);
   result[1] := AnsiChar(x div 256);
   result[2] := AnsiChar(x mod 256);
   result[3] := AnsiChar(y div 256);
@@ -937,71 +937,71 @@ end;
 
 {==============================================================================}
 
-FUNCTION DecodeLongInt(CONST value: ansistring; index: integer): longint;
-VAR
-  x, y: byte;
-  xl, yl: byte;
+function DecodeLongInt(const Value: Ansistring; Index: Integer): LongInt;
+var
+  x, y: Byte;
+  xl, yl: Byte;
 begin
-  if length(value) > index then
-    x := ord(value[index])
+  if Length(Value) > Index then
+    x := Ord(Value[Index])
   else
     x := 0;
-  if length(value) >= (index + 1) then
-    y := ord(value[index + 1])
+  if Length(Value) >= (Index + 1) then
+    y := Ord(Value[Index + 1])
   else
     y := 0;
-  if length(value) >= (index + 2) then
-    xl := ord(value[index + 2])
+  if Length(Value) >= (Index + 2) then
+    xl := Ord(Value[Index + 2])
   else
     xl := 0;
-  if length(value) >= (index + 3) then
-    yl := ord(value[index + 3])
+  if Length(Value) >= (Index + 3) then
+    yl := Ord(Value[Index + 3])
   else
     yl := 0;
-  result := ((x * 256 + y) * 65536) + (xl * 256 + yl);
+  Result := ((x * 256 + y) * 65536) + (xl * 256 + yl);
 end;
 
 {==============================================================================}
 
-FUNCTION DumpStr(CONST buffer: ansistring): string;
-VAR
-  n: integer;
+function DumpStr(const Buffer: Ansistring): string;
+var
+  n: Integer;
 begin
-  result := '';
-  for n := 1 to length(buffer) do
-    result := result + ' +#$' + IntToHex(ord(buffer[n]), 2);
+  Result := '';
+  for n := 1 to Length(Buffer) do
+    Result := Result + ' +#$' + IntToHex(Ord(Buffer[n]), 2);
 end;
 
 {==============================================================================}
 
-FUNCTION DumpExStr(CONST buffer: ansistring): string;
-VAR
-  n: integer;
-  x: byte;
+function DumpExStr(const Buffer: Ansistring): string;
+var
+  n: Integer;
+  x: Byte;
 begin
-  result := '';
-  for n := 1 to length(buffer) do
+  Result := '';
+  for n := 1 to Length(Buffer) do
   begin
-    x := ord(buffer[n]);
+    x := Ord(Buffer[n]);
     if x in [65..90, 97..122] then
-      result := result + ' +''' + char(x) + ''''
+      Result := Result + ' +''' + char(x) + ''''
     else
-      result := result + ' +#$' + IntToHex(ord(buffer[n]), 2);
+      Result := Result + ' +#$' + IntToHex(Ord(Buffer[n]), 2);
   end;
 end;
 
 {==============================================================================}
 
-PROCEDURE Dump(CONST buffer: ansistring; DumpFile: string);
-VAR
-  f: text;
+procedure Dump(const Buffer: AnsiString; DumpFile: string);
+var
+  f: Text;
 begin
   AssignFile(f, DumpFile);
-  if fileExists(DumpFile) then
+  if FileExists(DumpFile) then
     DeleteFile(DumpFile);
-  rewrite(f);
+  Rewrite(f);
   try
-    writeln(f, DumpStr(buffer));
+    Writeln(f, DumpStr(Buffer));
   finally
     CloseFile(f);
   end;
@@ -1009,16 +1009,16 @@ end;
 
 {==============================================================================}
 
-PROCEDURE DumpEx(CONST buffer: ansistring; DumpFile: string);
-VAR
-  f: text;
+procedure DumpEx(const Buffer: AnsiString; DumpFile: string);
+var
+  f: Text;
 begin
   AssignFile(f, DumpFile);
-  if fileExists(DumpFile) then
+  if FileExists(DumpFile) then
     DeleteFile(DumpFile);
-  rewrite(f);
+  Rewrite(f);
   try
-    writeln(f, DumpExStr(buffer));
+    Writeln(f, DumpExStr(Buffer));
   finally
     CloseFile(f);
   end;
@@ -1026,90 +1026,90 @@ end;
 
 {==============================================================================}
 
-FUNCTION TrimSPLeft(CONST S: string): string;
-VAR
-  I, L: integer;
+function TrimSPLeft(const S: string): string;
+var
+  I, L: Integer;
 begin
-  result := '';
+  Result := '';
   if S = '' then
-    exit;
-  L := length(S);
+    Exit;
+  L := Length(S);
   I := 1;
   while (I <= L) and (S[I] = ' ') do
-    inc(I);
-  result := copy(S, I, MAXINT);
+    Inc(I);
+  Result := Copy(S, I, Maxint);
 end;
 
 {==============================================================================}
 
-FUNCTION TrimSPRight(CONST S: string): string;
-VAR
-  I: integer;
+function TrimSPRight(const S: string): string;
+var
+  I: Integer;
 begin
-  result := '';
+  Result := '';
   if S = '' then
-    exit;
-  I := length(S);
+    Exit;
+  I := Length(S);
   while (I > 0) and (S[I] = ' ') do
-    dec(I);
-  result := copy(S, 1, I);
+    Dec(I);
+  Result := Copy(S, 1, I);
 end;
 
 {==============================================================================}
 
-FUNCTION TrimSP(CONST S: string): string;
+function TrimSP(const S: string): string;
 begin
-  result := TrimSPLeft(s);
-  result := TrimSPRight(result);
+  Result := TrimSPLeft(s);
+  Result := TrimSPRight(Result);
 end;
 
 {==============================================================================}
 
-FUNCTION SeparateLeft(CONST value, Delimiter: string): string;
-VAR
-  x: integer;
+function SeparateLeft(const Value, Delimiter: string): string;
+var
+  x: Integer;
 begin
-  x := pos(Delimiter, value);
+  x := Pos(Delimiter, Value);
   if x < 1 then
-    result := value
+    Result := Value
   else
-    result := copy(value, 1, x - 1);
+    Result := Copy(Value, 1, x - 1);
 end;
 
 {==============================================================================}
 
-FUNCTION SeparateRight(CONST value, Delimiter: string): string;
-VAR
-  x: integer;
+function SeparateRight(const Value, Delimiter: string): string;
+var
+  x: Integer;
 begin
-  x := pos(Delimiter, value);
+  x := Pos(Delimiter, Value);
   if x > 0 then
-    x := x + length(Delimiter) - 1;
-  result := copy(value, x + 1, length(value) - x);
+    x := x + Length(Delimiter) - 1;
+  Result := Copy(Value, x + 1, Length(Value) - x);
 end;
 
 {==============================================================================}
 
-FUNCTION getParameter(CONST value, Parameter: string): string;
-VAR
+function GetParameter(const Value, Parameter: string): string;
+var
   s: string;
   v: string;
 begin
-  result := '';
-  v := value;
+  Result := '';
+  v := Value;
   while v <> '' do
   begin
-    s := trim(FetchEx(v, ';', '"'));
-    if pos(uppercase(parameter), uppercase(s)) = 1 then
-    begin
-      Delete(s, 1, length(Parameter));
-      s := trim(s);
+    s := Trim(FetchEx(v, ';', '"'));
+    if Pos(Uppercase(parameter), Uppercase(s)) = 1 then
+    begin                       
+      Delete(s, 1, Length(Parameter));
+      s := Trim(s);
       if s = '' then
-        break;
+        Break;
       if s[1] = '=' then
       begin
-        result := trim(SeparateRight(s, '='));
-        result := UnquoteStr(result, '"');
+        Result := Trim(SeparateRight(s, '='));
+        Result := UnquoteStr(Result, '"');
         break;
       end;
     end;
@@ -1118,139 +1118,139 @@ end;
 
 {==============================================================================}
 
-PROCEDURE ParseParametersEx(value, Delimiter: string; CONST parameters: TStrings);
-VAR
+procedure ParseParametersEx(Value, Delimiter: string; const Parameters: TStrings);
+var
   s: string;
 begin
-  parameters.clear;
-  while value <> '' do
+  Parameters.Clear;
+  while Value <> '' do
   begin
-    s := trim(FetchEx(value, Delimiter, '"'));
-    parameters.add(s);
+    s := Trim(FetchEx(Value, Delimiter, '"'));
+    Parameters.Add(s);
   end;
 end;
 
 {==============================================================================}
 
-PROCEDURE ParseParameters(value: string; CONST parameters: TStrings);
+procedure ParseParameters(Value: string; const Parameters: TStrings);
 begin
-  ParseParametersEx(value, ';', parameters);
+  ParseParametersEx(Value, ';', Parameters);
 end;
 
 {==============================================================================}
 
-FUNCTION IndexByBegin(value: string; CONST list: TStrings): integer;
-VAR
+function IndexByBegin(Value: string; const List: TStrings): integer;
+var
   n: integer;
   s: string;
 begin
-  result := -1;
-  value := uppercase(value);
-  for n := 0 to list.count -1 do
+  Result := -1;
+  Value := uppercase(Value);
+  for n := 0 to List.Count -1 do
   begin
-    s := uppercase(list[n]);
-    if pos(value, s) = 1 then
+    s := UpperCase(List[n]);
+    if Pos(Value, s) = 1 then
     begin
-      result := n;
-      break;
+      Result := n;
+      Break;
     end;
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION GetEmailAddr(CONST value: string): string;
-VAR
+function GetEmailAddr(const Value: string): string;
+var
   s: string;
 begin
-  s := SeparateRight(value, '<');
+  s := SeparateRight(Value, '<');
   s := SeparateLeft(s, '>');
-  result := trim(s);
+  Result := Trim(s);
 end;
 
 {==============================================================================}
 
-FUNCTION GetEmailDesc(value: string): string;
-VAR
+function GetEmailDesc(Value: string): string;
+var
   s: string;
 begin
-  value := trim(value);
-  s := SeparateRight(value, '"');
-  if s <> value then
+  Value := Trim(Value);
+  s := SeparateRight(Value, '"');
+  if s <> Value then
     s := SeparateLeft(s, '"')
   else
   begin
-    s := SeparateLeft(value, '<');
-    if s = value then
+    s := SeparateLeft(Value, '<');
+    if s = Value then
     begin
-      s := SeparateRight(value, '(');
-      if s <> value then
+      s := SeparateRight(Value, '(');
+      if s <> Value then
         s := SeparateLeft(s, ')')
       else
         s := '';
     end;
   end;
-  result := trim(s);
+  Result := Trim(s);
 end;
 
 {==============================================================================}
 
-FUNCTION StrToHex(CONST value: ansistring): string;
-VAR
-  n: integer;
+function StrToHex(const Value: Ansistring): string;
+var
+  n: Integer;
 begin
-  result := '';
-  for n := 1 to length(value) do
-    result := result + IntToHex(byte(value[n]), 2);
-  result := lowercase(result);
+  Result := '';
+  for n := 1 to Length(Value) do
+    Result := Result + IntToHex(Byte(Value[n]), 2);
+  Result := LowerCase(Result);
 end;
 
 {==============================================================================}
 
-FUNCTION IntToBin(value: integer; digits: byte): string;
-VAR
-  x, y, n: integer;
+function IntToBin(Value: Integer; Digits: Byte): string;
+var
+  x, y, n: Integer;
 begin
-  result := '';
-  x := value;
+  Result := '';
+  x := Value;
   repeat
     y := x mod 2;
     x := x div 2;
     if y > 0 then
-      result := '1' + result
+      Result := '1' + Result
     else
-      result := '0' + result;
+      Result := '0' + Result;
   until x = 0;
-  x := length(result);
-  for n := x to digits - 1 do
-    result := '0' + result;
+  x := Length(Result);
+  for n := x to Digits - 1 do
+    Result := '0' + Result;
 end;
 
 {==============================================================================}
 
-FUNCTION BinToInt(CONST value: string): integer;
-VAR
-  n: integer;
+function BinToInt(const Value: string): Integer;
+var
+  n: Integer;
 begin
-  result := 0;
-  for n := 1 to length(value) do
+  Result := 0;
+  for n := 1 to Length(Value) do
   begin
-    if value[n] = '0' then
-      result := result * 2
+    if Value[n] = '0' then
+      Result := Result * 2
     else
-      if value[n] = '1' then
-        result := result * 2 + 1
+      if Value[n] = '1' then
+        Result := Result * 2 + 1
       else
-        break;
+        Break;
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION ParseURL(URL: string; VAR Prot, User, Pass, Host, Port, path,
+function ParseURL(URL: string; var Prot, User, Pass, Host, Port, Path,
   Para: string): string;
-VAR
-  x, y: integer;
+var
+  x, y: Integer;
   sURL: string;
   s: string;
   s1, s2: string;
@@ -1261,7 +1261,7 @@ begin
   Port := '80';
   Para := '';
 
-  x := pos('://', URL);
+  x := Pos('://', URL);
   if x > 0 then
   begin
     Prot := SeparateLeft(URL, '://');
@@ -1269,17 +1269,17 @@ begin
   end
   else
     sURL := URL;
-  if uppercase(Prot) = 'HTTPS' then
+  if UpperCase(Prot) = 'HTTPS' then
     Port := '443';
-  if uppercase(Prot) = 'FTP' then
+  if UpperCase(Prot) = 'FTP' then
     Port := '21';
-  x := pos('@', sURL);
-  y := pos('/', sURL);
+  x := Pos('@', sURL);
+  y := Pos('/', sURL);
   if (x > 0) and ((x < y) or (y < 1))then
   begin
     s := SeparateLeft(sURL, '@');
     sURL := SeparateRight(sURL, '@');
-    x := pos(':', s);
+    x := Pos(':', s);
     if x > 0 then
     begin
       User := SeparateLeft(s, ':');
@@ -1288,7 +1288,7 @@ begin
     else
       User := s;
   end;
-  x := pos('/', sURL);
+  x := Pos('/', sURL);
   if x > 0 then
   begin
     s1 := SeparateLeft(sURL, '/');
@@ -1299,17 +1299,17 @@ begin
     s1 := sURL;
     s2 := '';
   end;
-  if pos('[', s1) = 1 then
+  if Pos('[', s1) = 1 then
   begin
     Host := Separateleft(s1, ']');
     Delete(Host, 1, 1);
     s1 := SeparateRight(s1, ']');
-    if pos(':', s1) = 1 then
+    if Pos(':', s1) = 1 then
       Port := SeparateRight(s1, ':');
   end
   else
   begin
-    x := pos(':', s1);
+    x := Pos(':', s1);
     if x > 0 then
     begin
       Host := SeparateLeft(s1, ':');
@@ -1318,68 +1318,68 @@ begin
     else
       Host := s1;
   end;
-  result := '/' + s2;
-  x := pos('?', s2);
+  Result := '/' + s2;
+  x := Pos('?', s2);
   if x > 0 then
   begin
-    path := '/' + SeparateLeft(s2, '?');
+    Path := '/' + SeparateLeft(s2, '?');
     Para := SeparateRight(s2, '?');
   end
   else
-    path := '/' + s2;
+    Path := '/' + s2;
   if Host = '' then
     Host := 'localhost';
 end;
 
 {==============================================================================}
 
-FUNCTION ReplaceString(value, Search, Replace: ansistring): ansistring;
-VAR
-  x, l, ls, lr: integer;
+function ReplaceString(Value, Search, Replace: AnsiString): AnsiString;
+var
+  x, l, ls, lr: Integer;
 begin
-  if (value = '') or (Search = '') then
+  if (Value = '') or (Search = '') then
   begin
-    result := value;
-    exit;
+    Result := Value;
+    Exit;
   end;
-  ls := length(Search);
-  lr := length(Replace);
-  result := '';
-  x := pos(Search, value);
+  ls := Length(Search);
+  lr := Length(Replace);
+  Result := '';
+  x := Pos(Search, Value);
   while x > 0 do
   begin
     {$IFNDEF CIL}
-    l := length(result);
-    setLength(result, l + x - 1);
-    move(pointer(value)^, pointer(@result[l + 1])^, x - 1);
+    l := Length(Result);
+    SetLength(Result, l + x - 1);
+    Move(Pointer(Value)^, Pointer(@Result[l + 1])^, x - 1);
     {$ELSE}
-    result:=result+copy(value,1,x-1);
+    Result:=Result+Copy(Value,1,x-1);
     {$ENDIF}
     {$IFNDEF CIL}
-    l := length(result);
-    setLength(result, l + lr);
-    move(pointer(Replace)^, pointer(@result[l + 1])^, lr);
+    l := Length(Result);
+    SetLength(Result, l + lr);
+    Move(Pointer(Replace)^, Pointer(@Result[l + 1])^, lr);
     {$ELSE}
-    result:=result+Replace;
+    Result:=Result+Replace;
     {$ENDIF}
-    Delete(value, 1, x - 1 + ls);
-    x := pos(Search, value);
+    Delete(Value, 1, x - 1 + ls);
+    x := Pos(Search, Value);
   end;
-  result := result + value;
+  Result := Result + Value;
 end;
 
 {==============================================================================}
 
-FUNCTION RPosEx(CONST sub, value: string; From: integer): integer;
-VAR
-  n: integer;
-  l: integer;
+function RPosEx(const Sub, Value: string; From: integer): Integer;
+var
+  n: Integer;
+  l: Integer;
 begin
   result := 0;
-  l := length(sub);
+  l := Length(Sub);
   for n := From - l + 1 downto 1 do
   begin
-    if copy(value, n, l) = sub then
+    if Copy(Value, n, l) = Sub then
     begin
       result := n;
       break;
@@ -1389,96 +1389,96 @@ end;
 
 {==============================================================================}
 
-FUNCTION RPos(CONST sub, value: string): integer;
+function RPos(const Sub, Value: String): Integer;
 begin
-  result := RPosEx(sub, value, length(value));
+  Result := RPosEx(Sub, Value, Length(Value));
 end;
 
 {==============================================================================}
 
-FUNCTION FetchBin(VAR value: string; CONST Delimiter: string): string;
-VAR
+function FetchBin(var Value: string; const Delimiter: string): string;
+var
   s: string;
 begin
-  result := SeparateLeft(value, Delimiter);
-  s := SeparateRight(value, Delimiter);
-  if s = value then
-    value := ''
+  Result := SeparateLeft(Value, Delimiter);
+  s := SeparateRight(Value, Delimiter);
+  if s = Value then
+    Value := ''
   else
-    value := s;
+    Value := s;
 end;
 
 {==============================================================================}
 
-FUNCTION Fetch(VAR value: string; CONST Delimiter: string): string;
+function Fetch(var Value: string; const Delimiter: string): string;
 begin
-  result := FetchBin(value, Delimiter);
-  result := TrimSP(result);
-  value := TrimSP(value);
+  Result := FetchBin(Value, Delimiter);
+  Result := TrimSP(Result);
+  Value := TrimSP(Value);
 end;
 
 {==============================================================================}
 
-FUNCTION FetchEx(VAR value: string; CONST Delimiter, Quotation: string): string;
-VAR
-  b: boolean;
+function FetchEx(var Value: string; const Delimiter, Quotation: string): string;
+var
+  b: Boolean;
 begin
-  result := '';
-  b := false;
-  while length(value) > 0 do
+  Result := '';
+  b := False;
+  while Length(Value) > 0 do
   begin
     if b then
     begin
-      if pos(Quotation, value) = 1 then
-        b := false;
-      result := result + value[1];
-      Delete(value, 1, 1);
+      if Pos(Quotation, Value) = 1 then
+        b := False;
+      Result := Result + Value[1];
+      Delete(Value, 1, 1);
     end
     else
     begin
-      if pos(Delimiter, value) = 1 then
+      if Pos(Delimiter, Value) = 1 then
       begin
-        Delete(value, 1, length(delimiter));
+        Delete(Value, 1, Length(delimiter));
         break;
       end;
-      b := pos(Quotation, value) = 1;
-      result := result + value[1];
-      Delete(value, 1, 1);
+      b := Pos(Quotation, Value) = 1;
+      Result := Result + Value[1];
+      Delete(Value, 1, 1);
     end;
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION IsBinaryString(CONST value: ansistring): boolean;
-VAR
+function IsBinaryString(const Value: AnsiString): Boolean;
+var
   n: integer;
 begin
-  result := false;
-  for n := 1 to length(value) do
-    if value[n] in [#0..#8, #10..#31] then
+  Result := False;
+  for n := 1 to Length(Value) do
+    if Value[n] in [#0..#8, #10..#31] then
       //ignore null-terminated strings
-      if not ((n = length(value)) and (value[n] = AnsiChar(#0))) then
+      if not ((n = Length(value)) and (Value[n] = AnsiChar(#0))) then
       begin
-        result := true;
-        break;
+        Result := True;
+        Break;
       end;
 end;
 
 {==============================================================================}
 
-FUNCTION PosCRLF(CONST value: ansistring; VAR Terminator: ansistring): integer;
-VAR
+function PosCRLF(const Value: AnsiString; var Terminator: AnsiString): integer;
+var
   n, l: integer;
 begin
-  result := -1;
+  Result := -1;
   Terminator := '';
   l := length(value);
   for n := 1 to l do
     if value[n] in [#$0d, #$0a] then
     begin
-      result := n;
-      Terminator := value[n];
+      Result := n;
+      Terminator := Value[n];
       if n <> l then
         case value[n] of
           #$0d:
@@ -1488,42 +1488,42 @@ begin
             if value[n + 1] = #$0d then
               Terminator := #$0a + #$0d;
         end;
-      break;
+      Break;
     end;
 end;
 
 {==============================================================================}
 
-PROCEDURE StringsTrim(CONST value: TStrings);
-VAR
+Procedure StringsTrim(const Value: TStrings);
+var
   n: integer;
 begin
-  for n := value.count - 1 downto 0 do
-    if value[n] = '' then
-      value.Delete(n)
+  for n := Value.Count - 1 downto 0 do
+    if Value[n] = '' then
+      Value.Delete(n)
     else
-      break;
+      Break;
 end;
 
 {==============================================================================}
 
-FUNCTION PosFrom(CONST SubStr, value: string; From: integer): integer;
-VAR
+function PosFrom(const SubStr, Value: String; From: integer): integer;
+var
   ls,lv: integer;
 begin
-  result := 0;
-  ls := length(SubStr);
-  lv := length(value);
+  Result := 0;
+  ls := Length(SubStr);
+  lv := Length(Value);
   if (ls = 0) or (lv = 0) then
-    exit;
+    Exit;
   if From < 1 then
     From := 1;
   while (ls + from - 1) <= (lv) do
   begin
     {$IFNDEF CIL}
-    if CompareMem(@SubStr[1],@value[from],ls) then
+    if CompareMem(@SubStr[1],@Value[from],ls) then
     {$ELSE}
-    if SubStr = copy(value, from, ls) then
+    if SubStr = copy(Value, from, ls) then
     {$ENDIF}
     begin
       result := from;
@@ -1537,16 +1537,16 @@ end;
 {==============================================================================}
 
 {$IFNDEF CIL}
-FUNCTION IncPoint(CONST p: pointer; value: integer): pointer;
+function IncPoint(const p: pointer; Value: integer): pointer;
 begin
-  result := PAnsiChar(p) + value;
+  Result := PAnsiChar(p) + Value;
 end;
 {$ENDIF}
 
 {==============================================================================}
 //improved by 'DoggyDawg'
-FUNCTION GetBetween(CONST PairBegin, PairEnd, value: string): string;
-VAR
+function GetBetween(const PairBegin, PairEnd, Value: string): string;
+var
   n: integer;
   x: integer;
   s: string;
@@ -1555,137 +1555,137 @@ VAR
   str: string;
   max: integer;
 begin
-  lenBegin := length(PairBegin);
-  lenEnd := length(PairEnd);
-  n := length(value);
-  if (value = PairBegin + PairEnd) then
+  lenBegin := Length(PairBegin);
+  lenEnd := Length(PairEnd);
+  n := Length(Value);
+  if (Value = PairBegin + PairEnd) then
   begin
-    result := '';//nothing between
+    Result := '';//nothing between
     exit;
   end;
   if (n < lenBegin + lenEnd) then
   begin
-    result := value;
+    Result := Value;
     exit;
   end;
-  s := SeparateRight(value, PairBegin);
-  if (s = value) then
+  s := SeparateRight(Value, PairBegin);
+  if (s = Value) then
   begin
-    result := value;
+    Result := Value;
     exit;
   end;
-  n := pos(PairEnd, s);
+  n := Pos(PairEnd, s);
   if (n = 0) then
   begin
-    result := value;
+    Result := Value;
     exit;
   end;
-  result := '';
+  Result := '';
   x := 1;
-  max := length(s) - lenEnd + 1;
+  max := Length(s) - lenEnd + 1;
   for n := 1 to max do
   begin
     str := copy(s, n, lenEnd);
     if (str = PairEnd) then
     begin
-      dec(x);
+      Dec(x);
       if (x <= 0) then
-        break;
+        Break;
     end;
     str := copy(s, n, lenBegin);
     if (str = PairBegin) then
-      inc(x);
-    result := result + s[n];
+      Inc(x);
+    Result := Result + s[n];
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION CountOfChar(CONST value: string; chr: char): integer;
-VAR
+function CountOfChar(const Value: string; Chr: char): integer;
+var
   n: integer;
 begin
-  result := 0;
-  for n := 1 to length(value) do
-    if value[n] = chr then
-      inc(result);
+  Result := 0;
+  for n := 1 to Length(Value) do
+    if Value[n] = chr then
+      Inc(Result);
 end;
 
 {==============================================================================}
 // ! do not use AnsiExtractQuotedStr, it's very buggy and can crash application!
-FUNCTION UnquoteStr(CONST value: string; Quote: char): string;
-VAR
+function UnquoteStr(const Value: string; Quote: Char): string;
+var
   n: integer;
-  inq, DQ: boolean;
+  inq, dq: Boolean;
   c, cn: char;
 begin
-  result := '';
-  if value = '' then
-    exit;
-  if value = Quote + Quote then
-    exit;
-  inq := false;
-  DQ := false;
-  for n := 1 to length(value) do
+  Result := '';
+  if Value = '' then
+    Exit;
+  if Value = Quote + Quote then
+    Exit;
+  inq := False;
+  dq := False;
+  for n := 1 to Length(Value) do
   begin
-    c := value[n];
-    if n <> length(value) then
-      cn := value[n + 1]
+    c := Value[n];
+    if n <> Length(Value) then
+      cn := Value[n + 1]
     else
       cn := #0;
     if c = quote then
-      if DQ then
-        DQ := false
+      if dq then
+        dq := False
       else
         if not inq then
-          inq := true
+          inq := True
         else
           if cn = quote then
           begin
-            result := result + Quote;
-            DQ := true;
+            Result := Result + Quote;
+            dq := True;
           end
           else
-            inq := false
+            inq := False
     else
-      result := result + c;
+      Result := Result + c;
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION QuoteStr(CONST value: string; Quote: char): string;
-VAR
+function QuoteStr(const Value: string; Quote: Char): string;
+var
   n: integer;
 begin
-  result := '';
+  Result := '';
   for n := 1 to length(value) do
   begin
-    result := result + value[n];
+    Result := result + Value[n];
     if value[n] = Quote then
-      result := result + Quote;
+      Result := Result + Quote;
   end;
-  result :=  Quote + result + Quote;
+  Result :=  Quote + Result + Quote;
 end;
 
 {==============================================================================}
 
-PROCEDURE HeadersToList(CONST value: TStrings);
-VAR
+procedure HeadersToList(const Value: TStrings);
+var
   n, x, y: integer;
   s: string;
 begin
-  for n := 0 to value.count -1 do
+  for n := 0 to Value.Count -1 do
   begin
-    s := value[n];
-    x := pos(':', s);
+    s := Value[n];
+    x := Pos(':', s);
     if x > 0 then
     begin
-      y:= pos('=',s);
+      y:= Pos('=',s); 
       if not ((y > 0) and (y < x)) then
       begin
         s[x] := '=';
-        value[n] := s;
+        Value[n] := s;
       end;
     end;
   end;
@@ -1693,109 +1693,109 @@ end;
 
 {==============================================================================}
 
-PROCEDURE ListToHeaders(CONST value: TStrings);
-VAR
+procedure ListToHeaders(const Value: TStrings);
+var
   n, x: integer;
   s: string;
 begin
-  for n := 0 to value.count -1 do
+  for n := 0 to Value.Count -1 do
   begin
-    s := value[n];
-    x := pos('=', s);
+    s := Value[n];
+    x := Pos('=', s);
     if x > 0 then
     begin
       s[x] := ':';
-      value[n] := s;
+      Value[n] := s;
     end;
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION SwapBytes(value: integer): integer;
-VAR
-  s: ansistring;
-  x, y, xl, yl: byte;
+function SwapBytes(Value: integer): integer;
+var
+  s: AnsiString;
+  x, y, xl, yl: Byte;
 begin
-  s := CodeLongInt(value);
-  x := ord(s[4]);
-  y := ord(s[3]);
-  xl := ord(s[2]);
-  yl := ord(s[1]);
-  result := ((x * 256 + y) * 65536) + (xl * 256 + yl);
+  s := CodeLongInt(Value);
+  x := Ord(s[4]);
+  y := Ord(s[3]);
+  xl := Ord(s[2]);
+  yl := Ord(s[1]);
+  Result := ((x * 256 + y) * 65536) + (xl * 256 + yl);
 end;
 
 {==============================================================================}
 
-FUNCTION ReadStrFromStream(CONST Stream: TStream; len: integer): ansistring;
-VAR
+function ReadStrFromStream(const Stream: TStream; len: integer): AnsiString;
+var
   x: integer;
 {$IFDEF CIL}
-  Buf: array of byte;
+  buf: Array of Byte;
 {$ENDIF}
 begin
 {$IFDEF CIL}
-  setLength(Buf, len);
-  x := Stream.read(Buf, len);
-  setLength(Buf, x);
-  result := StringOf(Buf);
+  Setlength(buf, Len);
+  x := Stream.read(buf, Len);
+  SetLength(buf, x);
+  Result := StringOf(Buf);
 {$ELSE}
-  setLength(result, len);
-  x := Stream.read(PAnsiChar(result)^, len);
-  setLength(result, x);
+  Setlength(Result, Len);
+  x := Stream.read(PAnsiChar(Result)^, Len);
+  SetLength(Result, x);
 {$ENDIF}
 end;
 
 {==============================================================================}
 
-PROCEDURE WriteStrToStream(CONST Stream: TStream; value: ansistring);
+procedure WriteStrToStream(const Stream: TStream; Value: AnsiString);
 {$IFDEF CIL}
-VAR
-  Buf: array of byte;
+var
+  buf: Array of Byte;
 {$ENDIF}
 begin
 {$IFDEF CIL}
-  Buf := BytesOf(value);
-  Stream.write(Buf,length(value));
+  buf := BytesOf(Value);
+  Stream.Write(buf,length(Value));
 {$ELSE}
-  Stream.write(PAnsiChar(value)^, length(value));
+  Stream.Write(PAnsiChar(Value)^, Length(Value));
 {$ENDIF}
 end;
 
 {==============================================================================}
-FUNCTION GetTempFile(CONST dir, prefix: ansistring): ansistring;
+function GetTempFile(const Dir, prefix: AnsiString): AnsiString;
 {$IFNDEF FPC}
 {$IFDEF MSWINDOWS}
-VAR
-  path: ansistring;
+var
+  Path: AnsiString;
   x: integer;
 {$ENDIF}
 {$ENDIF}
 begin
 {$IFDEF FPC}
-  result := GetTempFileName(dir, prefix);
+  Result := GetTempFileName(Dir, Prefix);
 {$ELSE}
   {$IFNDEF MSWINDOWS}
-    result := tempnam(pointer(dir), pointer(prefix));
+    Result := tempnam(Pointer(Dir), Pointer(prefix));
   {$ELSE}
     {$IFDEF CIL}
-  result := system.IO.path.GetTempFileName;
+  Result := System.IO.Path.GetTempFileName;
     {$ELSE}
-  if dir = '' then
+  if Dir = '' then
   begin
-    setLength(path, MAX_PATH);
-	  x := GetTempPath(length(path), PChar(path));
-  	setLength(path, x);
+    SetLength(Path, MAX_PATH);
+	  x := GetTempPath(Length(Path), PChar(Path));
+  	SetLength(Path, x);
   end
   else
-    path := dir;
-  x := length(path);
-  if path[x] <> '\' then
-    path := path + '\';
-  setLength(result, MAX_PATH + 1);
-  GetTempFileName(PChar(path), PChar(prefix), 0, PChar(result));
-  result := PChar(result);
-  SetFileattributes(PChar(result), GetFileAttributes(PChar(result)) or FILE_ATTRIBUTE_TEMPORARY);
+    Path := Dir;
+  x := Length(Path);
+  if Path[x] <> '\' then
+    Path := Path + '\';
+  SetLength(Result, MAX_PATH + 1);
+  GetTempFileName(PChar(Path), PChar(Prefix), 0, PChar(Result));
+  Result := PChar(Result);
+  SetFileattributes(PChar(Result), GetFileAttributes(PChar(Result)) or FILE_ATTRIBUTE_TEMPORARY);
     {$ENDIF}
   {$ENDIF}
 {$ENDIF}
@@ -1803,59 +1803,59 @@ end;
 
 {==============================================================================}
 
-FUNCTION PadString(CONST value: ansistring; len: integer; Pad: AnsiChar): ansistring;
+function PadString(const Value: AnsiString; len: integer; Pad: AnsiChar): AnsiString;
 begin
   if length(value) >= len then
-    result := copy(value, 1, len)
+    Result := Copy(value, 1, len)
   else
-    result := value + StringOfChar(Pad, len - length(value));
+    Result := Value + StringOfChar(Pad, len - length(value));
 end;
 
 {==============================================================================}
 
-FUNCTION XorString(Indata1, Indata2: ansistring): ansistring;
-VAR
+function XorString(Indata1, Indata2: AnsiString): AnsiString;
+var
   i: integer;
 begin
   Indata2 := PadString(Indata2, length(Indata1), #0);
-  result := '';
+  Result := '';
   for i := 1 to length(Indata1) do
-    result := result + AnsiChar(ord(Indata1[i]) xor ord(Indata2[i]));
+    Result := Result + AnsiChar(ord(Indata1[i]) xor ord(Indata2[i]));
 end;
 
 {==============================================================================}
 
-FUNCTION NormalizeHeader(value: TStrings; VAR index: integer): string;
-VAR
+function NormalizeHeader(Value: TStrings; var Index: Integer): string;
+var
   s, t: string;
-  n: integer;
+  n: Integer;
 begin
-  s := value[index];
-  inc(index);
+  s := Value[Index];
+  Inc(Index);
   if s <> '' then
-    while (value.count - 1) > index do
+    while (Value.Count - 1) > Index do
     begin
-      t := value[index];
+      t := Value[Index];
       if t = '' then
-        break;
-      for n := 1 to length(t) do
+        Break;
+      for n := 1 to Length(t) do
         if t[n] = #9 then
           t[n] := ' ';
       if not(AnsiChar(t[1]) in [' ', '"', ':', '=']) then
-        break
+        Break
       else
       begin
-        s := s + ' ' + trim(t);
-        inc(index);
+        s := s + ' ' + Trim(t);
+        Inc(Index);
       end;
     end;
-  result := trimRight(s);
+  Result := TrimRight(s);
 end;
 
 {==============================================================================}
 
 {pf}
-PROCEDURE SearchForLineBreak(VAR APtr:PAnsiChar; AEtx:PAnsiChar; OUT ABol:PAnsiChar; OUT ALength:integer);
+procedure SearchForLineBreak(var APtr:PANSIChar; AEtx:PANSIChar; out ABol:PANSIChar; out ALength:integer);
 begin
   ABol := APtr;
   while (APtr<AEtx) and not (APtr^ in [#0,#10,#13]) do
@@ -1865,7 +1865,7 @@ end;
 {/pf}
 
 {pf}
-PROCEDURE SkipLineBreak(VAR APtr:PAnsiChar; AEtx:PAnsiChar);
+procedure SkipLineBreak(var APtr:PANSIChar; AEtx:PANSIChar);
 begin
   if (APtr<AEtx) and (APtr^=#13) then
     inc(APtr);
@@ -1875,9 +1875,9 @@ end;
 {/pf}
 
 {pf}
-PROCEDURE SkipNullLines(VAR APtr:PAnsiChar; AEtx:PAnsiChar);
-VAR
-  bol: PAnsiChar;
+procedure SkipNullLines(var APtr:PANSIChar; AEtx:PANSIChar);
+var
+  bol: PANSIChar;
   lng: integer;
 begin
   while (APtr<AEtx) do
@@ -1887,18 +1887,18 @@ begin
       if lng>0 then
         begin
           APtr := bol;
-          break;
+          Break;
         end;
     end;
 end;
 {/pf}
 
 {pf}
-PROCEDURE CopyLinesFromStreamUntilNullLine(VAR APtr:PAnsiChar; AEtx:PAnsiChar; ALines:TStrings);
-VAR
-  bol: PAnsiChar;
+procedure CopyLinesFromStreamUntilNullLine(var APtr:PANSIChar; AEtx:PANSIChar; ALines:TStrings);
+var
+  bol: PANSIChar;
   lng: integer;
-  s:   ansistring;
+  s:   ANSIString;
 begin
   // Copying until body separator will be reached
   while (APtr<AEtx) and (APtr^<>#0) do
@@ -1906,22 +1906,22 @@ begin
       SearchForLineBreak(APtr,AEtx,bol,lng);
       SkipLineBreak(APtr,AEtx);
       if lng=0 then
-        break;
+        Break;
       SetString(s,bol,lng);
-      ALines.add(s);
+      ALines.Add(s);
     end;
 end;
 {/pf}
 
 {pf}
-PROCEDURE CopyLinesFromStreamUntilBoundary(VAR APtr:PAnsiChar; AEtx:PAnsiChar; ALines:TStrings; CONST ABoundary:ansistring);
-VAR
-  bol:      PAnsiChar;
+procedure CopyLinesFromStreamUntilBoundary(var APtr:PANSIChar; AEtx:PANSIChar; ALines:TStrings; const ABoundary:ANSIString);
+var
+  bol:      PANSIChar;
   lng:      integer;
-  s:        ansistring;
-  BackStop: ansistring;
-  eob1:     PAnsiChar;
-  eob2:     PAnsiChar;
+  s:        ANSIString;
+  BackStop: ANSIString;
+  eob1:     PANSIChar;
+  eob2:     PANSIChar;
 begin
   BackStop := '--'+ABoundary;
   eob2     := nil;
@@ -1936,66 +1936,66 @@ begin
       if Assigned(eob2) then
         begin
           APtr := eob2;
-          break;
+          Break;
         end
       else if Assigned(eob1) then
         begin
           APtr := eob1;
-          break;
+          Break;
         end
       else
         begin
           SetString(s,bol,lng);
-          ALines.add(s);
+          ALines.Add(s);
         end;
     end;
 end;
 {/pf}
 
 {pf}
-FUNCTION SearchForBoundary(VAR APtr:PAnsiChar; AEtx:PAnsiChar; CONST ABoundary:ansistring): PAnsiChar;
-VAR
-  eob:  PAnsiChar;
-  step: integer;
+function SearchForBoundary(var APtr:PANSIChar; AEtx:PANSIChar; const ABoundary:ANSIString): PANSIChar;
+var
+  eob:  PANSIChar;
+  Step: integer;
 begin
-  result := nil;
+  Result := nil;
   // Moving Aptr position forward until boundary will be reached
   while (APtr<AEtx) do
     begin
       if strlcomp(APtr,#13#10'--',4)=0 then
         begin
           eob  := MatchBoundary(APtr,AEtx,ABoundary);
-          step := 4;
+          Step := 4;
         end
       else if strlcomp(APtr,'--',2)=0 then
         begin
           eob  := MatchBoundary(APtr,AEtx,ABoundary);
-          step := 2;
+          Step := 2;
         end
       else
         begin
           eob  := nil;
-          step := 1;
+          Step := 1;
         end;
       if Assigned(eob) then
         begin
-          result := APtr;  // boundary beginning
+          Result := APtr;  // boundary beginning
           APtr   := eob;   // boundary end
           exit;
         end
       else
-        inc(APtr,step);
+        inc(APtr,Step);
     end;
 end;
 {/pf}
 
 {pf}
-FUNCTION MatchBoundary(ABol,AEtx:PAnsiChar; CONST ABoundary:ansistring): PAnsiChar;
-VAR
-  MatchPos:   PAnsiChar;
+function MatchBoundary(ABol,AEtx:PANSIChar; const ABoundary:ANSIString): PANSIChar;
+var
+  MatchPos:   PANSIChar;
   Lng:        integer;
 begin
-  result   := nil;
+  Result   := nil;
   MatchPos := ABol;
   Lng := length(ABoundary);
   if (MatchPos+2+Lng)>AETX then
@@ -2007,21 +2007,21 @@ begin
   if strlcomp(MatchPos,'--',2)<>0 then
     exit;
   inc(MatchPos,2);
-  if strlcomp(MatchPos,PAnsiChar(ABoundary),Lng)<>0 then
+  if strlcomp(MatchPos,PANSIChar(ABoundary),Lng)<>0 then
     exit;
   inc(MatchPos,Lng);
   if ((MatchPos+2)<=AEtx) and (strlcomp(MatchPos,#13#10,2)=0) then
     inc(MatchPos,2);
-  result := MatchPos;
+  Result := MatchPos;
 end;
 {/pf}
 
 {pf}
-FUNCTION MatchLastBoundary(ABOL,AETX:PAnsiChar; CONST ABoundary:ansistring): PAnsiChar;
-VAR
-  MatchPos: PAnsiChar;
+function MatchLastBoundary(ABOL,AETX:PANSIChar; const ABoundary:ANSIString): PANSIChar;
+var
+  MatchPos: PANSIChar;
 begin
-  result   := nil;
+  Result   := nil;
   MatchPos := MatchBoundary(ABOL,AETX,ABoundary);
   if not Assigned(MatchPos) then
     exit;
@@ -2030,13 +2030,13 @@ begin
   inc(MatchPos,2);
   if (MatchPos+2<=AEtx) and (strlcomp(MatchPos,#13#10,2)=0) then
     inc(MatchPos,2);
-  result := MatchPos;
+  Result := MatchPos;
 end;
 {/pf}
 
 {pf}
-FUNCTION  BuildStringFromBuffer(AStx,AEtx:PAnsiChar): ansistring;
-VAR
+function  BuildStringFromBuffer(AStx,AEtx:PANSIChar): ANSIString;
+var
   lng: integer;
 begin
   Lng := 0;
@@ -2046,7 +2046,7 @@ begin
       if Lng<0 then
         Lng := 0;
     end;
-  SetString(result,AStx,lng);
+  SetString(Result,AStx,lng);
 end;
 {/pf}
 
@@ -2054,7 +2054,7 @@ end;
 
 
 {==============================================================================}
-VAR
+var
   n: integer;
 begin
   for n :=  1 to 12 do

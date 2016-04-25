@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.001.002 |
+| Project : Ararat Synapse                                       | 001.001.002 |
 |==============================================================================|
-| content: Socket debug tools                                                  |
+| Content: Socket debug tools                                                  |
 |==============================================================================|
 | Copyright (c)2008-2011, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,31 +20,31 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2008-2011.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(Socket debug tools)
 
-routines for help with debugging of events on the Sockets.
+Routines for help with debugging of events on the Sockets.
 }
 
 {$IFDEF UNICODE}
@@ -52,50 +52,50 @@ routines for help with debugging of events on the Sockets.
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT synadbg;
+unit synadbg;
 
-INTERFACE
+interface
 
-USES
-  blcksock, synsock, synautil, Classes, sysutils, synafpc;
+uses
+  blcksock, synsock, synautil, classes, sysutils, synafpc;
 
-TYPE
+type
   TSynaDebug = class(TObject)
-    class PROCEDURE HookStatus(Sender: TObject; Reason: THookSocketReason; CONST value: string);
-    class PROCEDURE HookMonitor(Sender: TObject; Writing: boolean; CONST buffer: TMemory; len: integer);
+    class procedure HookStatus(Sender: TObject; Reason: THookSocketReason; const Value: string);
+    class procedure HookMonitor(Sender: TObject; Writing: Boolean; const Buffer: TMemory; Len: Integer);
   end;
 
-PROCEDURE AppendToLog(CONST value: ansistring);
+procedure AppendToLog(const value: Ansistring);
 
-VAR
+var
   LogFile: string;
 
-IMPLEMENTATION
+implementation
 
-PROCEDURE AppendToLog(CONST value: ansistring);
-VAR
+procedure AppendToLog(const value: Ansistring);
+var
   st: TFileStream;
   s: string;
-  h, m, SS, ms: word;
-  dt: TDateTime;
+  h, m, ss, ms: word;
+  dt: Tdatetime;
 begin
-  if fileExists(LogFile) then
-    st := TFileStream.create(LogFile, fmOpenReadWrite or fmShareDenyWrite)
+  if fileexists(LogFile) then
+    st := TFileStream.Create(LogFile, fmOpenReadWrite or fmShareDenyWrite)
   else
-    st := TFileStream.create(LogFile, fmCreate or fmShareDenyWrite);
+    st := TFileStream.Create(LogFile, fmCreate or fmShareDenyWrite);
   try
-    st.position := st.size;
+    st.Position := st.Size;
     dt := now;
-    decodetime(dt, h, m, SS, ms);
-    s := FormatDateTime('yyyymmdd-hhnnss', dt) + format('.%.3d', [ms]) + ' ' + value;
+    decodetime(dt, h, m, ss, ms);
+    s := formatdatetime('yyyymmdd-hhnnss', dt) + format('.%.3d', [ms]) + ' ' + value;
     WriteStrToStream(st, s);
   finally
     st.free;
   end;
 end;
 
-class PROCEDURE TSynaDebug.HookStatus(Sender: TObject; Reason: THookSocketReason; CONST value: string);
-VAR
+class procedure TSynaDebug.HookStatus(Sender: TObject; Reason: THookSocketReason; const Value: string);
+var
   s: string;
 begin
   case Reason of
@@ -130,27 +130,27 @@ begin
   else
     s := '-unknown-';
   end;
-  s := inttohex(ptrint(Sender), 8) + s + ': ' + value + CRLF;
+  s := inttohex(PtrInt(Sender), 8) + s + ': ' + value + CRLF;
   AppendToLog(s);
 end;
 
-class PROCEDURE TSynaDebug.HookMonitor(Sender: TObject; Writing: boolean; CONST buffer: TMemory; len: integer);
-VAR
-  s, d: ansistring;
+class procedure TSynaDebug.HookMonitor(Sender: TObject; Writing: Boolean; const Buffer: TMemory; Len: Integer);
+var
+  s, d: Ansistring;
 begin
-  setLength(s, len);
-  move(buffer^, pointer(s)^, len);
+  setlength(s, len);
+  move(Buffer^, pointer(s)^, len);
   if writing then
     d := '-> '
   else
     d := '<- ';
-  s :=inttohex(ptrint(Sender), 8) + d + s + CRLF;
+  s :=inttohex(PtrInt(Sender), 8) + d + s + CRLF;
   AppendToLog(s);
 end;
 
-INITIALIZATION
+initialization
 begin
-  Logfile := ChangeFileExt(paramStr(0), '.slog');
+  Logfile := changefileext(paramstr(0), '.slog');
 end;
 
 end.

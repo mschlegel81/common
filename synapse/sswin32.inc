@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 002.003.000 |
+| Project : Ararat Synapse                                       | 002.003.000 |
 |==============================================================================|
-| content: Socket Independent Platform Layer - Win32/64 definition include     |
+| Content: Socket Independent Platform Layer - Win32/64 definition include     |
 |==============================================================================|
 | Copyright (c)1999-2011, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,44 +20,44 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2003-2011.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@exclude}
 
 //{$DEFINE WINSOCK1}
 {Note about define WINSOCK1:
-if you activate this compiler directive, then socket INTERFACE level 1.1 is
-used instead default level 2.2. level 2.2 is not available on old W95, however
+If you activate this compiler directive, then socket interface level 1.1 is
+used instead default level 2.2. Level 2.2 is not available on old W95, however
 you can install update.
 }
 
 //{$DEFINE FORCEOLDAPI}
 {Note about define FORCEOLDAPI:
-if you activate this compiler directive, then is allways used old socket API
-for name resolution. if you leave this directive inactive, then the new API
+If you activate this compiler directive, then is allways used old socket API
+for name resolution. If you leave this directive inactive, then the new API
 is used, when running system allows it.
 
-for IPv6 support you must have new API!
+For IPv6 support you must have new API!
 }
 
 {$IFDEF FPC}
@@ -244,26 +244,26 @@ for IPv6 support you must have new API!
   {$ENDIF}
 {$ENDIF}
 
-INTERFACE
+interface
 
-USES
-  SyncObjs, sysutils, Classes,
-  windows;
+uses
+  SyncObjs, SysUtils, Classes,
+  Windows;
 
-FUNCTION InitSocketInterface(stack: string): boolean;
-FUNCTION DestroySocketInterface: boolean;
+function InitSocketInterface(stack: String): Boolean;
+function DestroySocketInterface: Boolean;
 
-CONST
+const
 {$IFDEF WINSOCK1}
   WinsockLevel = $0101;
 {$ELSE}
   WinsockLevel = $0202;
 {$ENDIF}
 
-TYPE
-  u_short = word;
-  u_int = integer;
-  u_long = longint;
+type
+  u_short = Word;
+  u_int = Integer;
+  u_long = Longint;
   pu_long = ^u_long;
   pu_short = ^u_short;
 {$IFDEF FPC}
@@ -279,7 +279,7 @@ TYPE
 
   TMemory = pointer;
 
-CONST
+const
   {$IFDEF WINCE}
     DLLStackName = 'ws2.dll';
   {$ELSE}
@@ -300,28 +300,28 @@ CONST
   cAnyPort = '0';
 
 
-CONST
+const
   FD_SETSIZE     =   64;
-TYPE
+type
   PFDSet = ^TFDSet;
   TFDSet = record
     fd_count: u_int;
     fd_array: array[0..FD_SETSIZE-1] of TSocket;
   end;
 
-CONST
+const
   FIONREAD     = $4004667f;
   FIONBIO      = $8004667e;
   FIOASYNC     = $8004667d;
 
-TYPE
+type
   PTimeVal = ^TTimeVal;
   TTimeVal = record
-    tv_sec: longint;
-    tv_usec: longint;
+    tv_sec: Longint;
+    tv_usec: Longint;
   end;
 
-CONST
+const
   IPPROTO_IP     =   0;		{ Dummy					}
   IPPROTO_ICMP   =   1;		{ Internet Control Message Protocol }
   IPPROTO_IGMP   =   2;		{ Internet Group Management Protocol}
@@ -334,7 +334,7 @@ CONST
   IPPROTO_RAW    =   255;
   IPPROTO_MAX    =   256;
 
-TYPE
+type
 
   PInAddr = ^TInAddr;
   TInAddr = record
@@ -345,7 +345,7 @@ TYPE
 
   PSockAddrIn = ^TSockAddrIn;
   TSockAddrIn = record
-    case integer of
+    case Integer of
       0: (sin_family: u_short;
           sin_port: u_short;
           sin_addr: TInAddr;
@@ -410,7 +410,7 @@ TYPE
 {$ifdef WIN64}
     s_proto: PAnsiChar;
     s_port: Smallint;
-{$else}
+{$else} 
     s_port: Smallint;
     s_proto: PAnsiChar;
 {$endif}
@@ -419,20 +419,20 @@ TYPE
   PProtoEnt = ^TProtoEnt;
   TProtoEnt = record
     p_name: PAnsiChar;
-    p_aliases: ^PAnsiChar;
+    p_aliases: ^PAnsichar;
     p_proto: Smallint;
   end;
 
-CONST
+const
   INADDR_ANY       = $00000000;
   INADDR_LOOPBACK  = $7F000001;
-  INADDR_BROADCAST = $ffffffff;
-  INADDR_NONE      = $ffffffff;
+  INADDR_BROADCAST = $FFFFFFFF;
+  INADDR_NONE      = $FFFFFFFF;
   ADDR_ANY		 = INADDR_ANY;
-  INVALID_SOCKET		= TSocket(not(0));
+  INVALID_SOCKET		= TSocket(NOT(0));
   SOCKET_ERROR			= -1;
 
-CONST
+Const
   {$IFDEF WINSOCK1}
     IP_OPTIONS          = 1;
     IP_MULTICAST_IF     = 2;           { set/get IP multicast interface   }
@@ -460,7 +460,7 @@ CONST
   IP_DEFAULT_MULTICAST_LOOP  = 1;    { normally hear sends if a member  }
   IP_MAX_MEMBERSHIPS         = 20;   { per socket; must fit in one mbuf }
 
-  SOL_SOCKET      = $FFFF;          {options for socket level }
+  SOL_SOCKET      = $ffff;          {options for socket level }
 { Option flags per-socket. }
   SO_DEBUG        = $0001;          { turn on debugging info recording }
   SO_ACCEPTCONN   = $0002;          { socket has had listen() }
@@ -520,7 +520,7 @@ CONST
   NI_DGRAM       = $10;
 
 
-CONST
+const
   SOCK_STREAM     = 1;               { stream socket }
   SOCK_DGRAM      = 2;               { datagram socket }
   SOCK_RAW        = 3;               { raw-protocol interface }
@@ -543,7 +543,7 @@ CONST
   PF_INET6        = AF_INET6;
   PF_MAX          = AF_MAX;
 
-TYPE
+type
   { Structure used by kernel to store most addresses. }
   PSockAddr = ^TSockAddr;
   TSockAddr = TSockAddrIn;
@@ -555,7 +555,7 @@ TYPE
     sp_protocol: u_short;
   end;
 
-TYPE
+type
   PAddrInfo = ^TAddrInfo;
   TAddrInfo = record
                 ai_flags: integer;    // AI_PASSIVE, AI_CANONNAME, AI_NUMERICHOST.
@@ -568,13 +568,13 @@ TYPE
                 ai_next: PAddrInfo;     // Next structure in linked list.
               end;
 
-CONST
+const
   // Flags used in "hints" argument to getaddrinfo().
   AI_PASSIVE     = $1;  // Socket address will be used in bind() call.
   AI_CANONNAME   = $2;  // Return canonical name in first ai_canonname.
   AI_NUMERICHOST = $4;  // Nodename must be a numeric address string.
 
-TYPE
+type
 { Structure used for manipulating linger option. }
   PLinger = ^TLinger;
   TLinger = record
@@ -582,12 +582,12 @@ TYPE
     l_linger: u_short;
   end;
 
-CONST
+const
 
   MSG_OOB       = $01;                  // Process out-of-band data.
   MSG_PEEK      = $02;                  // Peek at incoming messages.
 
-CONST
+const
 
 { All Windows Sockets error constants are biased by WSABASEERR from the "normal" }
   WSABASEERR              = 10000;
@@ -664,7 +664,7 @@ CONST
   retrieved via WSAGetLastError() and must therefore follow
   the rules for avoiding clashes with error numbers from
   specific implementations or language run-time systems.
-  for this reason the codes are based at WSABASEERR+1001.
+  For this reason the codes are based at WSABASEERR+1001.
   Note also that [WSA]NO_ADDRESS is defined only for
   compatibility purposes. }
 
@@ -734,139 +734,139 @@ CONST
   EAI_SOCKTYPE    = 10;  // Socket type ai_socktype not supported.
   EAI_SYSTEM      = 11;  // System error returned in errno.
 
-CONST
+const
   WSADESCRIPTION_LEN     =   256;
   WSASYS_STATUS_LEN      =   128;
-TYPE
+type
   PWSAData = ^TWSAData;
   TWSAData = record
-    wVersion: word;
-    wHighVersion: word;
+    wVersion: Word;
+    wHighVersion: Word;
 {$ifdef win64}
-    iMaxSockets : word;
-    iMaxUdpDg : word;
+    iMaxSockets : Word;
+    iMaxUdpDg : Word;
     lpVendorInfo : PAnsiChar;
     szDescription : array[0..WSADESCRIPTION_LEN] of AnsiChar;
     szSystemStatus : array[0..WSASYS_STATUS_LEN] of AnsiChar;
-{$else}
+{$else}     
     szDescription: array[0..WSADESCRIPTION_LEN] of AnsiChar;
     szSystemStatus: array[0..WSASYS_STATUS_LEN] of AnsiChar;
-    iMaxSockets: word;
-    iMaxUdpDg: word;
+    iMaxSockets: Word;
+    iMaxUdpDg: Word;
     lpVendorInfo: PAnsiChar;
 {$endif}
   end;
 
-  FUNCTION IN6_IS_ADDR_UNSPECIFIED(CONST a: PInAddr6): boolean;
-  FUNCTION IN6_IS_ADDR_LOOPBACK(CONST a: PInAddr6): boolean;
-  FUNCTION IN6_IS_ADDR_LINKLOCAL(CONST a: PInAddr6): boolean;
-  FUNCTION IN6_IS_ADDR_SITELOCAL(CONST a: PInAddr6): boolean;
-  FUNCTION IN6_IS_ADDR_MULTICAST(CONST a: PInAddr6): boolean;
-  FUNCTION IN6_ADDR_EQUAL(CONST a: PInAddr6; CONST b: PInAddr6):boolean;
-  PROCEDURE SET_IN6_IF_ADDR_ANY (CONST a: PInAddr6);
-  PROCEDURE SET_LOOPBACK_ADDR6 (CONST a: PInAddr6);
-VAR
+  function IN6_IS_ADDR_UNSPECIFIED(const a: PInAddr6): boolean;
+  function IN6_IS_ADDR_LOOPBACK(const a: PInAddr6): boolean;
+  function IN6_IS_ADDR_LINKLOCAL(const a: PInAddr6): boolean;
+  function IN6_IS_ADDR_SITELOCAL(const a: PInAddr6): boolean;
+  function IN6_IS_ADDR_MULTICAST(const a: PInAddr6): boolean;
+  function IN6_ADDR_EQUAL(const a: PInAddr6; const b: PInAddr6):boolean;
+  procedure SET_IN6_IF_ADDR_ANY (const a: PInAddr6);
+  procedure SET_LOOPBACK_ADDR6 (const a: PInAddr6);
+var
   in6addr_any, in6addr_loopback : TInAddr6;
 
-PROCEDURE FD_CLR(Socket: TSocket; VAR FDSet: TFDSet);
-FUNCTION FD_ISSET(Socket: TSocket; VAR FDSet: TFDSet): boolean;
-PROCEDURE FD_SET(Socket: TSocket; VAR FDSet: TFDSet);
-PROCEDURE FD_ZERO(VAR FDSet: TFDSet);
+procedure FD_CLR(Socket: TSocket; var FDSet: TFDSet);
+function FD_ISSET(Socket: TSocket; var FDSet: TFDSet): Boolean;
+procedure FD_SET(Socket: TSocket; var FDSet: TFDSet);
+procedure FD_ZERO(var FDSet: TFDSet);
 
 {=============================================================================}
 
-TYPE
-  TWSAStartup = FUNCTION(wVersionRequired: word; VAR WSData: TWSAData): integer;
+type
+  TWSAStartup = function(wVersionRequired: Word; var WSData: TWSAData): Integer;
     stdcall;
-  TWSACleanup = FUNCTION: integer;
+  TWSACleanup = function: Integer;
     stdcall;
-  TWSAGetLastError = FUNCTION: integer;
+  TWSAGetLastError = function: Integer;
     stdcall;
-  TGetServByName = FUNCTION(name, proto: PAnsiChar): PServEnt;
+  TGetServByName = function(name, proto: PAnsiChar): PServEnt;
     stdcall;
-  TGetServByPort = FUNCTION(port: integer; proto: PAnsiChar): PServEnt;
+  TGetServByPort = function(port: Integer; proto: PAnsiChar): PServEnt;
     stdcall;
-  TGetProtoByName = FUNCTION(name: PAnsiChar): PProtoEnt;
+  TGetProtoByName = function(name: PAnsiChar): PProtoEnt;
     stdcall;
-  TGetProtoByNumber = FUNCTION(proto: integer): PProtoEnt;
+  TGetProtoByNumber = function(proto: Integer): PProtoEnt;
     stdcall;
-  TGetHostByName = FUNCTION(name: PAnsiChar): PHostEnt;
+  TGetHostByName = function(name: PAnsiChar): PHostEnt;
     stdcall;
-  TGetHostByAddr = FUNCTION(addr: pointer; len, struc: integer): PHostEnt;
+  TGetHostByAddr = function(addr: Pointer; len, Struc: Integer): PHostEnt;
     stdcall;
-  TGetHostName = FUNCTION(name: PAnsiChar; len: integer): integer;
+  TGetHostName = function(name: PAnsiChar; len: Integer): Integer;
     stdcall;
-  TShutdown = FUNCTION(s: TSocket; how: integer): integer;
+  TShutdown = function(s: TSocket; how: Integer): Integer;
     stdcall;
-  TSetSockOpt = FUNCTION(s: TSocket; level, optname: integer; optval: PAnsiChar;
-    optlen: integer): integer;
+  TSetSockOpt = function(s: TSocket; level, optname: Integer; optval: PAnsiChar;
+    optlen: Integer): Integer;
     stdcall;
-  TGetSockOpt = FUNCTION(s: TSocket; level, optname: integer; optval: PAnsiChar;
-    VAR optlen: integer): integer;
+  TGetSockOpt = function(s: TSocket; level, optname: Integer; optval: PAnsiChar;
+    var optlen: Integer): Integer;
     stdcall;
-  TSendTo = FUNCTION(s: TSocket; CONST Buf; len, flags: integer; addrto: PSockAddr;
-    tolen: integer): integer;
+  TSendTo = function(s: TSocket; const Buf; len, flags: Integer; addrto: PSockAddr;
+    tolen: Integer): Integer;
     stdcall;
-  TSend = FUNCTION(s: TSocket; CONST Buf; len, flags: integer): integer;
+  TSend = function(s: TSocket; const Buf; len, flags: Integer): Integer;
     stdcall;
-  TRecv = FUNCTION(s: TSocket; VAR Buf; len, flags: integer): integer;
+  TRecv = function(s: TSocket; var Buf; len, flags: Integer): Integer;
     stdcall;
-  TRecvFrom = FUNCTION(s: TSocket; VAR Buf; len, flags: integer; from: PSockAddr;
-    VAR fromlen: integer): integer;
+  TRecvFrom = function(s: TSocket; var Buf; len, flags: Integer; from: PSockAddr;
+    var fromlen: Integer): Integer;
     stdcall;
-  Tntohs = FUNCTION(netshort: u_short): u_short;
+  Tntohs = function(netshort: u_short): u_short;
     stdcall;
-  Tntohl = FUNCTION(netlong: u_long): u_long;
+  Tntohl = function(netlong: u_long): u_long;
     stdcall;
-  TListen = FUNCTION(s: TSocket; backlog: integer): integer;
+  TListen = function(s: TSocket; backlog: Integer): Integer;
     stdcall;
-  TIoctlSocket = FUNCTION(s: TSocket; cmd: dword; VAR arg: integer): integer;
+  TIoctlSocket = function(s: TSocket; cmd: DWORD; var arg: Integer): Integer;
     stdcall;
-  TInet_ntoa = FUNCTION(inaddr: TInAddr): PAnsiChar;
+  TInet_ntoa = function(inaddr: TInAddr): PAnsiChar;
     stdcall;
-  TInet_addr = FUNCTION(cp: PAnsiChar): u_long;
+  TInet_addr = function(cp: PAnsiChar): u_long;
     stdcall;
-  Thtons = FUNCTION(hostshort: u_short): u_short;
+  Thtons = function(hostshort: u_short): u_short;
     stdcall;
-  Thtonl = FUNCTION(hostlong: u_long): u_long;
+  Thtonl = function(hostlong: u_long): u_long;
     stdcall;
-  TGetSockName = FUNCTION(s: TSocket; name: PSockAddr; VAR namelen: integer): integer;
+  TGetSockName = function(s: TSocket; name: PSockAddr; var namelen: Integer): Integer;
     stdcall;
-  TGetPeerName = FUNCTION(s: TSocket; name: PSockAddr; VAR namelen: integer): integer;
+  TGetPeerName = function(s: TSocket; name: PSockAddr; var namelen: Integer): Integer;
     stdcall;
-  TConnect = FUNCTION(s: TSocket; name: PSockAddr; namelen: integer): integer;
+  TConnect = function(s: TSocket; name: PSockAddr; namelen: Integer): Integer;
     stdcall;
-  TCloseSocket = FUNCTION(s: TSocket): integer;
+  TCloseSocket = function(s: TSocket): Integer;
     stdcall;
-  TBind = FUNCTION(s: TSocket; addr: PSockAddr; namelen: integer): integer;
+  TBind = function(s: TSocket; addr: PSockAddr; namelen: Integer): Integer;
     stdcall;
-  TAccept = FUNCTION(s: TSocket; addr: PSockAddr; VAR addrlen: integer): TSocket;
+  TAccept = function(s: TSocket; addr: PSockAddr; var addrlen: Integer): TSocket;
     stdcall;
-  TTSocket = FUNCTION(af, struc, Protocol: integer): TSocket;
+  TTSocket = function(af, Struc, Protocol: Integer): TSocket;
     stdcall;
-  TSelect = FUNCTION(nfds: integer; readfds, writefds, exceptfds: PFDSet;
-    timeout: PTimeVal): longint;
-    stdcall;
-
-  TGetAddrInfo = FUNCTION(NodeName: PAnsiChar; ServName: PAnsiChar; Hints: PAddrInfo;
-    VAR Addrinfo: PAddrInfo): integer;
-    stdcall;
-  TFreeAddrInfo = PROCEDURE(ai: PAddrInfo);
-    stdcall;
-  TGetNameInfo = FUNCTION( addr: PSockAddr; namelen: integer; host: PAnsiChar;
-    hostlen: dword; serv: PAnsiChar; servlen: dword; flags: integer): integer;
+  TSelect = function(nfds: Integer; readfds, writefds, exceptfds: PFDSet;
+    timeout: PTimeVal): Longint;
     stdcall;
 
-  T__WSAFDIsSet = FUNCTION (s: TSocket; VAR FDSet: TFDSet): Bool;
+  TGetAddrInfo = function(NodeName: PAnsiChar; ServName: PAnsiChar; Hints: PAddrInfo;
+    var Addrinfo: PAddrInfo): integer;
+    stdcall;
+  TFreeAddrInfo = procedure(ai: PAddrInfo);
+    stdcall;
+  TGetNameInfo = function( addr: PSockAddr; namelen: Integer; host: PAnsiChar;
+    hostlen: DWORD; serv: PAnsiChar; servlen: DWORD; flags: integer): integer;
     stdcall;
 
-  TWSAIoctl = FUNCTION (s: TSocket; dwIoControlCode: dword; lpvInBuffer: pointer;
-    cbInBuffer: dword; lpvOutBuffer: pointer; cbOutBuffer: dword;
-    lpcbBytesReturned: PDWORD; lpOverlapped: pointer;
+  T__WSAFDIsSet = function (s: TSocket; var FDSet: TFDSet): Bool;
+    stdcall;
+
+  TWSAIoctl = function (s: TSocket; dwIoControlCode: DWORD; lpvInBuffer: Pointer;
+    cbInBuffer: DWORD; lpvOutBuffer: Pointer; cbOutBuffer: DWORD;
+    lpcbBytesReturned: PDWORD; lpOverlapped: Pointer;
     lpCompletionRoutine: pointer): u_int;
     stdcall;
 
-VAR
+var
   WSAStartup: TWSAStartup = nil;
   WSACleanup: TWSACleanup = nil;
   WSAGetLastError: TWSAGetLastError = nil;
@@ -909,12 +909,12 @@ VAR
 
   WSAIoctl: TWSAIoctl = nil;
 
-VAR
+var
   SynSockCS: SyncObjs.TCriticalSection;
-  SockEnhancedApi: boolean;
-  SockWship6Api: boolean;
+  SockEnhancedApi: Boolean;
+  SockWship6Api: Boolean;
 
-TYPE
+type
   TVarSin = packed record
     case integer of
       0: (AddressFamily: u_short);
@@ -930,84 +930,84 @@ TYPE
           );
   end;
 
-FUNCTION SizeOfVarSin(sin: TVarSin): integer;
+function SizeOfVarSin(sin: TVarSin): integer;
 
-FUNCTION Bind(s: TSocket; CONST addr: TVarSin): integer;
-FUNCTION Connect(s: TSocket; CONST name: TVarSin): integer;
-FUNCTION GetSockName(s: TSocket; VAR name: TVarSin): integer;
-FUNCTION GetPeerName(s: TSocket; VAR name: TVarSin): integer;
-FUNCTION GetHostName: ansistring;
-FUNCTION Send(s: TSocket; Buf: TMemory; len, flags: integer): integer;
-FUNCTION Recv(s: TSocket; Buf: TMemory; len, flags: integer): integer;
-FUNCTION SendTo(s: TSocket; Buf: TMemory; len, flags: integer; addrto: TVarSin): integer;
-FUNCTION RecvFrom(s: TSocket; Buf: TMemory; len, flags: integer; VAR from: TVarSin): integer;
-FUNCTION accept(s: TSocket; VAR addr: TVarSin): TSocket;
+function Bind(s: TSocket; const addr: TVarSin): Integer;
+function Connect(s: TSocket; const name: TVarSin): Integer;
+function GetSockName(s: TSocket; var name: TVarSin): Integer;
+function GetPeerName(s: TSocket; var name: TVarSin): Integer;
+function GetHostName: AnsiString;
+function Send(s: TSocket; Buf: TMemory; len, flags: Integer): Integer;
+function Recv(s: TSocket; Buf: TMemory; len, flags: Integer): Integer;
+function SendTo(s: TSocket; Buf: TMemory; len, flags: Integer; addrto: TVarSin): Integer;
+function RecvFrom(s: TSocket; Buf: TMemory; len, flags: Integer; var from: TVarSin): Integer;
+function Accept(s: TSocket; var addr: TVarSin): TSocket;
 
-FUNCTION IsNewApi(Family: integer): boolean;
-FUNCTION SetVarSin(VAR sin: TVarSin; IP, Port: ansistring; Family, SockProtocol, SockType: integer; PreferIP4: boolean): integer;
-FUNCTION GetSinIP(sin: TVarSin): ansistring;
-FUNCTION GetSinPort(sin: TVarSin): integer;
-PROCEDURE ResolveNameToIP(name: ansistring;  Family, SockProtocol, SockType: integer; CONST IPList: TStrings);
-FUNCTION ResolveIPToName(IP: ansistring; Family, SockProtocol, SockType: integer): ansistring;
-FUNCTION ResolvePort(Port: ansistring; Family, SockProtocol, SockType: integer): word;
+function IsNewApi(Family: integer): Boolean;
+function SetVarSin(var Sin: TVarSin; IP, Port: AnsiString; Family, SockProtocol, SockType: integer; PreferIP4: Boolean): integer;
+function GetSinIP(Sin: TVarSin): AnsiString;
+function GetSinPort(Sin: TVarSin): Integer;
+procedure ResolveNameToIP(Name: AnsiString;  Family, SockProtocol, SockType: integer; const IPList: TStrings);
+function ResolveIPToName(IP: AnsiString; Family, SockProtocol, SockType: integer): AnsiString;
+function ResolvePort(Port: AnsiString; Family, SockProtocol, SockType: integer): Word;
 
 {==============================================================================}
-IMPLEMENTATION
+implementation
 
-VAR
-  SynSockCount: integer = 0;
+var
+  SynSockCount: Integer = 0;
   LibHandle: THandle = 0;
   Libwship6Handle: THandle = 0;
 
-FUNCTION IN6_IS_ADDR_UNSPECIFIED(CONST a: PInAddr6): boolean;
+function IN6_IS_ADDR_UNSPECIFIED(const a: PInAddr6): boolean;
 begin
-  result := ((a^.u6_addr32[0] = 0) and (a^.u6_addr32[1] = 0) and
+  Result := ((a^.u6_addr32[0] = 0) and (a^.u6_addr32[1] = 0) and
              (a^.u6_addr32[2] = 0) and (a^.u6_addr32[3] = 0));
 end;
 
-FUNCTION IN6_IS_ADDR_LOOPBACK(CONST a: PInAddr6): boolean;
+function IN6_IS_ADDR_LOOPBACK(const a: PInAddr6): boolean;
 begin
-  result := ((a^.u6_addr32[0] = 0) and (a^.u6_addr32[1] = 0) and
+  Result := ((a^.u6_addr32[0] = 0) and (a^.u6_addr32[1] = 0) and
              (a^.u6_addr32[2] = 0) and
              (a^.u6_addr8[12] = 0) and (a^.u6_addr8[13] = 0) and
              (a^.u6_addr8[14] = 0) and (a^.u6_addr8[15] = 1));
 end;
 
-FUNCTION IN6_IS_ADDR_LINKLOCAL(CONST a: PInAddr6): boolean;
+function IN6_IS_ADDR_LINKLOCAL(const a: PInAddr6): boolean;
 begin
-  result := ((a^.u6_addr8[0] = $FE) and (a^.u6_addr8[1] = $80));
+  Result := ((a^.u6_addr8[0] = $FE) and (a^.u6_addr8[1] = $80));
 end;
 
-FUNCTION IN6_IS_ADDR_SITELOCAL(CONST a: PInAddr6): boolean;
+function IN6_IS_ADDR_SITELOCAL(const a: PInAddr6): boolean;
 begin
-  result := ((a^.u6_addr8[0] = $FE) and (a^.u6_addr8[1] = $C0));
+  Result := ((a^.u6_addr8[0] = $FE) and (a^.u6_addr8[1] = $C0));
 end;
 
-FUNCTION IN6_IS_ADDR_MULTICAST(CONST a: PInAddr6): boolean;
+function IN6_IS_ADDR_MULTICAST(const a: PInAddr6): boolean;
 begin
-  result := (a^.u6_addr8[0] = $ff);
+  Result := (a^.u6_addr8[0] = $FF);
 end;
 
-FUNCTION IN6_ADDR_EQUAL(CONST a: PInAddr6; CONST b: PInAddr6): boolean;
+function IN6_ADDR_EQUAL(const a: PInAddr6; const b: PInAddr6): boolean;
 begin
-  result := (CompareMem( a, b, sizeOf(TInAddr6)));
+  Result := (CompareMem( a, b, sizeof(TInAddr6)));
 end;
 
-PROCEDURE SET_IN6_IF_ADDR_ANY (CONST a: PInAddr6);
+procedure SET_IN6_IF_ADDR_ANY (const a: PInAddr6);
 begin
-  FillChar(a^, sizeOf(TInAddr6), 0);
+  FillChar(a^, sizeof(TInAddr6), 0);
 end;
 
-PROCEDURE SET_LOOPBACK_ADDR6 (CONST a: PInAddr6);
+procedure SET_LOOPBACK_ADDR6 (const a: PInAddr6);
 begin
-  FillChar(a^, sizeOf(TInAddr6), 0);
+  FillChar(a^, sizeof(TInAddr6), 0);
   a^.u6_addr8[15] := 1;
 end;
 
 {=============================================================================}
-PROCEDURE FD_CLR(Socket: TSocket; VAR FDSet: TFDSet);
-VAR
-  I: integer;
+procedure FD_CLR(Socket: TSocket; var FDSet: TFDSet);
+var
+  I: Integer;
 begin
   I := 0;
   while I < FDSet.fd_count do
@@ -1017,131 +1017,131 @@ begin
       while I < FDSet.fd_count - 1 do
       begin
         FDSet.fd_array[I] := FDSet.fd_array[I + 1];
-        inc(I);
+        Inc(I);
       end;
-      dec(FDSet.fd_count);
-      break;
+      Dec(FDSet.fd_count);
+      Break;
     end;
-    inc(I);
+    Inc(I);
   end;
 end;
 
-FUNCTION FD_ISSET(Socket: TSocket; VAR FDSet: TFDSet): boolean;
+function FD_ISSET(Socket: TSocket; var FDSet: TFDSet): Boolean;
 begin
-  result := __WSAFDIsSet(Socket, FDSet);
+  Result := __WSAFDIsSet(Socket, FDSet);
 end;
 
-PROCEDURE FD_SET(Socket: TSocket; VAR FDSet: TFDSet);
+procedure FD_SET(Socket: TSocket; var FDSet: TFDSet);
 begin
   if FDSet.fd_count < FD_SETSIZE then
   begin
     FDSet.fd_array[FDSet.fd_count] := Socket;
-    inc(FDSet.fd_count);
+    Inc(FDSet.fd_count);
   end;
 end;
 
-PROCEDURE FD_ZERO(VAR FDSet: TFDSet);
+procedure FD_ZERO(var FDSet: TFDSet);
 begin
   FDSet.fd_count := 0;
 end;
 
 {=============================================================================}
 
-FUNCTION SizeOfVarSin(sin: TVarSin): integer;
+function SizeOfVarSin(sin: TVarSin): integer;
 begin
   case sin.sin_family of
     AF_INET:
-            result := sizeOf(TSockAddrIn);
+            Result := SizeOf(TSockAddrIn);
     AF_INET6:
-            result := sizeOf(TSockAddrIn6);
+            Result := SizeOf(TSockAddrIn6);
   else
-    result := 0;
+    Result := 0;
   end;
 end;
 
 {=============================================================================}
 
-FUNCTION Bind(s: TSocket; CONST addr: TVarSin): integer;
+function Bind(s: TSocket; const addr: TVarSin): Integer;
 begin
-  result := ssBind(s, @addr, SizeOfVarSin(addr));
+  Result := ssBind(s, @addr, SizeOfVarSin(addr));
 end;
 
-FUNCTION Connect(s: TSocket; CONST name: TVarSin): integer;
+function Connect(s: TSocket; const name: TVarSin): Integer;
 begin
-  result := ssConnect(s, @name, SizeOfVarSin(name));
+  Result := ssConnect(s, @name, SizeOfVarSin(name));
 end;
 
-FUNCTION GetSockName(s: TSocket; VAR name: TVarSin): integer;
-VAR
+function GetSockName(s: TSocket; var name: TVarSin): Integer;
+var
   len: integer;
 begin
-  len := sizeOf(name);
+  len := SizeOf(name);
   FillChar(name, len, 0);
-  result := ssGetSockName(s, @name, len);
+  Result := ssGetSockName(s, @name, Len);
 end;
 
-FUNCTION GetPeerName(s: TSocket; VAR name: TVarSin): integer;
-VAR
+function GetPeerName(s: TSocket; var name: TVarSin): Integer;
+var
   len: integer;
 begin
-  len := sizeOf(name);
+  len := SizeOf(name);
   FillChar(name, len, 0);
-  result := ssGetPeerName(s, @name, len);
+  Result := ssGetPeerName(s, @name, Len);
 end;
 
-FUNCTION GetHostName: ansistring;
-VAR
-  s: ansistring;
+function GetHostName: AnsiString;
+var
+  s: AnsiString;
 begin
-  result := '';
-  setLength(s, 255);
-  ssGetHostName(PAnsiChar(s), length(s) - 1);
-  result := PAnsiChar(s);
+  Result := '';
+  setlength(s, 255);
+  ssGetHostName(pAnsichar(s), Length(s) - 1);
+  Result := PAnsichar(s);
 end;
 
-FUNCTION Send(s: TSocket; Buf: TMemory; len, flags: integer): integer;
+function Send(s: TSocket; Buf: TMemory; len, flags: Integer): Integer;
 begin
-  result := ssSend(s, Buf^, len, flags);
+  Result := ssSend(s, Buf^, len, flags);
 end;
 
-FUNCTION Recv(s: TSocket; Buf: TMemory; len, flags: integer): integer;
+function Recv(s: TSocket; Buf: TMemory; len, flags: Integer): Integer;
 begin
-  result := ssRecv(s, Buf^, len, flags);
+  Result := ssRecv(s, Buf^, len, flags);
 end;
 
-FUNCTION SendTo(s: TSocket; Buf: TMemory; len, flags: integer; addrto: TVarSin): integer;
+function SendTo(s: TSocket; Buf: TMemory; len, flags: Integer; addrto: TVarSin): Integer;
 begin
-  result := ssSendTo(s, Buf^, len, flags, @addrto, SizeOfVarSin(addrto));
+  Result := ssSendTo(s, Buf^, len, flags, @addrto, SizeOfVarSin(addrto));
 end;
 
-FUNCTION RecvFrom(s: TSocket; Buf: TMemory; len, flags: integer; VAR from: TVarSin): integer;
-VAR
+function RecvFrom(s: TSocket; Buf: TMemory; len, flags: Integer; var from: TVarSin): Integer;
+var
   x: integer;
 begin
-  x := sizeOf(from);
-  result := ssRecvFrom(s, Buf^, len, flags, @from, x);
+  x := SizeOf(from);
+  Result := ssRecvFrom(s, Buf^, len, flags, @from, x);
 end;
 
-FUNCTION accept(s: TSocket; VAR addr: TVarSin): TSocket;
-VAR
+function Accept(s: TSocket; var addr: TVarSin): TSocket;
+var
   x: integer;
 begin
-  x := sizeOf(addr);
-  result := ssAccept(s, @addr, x);
+  x := SizeOf(addr);
+  Result := ssAccept(s, @addr, x);
 end;
 
 {=============================================================================}
-FUNCTION IsNewApi(Family: integer): boolean;
+function IsNewApi(Family: integer): Boolean;
 begin
-  result := SockEnhancedApi;
-  if not result then
-    result := (Family = AF_INET6) and SockWship6Api;
+  Result := SockEnhancedApi;
+  if not Result then
+    Result := (Family = AF_INET6) and SockWship6Api;
 end;
 
-FUNCTION SetVarSin(VAR sin: TVarSin; IP, Port: ansistring; Family, SockProtocol, SockType: integer; PreferIP4: boolean): integer;
-TYPE
+function SetVarSin(var Sin: TVarSin; IP, Port: AnsiString; Family, SockProtocol, SockType: integer; PreferIP4: Boolean): integer;
+type
   pu_long = ^u_long;
-VAR
+var
   ProtoEnt: PProtoEnt;
   ServEnt: PServEnt;
   HostEnt: PHostEnt;
@@ -1150,39 +1150,39 @@ VAR
   Sin1, Sin2: TVarSin;
   TwoPass: boolean;
 
-  FUNCTION GetAddr(CONST IP, port: ansistring; Hints: TAddrInfo; VAR sin: TVarSin): integer;
-  VAR
+  function GetAddr(const IP, port: AnsiString; Hints: TAddrInfo; var Sin: TVarSin): integer;
+  var
     Addr: PAddrInfo;
   begin
     Addr := nil;
     try
-      FillChar(sin, sizeOf(sin), 0);
+      FillChar(Sin, Sizeof(Sin), 0);
       if Hints.ai_socktype = SOCK_RAW then
       begin
         Hints.ai_socktype := 0;
         Hints.ai_protocol := 0;
-        result := synsock.GetAddrInfo(PAnsiChar(IP), nil, @Hints, Addr);
+        Result := synsock.GetAddrInfo(PAnsiChar(IP), nil, @Hints, Addr);
       end
       else
       begin
         if (IP = cAnyHost) or (IP = c6AnyHost) then
         begin
           Hints.ai_flags := AI_PASSIVE;
-          result := synsock.GetAddrInfo(nil, PAnsiChar(Port), @Hints, Addr);
+          Result := synsock.GetAddrInfo(nil, PAnsiChar(Port), @Hints, Addr);
         end
         else
           if (IP = cLocalhost) or (IP = c6Localhost) then
           begin
-            result := synsock.GetAddrInfo(nil, PAnsiChar(Port), @Hints, Addr);
+            Result := synsock.GetAddrInfo(nil, PAnsiChar(Port), @Hints, Addr);
           end
           else
           begin
-            result := synsock.GetAddrInfo(PAnsiChar(IP), PAnsiChar(Port), @Hints, Addr);
+            Result := synsock.GetAddrInfo(PAnsiChar(IP), PAnsiChar(Port), @Hints, Addr);
           end;
       end;
-      if result = 0 then
+      if Result = 0 then
         if (Addr <> nil) then
-          move(Addr^.ai_addr^, sin, Addr^.ai_addrlen);
+          Move(Addr^.ai_addr^, Sin, Addr^.ai_addrlen);
     finally
       if Assigned(Addr) then
         synsock.FreeAddrInfo(Addr);
@@ -1190,32 +1190,32 @@ VAR
   end;
 
 begin
-  result := 0;
-  FillChar(sin, sizeOf(sin), 0);
+  Result := 0;
+  FillChar(Sin, Sizeof(Sin), 0);
   if not IsNewApi(family) then
   begin
     SynSockCS.Enter;
     try
-      sin.sin_family := AF_INET;
+      Sin.sin_family := AF_INET;
       ProtoEnt := synsock.GetProtoByNumber(SockProtocol);
       ServEnt := nil;
-      if (ProtoEnt <> nil) and (strToIntDef(string(Port),-1) =-1) then
+      if (ProtoEnt <> nil) and (StrToIntDef(string(Port),-1) =-1) then
         ServEnt := synsock.GetServByName(PAnsiChar(Port), ProtoEnt^.p_name);
       if ServEnt = nil then
-        sin.sin_port := synsock.htons(strToIntDef(string(Port), 0))
+        Sin.sin_port := synsock.htons(StrToIntDef(string(Port), 0))
       else
-        sin.sin_port := ServEnt^.s_port;
+        Sin.sin_port := ServEnt^.s_port;
       if IP = cBroadcast then
-        sin.sin_addr.s_addr := u_long(INADDR_BROADCAST)
+        Sin.sin_addr.s_addr := u_long(INADDR_BROADCAST)
       else
       begin
-        sin.sin_addr.s_addr := synsock.inet_addr(PAnsiChar(IP));
-        if sin.sin_addr.s_addr = u_long(INADDR_NONE) then
+        Sin.sin_addr.s_addr := synsock.inet_addr(PAnsiChar(IP));
+        if Sin.sin_addr.s_addr = u_long(INADDR_NONE) then
         begin
           HostEnt := synsock.GetHostByName(PAnsiChar(IP));
-          result := synsock.WSAGetLastError;
+          Result := synsock.WSAGetLastError;
           if HostEnt <> nil then
-            sin.sin_addr.S_addr := u_long(Pu_long(HostEnt^.h_addr_list^)^);
+            Sin.sin_addr.S_addr := u_long(Pu_long(HostEnt^.h_addr_list^)^);
         end;
       end;
     finally
@@ -1224,22 +1224,22 @@ begin
   end
   else
   begin
-    FillChar(Hints1, sizeOf(Hints1), 0);
-    FillChar(Hints2, sizeOf(Hints2), 0);
-    TwoPass := false;
+    FillChar(Hints1, Sizeof(Hints1), 0);
+    FillChar(Hints2, Sizeof(Hints2), 0);
+    TwoPass := False;
     if Family = AF_UNSPEC then
     begin
       if PreferIP4 then
       begin
         Hints1.ai_family := AF_INET;
         Hints2.ai_family := AF_INET6;
-        TwoPass := true;
+        TwoPass := True;
       end
       else
       begin
         Hints2.ai_family := AF_INET;
         Hints1.ai_family := AF_INET6;
-        TwoPass := true;
+        TwoPass := True;
       end;
     end
     else
@@ -1251,81 +1251,81 @@ begin
     Hints2.ai_protocol := Hints1.ai_protocol;
 
     r := GetAddr(IP, Port, Hints1, Sin1);
-    result := r;
+    Result := r;
     sin := sin1;
     if r <> 0 then
       if TwoPass then
       begin
         r := GetAddr(IP, Port, Hints2, Sin2);
-        result := r;
+        Result := r;
         if r = 0 then
           sin := sin2;
       end;
   end;
 end;
 
-FUNCTION GetSinIP(sin: TVarSin): ansistring;
-VAR
+function GetSinIP(Sin: TVarSin): AnsiString;
+var
   p: PAnsiChar;
-  host, serv: ansistring;
+  host, serv: AnsiString;
   hostlen, servlen: integer;
   r: integer;
 begin
-  result := '';
-  if not IsNewApi(sin.AddressFamily) then
+  Result := '';
+  if not IsNewApi(Sin.AddressFamily) then
   begin
-    p := synsock.inet_ntoa(sin.sin_addr);
+    p := synsock.inet_ntoa(Sin.sin_addr);
     if p <> nil then
-      result := p;
+      Result := p;
   end
   else
   begin
     hostlen := NI_MAXHOST;
     servlen := NI_MAXSERV;
-    setLength(host, hostlen);
-    setLength(serv, servlen);
+    setlength(host, hostlen);
+    setlength(serv, servlen);
     r := getnameinfo(@sin, SizeOfVarSin(sin), PAnsiChar(host), hostlen,
       PAnsiChar(serv), servlen, NI_NUMERICHOST + NI_NUMERICSERV);
     if r = 0 then
-      result := PAnsiChar(host);
+      Result := PAnsiChar(host);
   end;
 end;
 
-FUNCTION GetSinPort(sin: TVarSin): integer;
+function GetSinPort(Sin: TVarSin): Integer;
 begin
-  if (sin.sin_family = AF_INET6) then
-    result := synsock.ntohs(sin.sin6_port)
+  if (Sin.sin_family = AF_INET6) then
+    Result := synsock.ntohs(Sin.sin6_port)
   else
-    result := synsock.ntohs(sin.sin_port);
+    Result := synsock.ntohs(Sin.sin_port);
 end;
 
-PROCEDURE ResolveNameToIP(name: ansistring; Family, SockProtocol, SockType: integer; CONST IPList: TStrings);
-TYPE
+procedure ResolveNameToIP(Name: AnsiString; Family, SockProtocol, SockType: integer; const IPList: TStrings);
+type
   TaPInAddr = array[0..250] of PInAddr;
   PaPInAddr = ^TaPInAddr;
-VAR
+var
   Hints: TAddrInfo;
   Addr: PAddrInfo;
   AddrNext: PAddrInfo;
   r: integer;
-  host, serv: ansistring;
+  host, serv: AnsiString;
   hostlen, servlen: integer;
   RemoteHost: PHostEnt;
   IP: u_long;
   PAdrPtr: PaPInAddr;
-  i: integer;
-  s: string;
+  i: Integer;
+  s: String;
   InAddr: TInAddr;
 begin
-  IPList.clear;
+  IPList.Clear;
   if not IsNewApi(Family) then
   begin
-    IP := synsock.inet_addr(PAnsiChar(name));
+    IP := synsock.inet_addr(PAnsiChar(Name));
     if IP = u_long(INADDR_NONE) then
     begin
       SynSockCS.Enter;
       try
-        RemoteHost := synsock.GetHostByName(PAnsiChar(name));
+        RemoteHost := synsock.GetHostByName(PAnsiChar(Name));
         if RemoteHost <> nil then
         begin
           PAdrPtr := PAPInAddr(RemoteHost^.h_addr_list);
@@ -1333,10 +1333,10 @@ begin
           while PAdrPtr^[i] <> nil do
           begin
             InAddr := PAdrPtr^[i]^;
-            s := format('%d.%d.%d.%d', [InAddr.S_bytes[0], InAddr.S_bytes[1],
+            s := Format('%d.%d.%d.%d', [InAddr.S_bytes[0], InAddr.S_bytes[1],
               InAddr.S_bytes[2], InAddr.S_bytes[3]]);
-            IPList.add(s);
-            inc(i);
+            IPList.Add(s);
+            Inc(i);
           end;
         end;
       finally
@@ -1344,18 +1344,18 @@ begin
       end;
     end
     else
-      IPList.add(string(name));
+      IPList.Add(string(Name));
   end
   else
   begin
     Addr := nil;
     try
-      FillChar(Hints, sizeOf(Hints), 0);
+      FillChar(Hints, Sizeof(Hints), 0);
       Hints.ai_family := AF_UNSPEC;
       Hints.ai_socktype := SockType;
       Hints.ai_protocol := SockProtocol;
       Hints.ai_flags := 0;
-      r := synsock.GetAddrInfo(PAnsiChar(name), nil, @Hints, Addr);
+      r := synsock.GetAddrInfo(PAnsiChar(Name), nil, @Hints, Addr);
       if r = 0 then
       begin
         AddrNext := Addr;
@@ -1366,15 +1366,15 @@ begin
           begin
             hostlen := NI_MAXHOST;
             servlen := NI_MAXSERV;
-            setLength(host, hostlen);
-            setLength(serv, servlen);
+            setlength(host, hostlen);
+            setlength(serv, servlen);
             r := getnameinfo(AddrNext^.ai_addr, AddrNext^.ai_addrlen,
               PAnsiChar(host), hostlen, PAnsiChar(serv), servlen,
               NI_NUMERICHOST + NI_NUMERICSERV);
             if r = 0 then
             begin
               host := PAnsiChar(host);
-              IPList.add(string(host));
+              IPList.Add(string(host));
             end;
           end;
           AddrNext := AddrNext^.ai_next;
@@ -1385,19 +1385,19 @@ begin
         synsock.FreeAddrInfo(Addr);
     end;
   end;
-  if IPList.count = 0 then
-    IPList.add(cAnyHost);
+  if IPList.Count = 0 then
+    IPList.Add(cAnyHost);
 end;
 
-FUNCTION ResolvePort(Port: ansistring; Family, SockProtocol, SockType: integer): word;
-VAR
+function ResolvePort(Port: AnsiString; Family, SockProtocol, SockType: integer): Word;
+var
   ProtoEnt: PProtoEnt;
   ServEnt: PServEnt;
   Hints: TAddrInfo;
   Addr: PAddrInfo;
   r: integer;
 begin
-  result := 0;
+  Result := 0;
   if not IsNewApi(Family) then
   begin
     SynSockCS.Enter;
@@ -1407,9 +1407,9 @@ begin
       if ProtoEnt <> nil then
         ServEnt := synsock.GetServByName(PAnsiChar(Port), ProtoEnt^.p_name);
       if ServEnt = nil then
-        result := strToIntDef(string(Port), 0)
+        Result := StrToIntDef(string(Port), 0)
       else
-        result := synsock.htons(ServEnt^.s_port);
+        Result := synsock.htons(ServEnt^.s_port);
     finally
       SynSockCS.Leave;
     end;
@@ -1418,7 +1418,7 @@ begin
   begin
     Addr := nil;
     try
-      FillChar(Hints, sizeOf(Hints), 0);
+      FillChar(Hints, Sizeof(Hints), 0);
       Hints.ai_family := AF_UNSPEC;
       Hints.ai_socktype := SockType;
       Hints.ai_protocol := Sockprotocol;
@@ -1427,9 +1427,9 @@ begin
       if (r = 0) and Assigned(Addr) then
       begin
         if Addr^.ai_family = AF_INET then
-          result := synsock.htons(Addr^.ai_addr^.sin_port);
+          Result := synsock.htons(Addr^.ai_addr^.sin_port);
         if Addr^.ai_family = AF_INET6 then
-          result := synsock.htons(PSockAddrIn6(Addr^.ai_addr)^.sin6_port);
+          Result := synsock.htons(PSockAddrIn6(Addr^.ai_addr)^.sin6_port);
       end;
     finally
       if Assigned(Addr) then
@@ -1438,17 +1438,17 @@ begin
   end;
 end;
 
-FUNCTION ResolveIPToName(IP: ansistring; Family, SockProtocol, SockType: integer): ansistring;
-VAR
+function ResolveIPToName(IP: AnsiString; Family, SockProtocol, SockType: integer): AnsiString;
+var
   Hints: TAddrInfo;
   Addr: PAddrInfo;
   r: integer;
-  host, serv: ansistring;
+  host, serv: AnsiString;
   hostlen, servlen: integer;
   RemoteHost: PHostEnt;
   IPn: u_long;
 begin
-  result := IP;
+  Result := IP;
   if not IsNewApi(Family) then
   begin
     IPn := synsock.inet_addr(PAnsiChar(IP));
@@ -1456,9 +1456,9 @@ begin
     begin
       SynSockCS.Enter;
       try
-        RemoteHost := GetHostByAddr(@IPn, sizeOf(IPn), AF_INET);
+        RemoteHost := GetHostByAddr(@IPn, SizeOf(IPn), AF_INET);
         if RemoteHost <> nil then
-          result := RemoteHost^.h_name;
+          Result := RemoteHost^.h_name;
       finally
         SynSockCS.Leave;
       end;
@@ -1468,7 +1468,7 @@ begin
   begin
     Addr := nil;
     try
-      FillChar(Hints, sizeOf(Hints), 0);
+      FillChar(Hints, Sizeof(Hints), 0);
       Hints.ai_family := AF_UNSPEC;
       Hints.ai_socktype := SockType;
       Hints.ai_protocol := SockProtocol;
@@ -1478,13 +1478,13 @@ begin
       begin
         hostlen := NI_MAXHOST;
         servlen := NI_MAXSERV;
-        setLength(host, hostlen);
-        setLength(serv, servlen);
+        setlength(host, hostlen);
+        setlength(serv, servlen);
         r := getnameinfo(Addr^.ai_addr, Addr^.ai_addrlen,
           PAnsiChar(host), hostlen, PAnsiChar(serv), servlen,
           NI_NUMERICSERV);
         if r = 0 then
-          result := PAnsiChar(host);
+          Result := PAnsiChar(host);
       end;
     finally
       if Assigned(Addr) then
@@ -1495,61 +1495,61 @@ end;
 
 {=============================================================================}
 
-FUNCTION InitSocketInterface(stack: string): boolean;
+function InitSocketInterface(stack: String): Boolean;
 begin
-  result := false;
-  SockEnhancedApi := false;
+  Result := False;
+  SockEnhancedApi := False;
   if stack = '' then
     stack := DLLStackName;
   SynSockCS.Enter;
   try
     if SynSockCount = 0 then
     begin
-      SockEnhancedApi := false;
-      SockWship6Api := false;
-      LibHandle := LoadLibrary(PChar(stack));
+      SockEnhancedApi := False;
+      SockWship6Api := False;
+      LibHandle := LoadLibrary(PChar(Stack));
       if LibHandle <> 0 then
       begin
-        WSAIoctl := GetProcAddress(LibHandle, PAnsiChar(ansistring('WSAIoctl')));
-        __WSAFDIsSet := GetProcAddress(LibHandle, PAnsiChar(ansistring('__WSAFDIsSet')));
-        CloseSocket := GetProcAddress(LibHandle, PAnsiChar(ansistring('closesocket')));
-        IoctlSocket := GetProcAddress(LibHandle, PAnsiChar(ansistring('ioctlsocket')));
-        WSAGetLastError := GetProcAddress(LibHandle, PAnsiChar(ansistring('WSAGetLastError')));
-        WSAStartup := GetProcAddress(LibHandle, PAnsiChar(ansistring('WSAStartup')));
-        WSACleanup := GetProcAddress(LibHandle, PAnsiChar(ansistring('WSACleanup')));
-        ssAccept := GetProcAddress(LibHandle, PAnsiChar(ansistring('accept')));
-        ssBind := GetProcAddress(LibHandle, PAnsiChar(ansistring('bind')));
-        ssConnect := GetProcAddress(LibHandle, PAnsiChar(ansistring('connect')));
-        ssGetPeerName := GetProcAddress(LibHandle, PAnsiChar(ansistring('getpeername')));
-        ssGetSockName := GetProcAddress(LibHandle, PAnsiChar(ansistring('getsockname')));
-        GetSockOpt := GetProcAddress(LibHandle, PAnsiChar(ansistring('getsockopt')));
-        Htonl := GetProcAddress(LibHandle, PAnsiChar(ansistring('htonl')));
-        Htons := GetProcAddress(LibHandle, PAnsiChar(ansistring('htons')));
-        Inet_Addr := GetProcAddress(LibHandle, PAnsiChar(ansistring('inet_addr')));
-        Inet_Ntoa := GetProcAddress(LibHandle, PAnsiChar(ansistring('inet_ntoa')));
-        Listen := GetProcAddress(LibHandle, PAnsiChar(ansistring('listen')));
-        Ntohl := GetProcAddress(LibHandle, PAnsiChar(ansistring('ntohl')));
-        Ntohs := GetProcAddress(LibHandle, PAnsiChar(ansistring('ntohs')));
-        ssRecv := GetProcAddress(LibHandle, PAnsiChar(ansistring('recv')));
-        ssRecvFrom := GetProcAddress(LibHandle, PAnsiChar(ansistring('recvfrom')));
-        Select := GetProcAddress(LibHandle, PAnsiChar(ansistring('select')));
-        ssSend := GetProcAddress(LibHandle, PAnsiChar(ansistring('send')));
-        ssSendTo := GetProcAddress(LibHandle, PAnsiChar(ansistring('sendto')));
-        SetSockOpt := GetProcAddress(LibHandle, PAnsiChar(ansistring('setsockopt')));
-        ShutDown := GetProcAddress(LibHandle, PAnsiChar(ansistring('shutdown')));
-        Socket := GetProcAddress(LibHandle, PAnsiChar(ansistring('socket')));
-        GetHostByAddr := GetProcAddress(LibHandle, PAnsiChar(ansistring('gethostbyaddr')));
-        GetHostByName := GetProcAddress(LibHandle, PAnsiChar(ansistring('gethostbyname')));
-        GetProtoByName := GetProcAddress(LibHandle, PAnsiChar(ansistring('getprotobyname')));
-        GetProtoByNumber := GetProcAddress(LibHandle, PAnsiChar(ansistring('getprotobynumber')));
-        GetServByName := GetProcAddress(LibHandle, PAnsiChar(ansistring('getservbyname')));
-        GetServByPort := GetProcAddress(LibHandle, PAnsiChar(ansistring('getservbyport')));
-        ssGetHostName := GetProcAddress(LibHandle, PAnsiChar(ansistring('gethostname')));
+        WSAIoctl := GetProcAddress(LibHandle, PAnsiChar(AnsiString('WSAIoctl')));
+        __WSAFDIsSet := GetProcAddress(LibHandle, PAnsiChar(AnsiString('__WSAFDIsSet')));
+        CloseSocket := GetProcAddress(LibHandle, PAnsiChar(AnsiString('closesocket')));
+        IoctlSocket := GetProcAddress(LibHandle, PAnsiChar(AnsiString('ioctlsocket')));
+        WSAGetLastError := GetProcAddress(LibHandle, PAnsiChar(AnsiString('WSAGetLastError')));
+        WSAStartup := GetProcAddress(LibHandle, PAnsiChar(AnsiString('WSAStartup')));
+        WSACleanup := GetProcAddress(LibHandle, PAnsiChar(AnsiString('WSACleanup')));
+        ssAccept := GetProcAddress(LibHandle, PAnsiChar(AnsiString('accept')));
+        ssBind := GetProcAddress(LibHandle, PAnsiChar(AnsiString('bind')));
+        ssConnect := GetProcAddress(LibHandle, PAnsiChar(AnsiString('connect')));
+        ssGetPeerName := GetProcAddress(LibHandle, PAnsiChar(AnsiString('getpeername')));
+        ssGetSockName := GetProcAddress(LibHandle, PAnsiChar(AnsiString('getsockname')));
+        GetSockOpt := GetProcAddress(LibHandle, PAnsiChar(AnsiString('getsockopt')));
+        Htonl := GetProcAddress(LibHandle, PAnsiChar(AnsiString('htonl')));
+        Htons := GetProcAddress(LibHandle, PAnsiChar(AnsiString('htons')));
+        Inet_Addr := GetProcAddress(LibHandle, PAnsiChar(AnsiString('inet_addr')));
+        Inet_Ntoa := GetProcAddress(LibHandle, PAnsiChar(AnsiString('inet_ntoa')));
+        Listen := GetProcAddress(LibHandle, PAnsiChar(AnsiString('listen')));
+        Ntohl := GetProcAddress(LibHandle, PAnsiChar(AnsiString('ntohl')));
+        Ntohs := GetProcAddress(LibHandle, PAnsiChar(AnsiString('ntohs')));
+        ssRecv := GetProcAddress(LibHandle, PAnsiChar(AnsiString('recv')));
+        ssRecvFrom := GetProcAddress(LibHandle, PAnsiChar(AnsiString('recvfrom')));
+        Select := GetProcAddress(LibHandle, PAnsiChar(AnsiString('select')));
+        ssSend := GetProcAddress(LibHandle, PAnsiChar(AnsiString('send')));
+        ssSendTo := GetProcAddress(LibHandle, PAnsiChar(AnsiString('sendto')));
+        SetSockOpt := GetProcAddress(LibHandle, PAnsiChar(AnsiString('setsockopt')));
+        ShutDown := GetProcAddress(LibHandle, PAnsiChar(AnsiString('shutdown')));
+        Socket := GetProcAddress(LibHandle, PAnsiChar(AnsiString('socket')));
+        GetHostByAddr := GetProcAddress(LibHandle, PAnsiChar(AnsiString('gethostbyaddr')));
+        GetHostByName := GetProcAddress(LibHandle, PAnsiChar(AnsiString('gethostbyname')));
+        GetProtoByName := GetProcAddress(LibHandle, PAnsiChar(AnsiString('getprotobyname')));
+        GetProtoByNumber := GetProcAddress(LibHandle, PAnsiChar(AnsiString('getprotobynumber')));
+        GetServByName := GetProcAddress(LibHandle, PAnsiChar(AnsiString('getservbyname')));
+        GetServByPort := GetProcAddress(LibHandle, PAnsiChar(AnsiString('getservbyport')));
+        ssGetHostName := GetProcAddress(LibHandle, PAnsiChar(AnsiString('gethostname')));
 
 {$IFNDEF FORCEOLDAPI}
-        GetAddrInfo := GetProcAddress(LibHandle, PAnsiChar(ansistring('getaddrinfo')));
-        FreeAddrInfo := GetProcAddress(LibHandle, PAnsiChar(ansistring('freeaddrinfo')));
-        GetNameInfo := GetProcAddress(LibHandle, PAnsiChar(ansistring('getnameinfo')));
+        GetAddrInfo := GetProcAddress(LibHandle, PAnsiChar(AnsiString('getaddrinfo')));
+        FreeAddrInfo := GetProcAddress(LibHandle, PAnsiChar(AnsiString('freeaddrinfo')));
+        GetNameInfo := GetProcAddress(LibHandle, PAnsiChar(AnsiString('getnameinfo')));
         SockEnhancedApi := Assigned(GetAddrInfo) and Assigned(FreeAddrInfo)
           and Assigned(GetNameInfo);
         if not SockEnhancedApi then
@@ -1557,30 +1557,30 @@ begin
           LibWship6Handle := LoadLibrary(PChar(DLLWship6));
           if LibWship6Handle <> 0 then
           begin
-            GetAddrInfo := GetProcAddress(LibWship6Handle, PAnsiChar(ansistring('getaddrinfo')));
-            FreeAddrInfo := GetProcAddress(LibWship6Handle, PAnsiChar(ansistring('freeaddrinfo')));
-            GetNameInfo := GetProcAddress(LibWship6Handle, PAnsiChar(ansistring('getnameinfo')));
+            GetAddrInfo := GetProcAddress(LibWship6Handle, PAnsiChar(AnsiString('getaddrinfo')));
+            FreeAddrInfo := GetProcAddress(LibWship6Handle, PAnsiChar(AnsiString('freeaddrinfo')));
+            GetNameInfo := GetProcAddress(LibWship6Handle, PAnsiChar(AnsiString('getnameinfo')));
             SockWship6Api := Assigned(GetAddrInfo) and Assigned(FreeAddrInfo)
               and Assigned(GetNameInfo);
           end;
         end;
 {$ENDIF}
-        result := true;
+        Result := True;
       end;
     end
-    else result := true;
-    if result then
-      inc(SynSockCount);
+    else Result := True;
+    if Result then
+      Inc(SynSockCount);
   finally
     SynSockCS.Leave;
   end;
 end;
 
-FUNCTION DestroySocketInterface: boolean;
+function DestroySocketInterface: Boolean;
 begin
   SynSockCS.Enter;
   try
-    dec(SynSockCount);
+    Dec(SynSockCount);
     if SynSockCount < 0 then
       SynSockCount := 0;
     if SynSockCount = 0 then
@@ -1599,17 +1599,17 @@ begin
   finally
     SynSockCS.Leave;
   end;
-  result := true;
+  Result := True;
 end;
 
-INITIALIZATION
+initialization
 begin
-  SynSockCS := SyncObjs.TCriticalSection.create;
+  SynSockCS := SyncObjs.TCriticalSection.Create;
   SET_IN6_IF_ADDR_ANY (@in6addr_any);
   SET_LOOPBACK_ADDR6  (@in6addr_loopback);
 end;
 
-FINALIZATION
+finalization
 begin
-  SynSockCS.free;
+  SynSockCS.Free;
 end;

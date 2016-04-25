@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.001.001 |
+| Project : Ararat Synapse                                       | 001.001.001 |
 |==============================================================================|
-| content: ICONV support for Win32, Linux and .NET                             |
+| Content: ICONV support for Win32, Linux and .NET                             |
 |==============================================================================|
 | Copyright (c)2004-2010, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,26 +20,26 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2004-2010.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {$IFDEF FPC}
@@ -55,61 +55,61 @@
 
 {:@abstract(LibIconv support)
 
-This UNIT is Pascal INTERFACE to LibIconv library for charSet translations.
-LibIconv is loaded dynamicly on-demand. if this library is not found in system,
-requested LibIconv FUNCTION just return errorcode.
+This unit is Pascal interface to LibIconv library for charset translations.
+LibIconv is loaded dynamicly on-demand. If this library is not found in system,
+requested LibIconv function just return errorcode.
 }
-UNIT synaicnv;
+unit synaicnv;
 
-INTERFACE
+interface
 
-USES
+uses
 {$IFDEF CIL}
-  system.Runtime.InteropServices,
-  system.text,
+  System.Runtime.InteropServices,
+  System.Text,
 {$ENDIF}
   synafpc,
 {$IFNDEF MSWINDOWS}
   {$IFNDEF FPC}
   Libc,
   {$ENDIF}
-  sysutils;
+  SysUtils;
 {$ELSE}
-  windows;
+  Windows;
 {$ENDIF}
 
 
-CONST
+const
   {$IFNDEF MSWINDOWS}
   DLLIconvName = 'libiconv.so';
   {$ELSE}
   DLLIconvName = 'iconv.dll';
   {$ENDIF}
 
-TYPE
+type
   size_t = Cardinal;
 {$IFDEF CIL}
   iconv_t = IntPtr;
 {$ELSE}
-  iconv_t = pointer;
+  iconv_t = Pointer;
 {$ENDIF}
   argptr = iconv_t;
 
-VAR
+var
   iconvLibHandle: TLibHandle = 0;
 
-FUNCTION SynaIconvOpen(CONST tocode, fromcode: ansistring): iconv_t;
-FUNCTION SynaIconvOpenTranslit(CONST tocode, fromcode: ansistring): iconv_t;
-FUNCTION SynaIconvOpenIgnore(CONST tocode, fromcode: ansistring): iconv_t;
-FUNCTION SynaIconv(cd: iconv_t; inbuf: ansistring; VAR outbuf: ansistring): integer;
-FUNCTION SynaIconvClose(VAR cd: iconv_t): integer;
-FUNCTION SynaIconvCtl(cd: iconv_t; request: integer; argument: argptr): integer;
+function SynaIconvOpen(const tocode, fromcode: Ansistring): iconv_t;
+function SynaIconvOpenTranslit(const tocode, fromcode: Ansistring): iconv_t;
+function SynaIconvOpenIgnore(const tocode, fromcode: Ansistring): iconv_t;
+function SynaIconv(cd: iconv_t; inbuf: AnsiString; var outbuf: AnsiString): integer;
+function SynaIconvClose(var cd: iconv_t): integer;
+function SynaIconvCtl(cd: iconv_t; request: integer; argument: argptr): integer;
 
-FUNCTION IsIconvloaded: boolean;
-FUNCTION InitIconvInterface: boolean;
-FUNCTION DestroyIconvInterface: boolean;
+function IsIconvloaded: Boolean;
+function InitIconvInterface: Boolean;
+function DestroyIconvInterface: Boolean;
 
-CONST
+const
   ICONV_TRIVIALP          = 0;  // int *argument
   ICONV_GET_TRANSLITERATE = 1;  // int *argument
   ICONV_SET_TRANSLITERATE = 2;  // const int *argument
@@ -117,40 +117,40 @@ CONST
   ICONV_SET_DISCARD_ILSEQ = 4;  // const int *argument
 
 
-IMPLEMENTATION
+implementation
 
-USES SyncObjs;
+uses SyncObjs;
 
 {$IFDEF CIL}
-  [DllImport(DLLIconvName, charSet = charSet.Ansi,
-    SetLastError = false, CallingConvention= CallingConvention.cdecl,
+  [DllImport(DLLIconvName, CharSet = CharSet.Ansi,
+    SetLastError = False, CallingConvention= CallingConvention.cdecl,
     EntryPoint = 'libiconv_open')]
-    FUNCTION _iconv_open(tocode: string; fromcode: string): iconv_t; external;
+    function _iconv_open(tocode: string; fromcode: string): iconv_t; external;
 
-  [DllImport(DLLIconvName, charSet = charSet.Ansi,
-    SetLastError = false, CallingConvention= CallingConvention.cdecl,
+  [DllImport(DLLIconvName, CharSet = CharSet.Ansi,
+    SetLastError = False, CallingConvention= CallingConvention.cdecl,
     EntryPoint = 'libiconv')]
-    FUNCTION _iconv(cd: iconv_t; VAR inbuf: IntPtr; VAR inbytesleft: size_t;
-    VAR outbuf: IntPtr; VAR outbytesleft: size_t): size_t; external;
+    function _iconv(cd: iconv_t; var inbuf: IntPtr; var inbytesleft: size_t;
+    var outbuf: IntPtr; var outbytesleft: size_t): size_t; external;
 
-  [DllImport(DLLIconvName, charSet = charSet.Ansi,
-    SetLastError = false, CallingConvention= CallingConvention.cdecl,
+  [DllImport(DLLIconvName, CharSet = CharSet.Ansi,
+    SetLastError = False, CallingConvention= CallingConvention.cdecl,
     EntryPoint = 'libiconv_close')]
-    FUNCTION _iconv_close(cd: iconv_t): integer; external;
+    function _iconv_close(cd: iconv_t): integer; external;
 
-  [DllImport(DLLIconvName, charSet = charSet.Ansi,
-    SetLastError = false, CallingConvention= CallingConvention.cdecl,
+  [DllImport(DLLIconvName, CharSet = CharSet.Ansi,
+    SetLastError = False, CallingConvention= CallingConvention.cdecl,
     EntryPoint = 'libiconvctl')]
-    FUNCTION _iconvctl(cd: iconv_t; request: integer; argument: argptr): integer; external;
+    function _iconvctl(cd: iconv_t; request: integer; argument: argptr): integer; external;
 
 {$ELSE}
-TYPE
-  Ticonv_open = FUNCTION(tocode: PAnsiChar; fromcode: PAnsiChar): iconv_t; cdecl;
-  Ticonv = FUNCTION(cd: iconv_t; VAR inbuf: pointer; VAR inbytesleft: size_t;
-    VAR outbuf: pointer; VAR outbytesleft: size_t): size_t; cdecl;
-  Ticonv_close = FUNCTION(cd: iconv_t): integer; cdecl;
-  Ticonvctl = FUNCTION(cd: iconv_t; request: integer; argument: argptr): integer; cdecl;
-VAR
+type
+  Ticonv_open = function(tocode: pAnsichar; fromcode: pAnsichar): iconv_t; cdecl;
+  Ticonv = function(cd: iconv_t; var inbuf: pointer; var inbytesleft: size_t;
+    var outbuf: pointer; var outbytesleft: size_t): size_t; cdecl;
+  Ticonv_close = function(cd: iconv_t): integer; cdecl;
+  Ticonvctl = function(cd: iconv_t; request: integer; argument: argptr): integer; cdecl;
+var
   _iconv_open: Ticonv_open = nil;
   _iconv: Ticonv = nil;
   _iconv_close: Ticonv_close = nil;
@@ -158,50 +158,50 @@ VAR
 {$ENDIF}
 
 
-VAR
+var
   IconvCS: TCriticalSection;
   Iconvloaded: boolean = false;
 
-FUNCTION SynaIconvOpen (CONST tocode, fromcode: ansistring): iconv_t;
+function SynaIconvOpen (const tocode, fromcode: Ansistring): iconv_t;
 begin
 {$IFDEF CIL}
   try
-    result := _iconv_open(tocode, fromcode);
+    Result := _iconv_open(tocode, fromcode);
   except
     on Exception do
-      result := iconv_t(-1);
+      Result := iconv_t(-1);
   end;
 {$ELSE}
   if InitIconvInterface and Assigned(_iconv_open) then
-    result := _iconv_open(PAnsiChar(tocode), PAnsiChar(fromcode))
+    Result := _iconv_open(PAnsiChar(tocode), PAnsiChar(fromcode))
   else
-    result := iconv_t(-1);
+    Result := iconv_t(-1);
 {$ENDIF}
 end;
 
-FUNCTION SynaIconvOpenTranslit (CONST tocode, fromcode: ansistring): iconv_t;
+function SynaIconvOpenTranslit (const tocode, fromcode: Ansistring): iconv_t;
 begin
-  result := SynaIconvOpen(tocode + '//IGNORE//TRANSLIT', fromcode);
+  Result := SynaIconvOpen(tocode + '//IGNORE//TRANSLIT', fromcode);
 end;
 
-FUNCTION SynaIconvOpenIgnore (CONST tocode, fromcode: ansistring): iconv_t;
+function SynaIconvOpenIgnore (const tocode, fromcode: Ansistring): iconv_t;
 begin
-  result := SynaIconvOpen(tocode + '//IGNORE', fromcode);
+  Result := SynaIconvOpen(tocode + '//IGNORE', fromcode);
 end;
 
-FUNCTION SynaIconv (cd: iconv_t; inbuf: ansistring; VAR outbuf: ansistring): integer;
-VAR
+function SynaIconv (cd: iconv_t; inbuf: AnsiString; var outbuf: AnsiString): integer;
+var
 {$IFDEF CIL}
   ib, ob: IntPtr;
   ibsave, obsave: IntPtr;
   l: integer;
 {$ELSE}
-  ib, ob: pointer;
+  ib, ob: Pointer;
 {$ENDIF}
   ix, ox: size_t;
 begin
 {$IFDEF CIL}
-  l := length(inbuf) * 4;
+  l := Length(inbuf) * 4;
   ibsave := IntPtr.Zero;
   obsave := IntPtr.Zero;
   try
@@ -209,12 +209,12 @@ begin
     obsave := Marshal.AllocHGlobal(l);
     ib := ibsave;
     ob := obsave;
-    ix := length(inbuf);
+    ix := Length(inbuf);
     ox := l;
     _iconv(cd, ib, ix, ob, ox);
     Outbuf := Marshal.PtrToStringAnsi(obsave, l);
-    setLength(Outbuf, l - ox);
-    result := length(inbuf) - ix;
+    setlength(Outbuf, l - ox);
+    Result := Length(inbuf) - ix;
   finally
     Marshal.FreeCoTaskMem(ibsave);
     Marshal.FreeHGlobal(obsave);
@@ -222,60 +222,60 @@ begin
 {$ELSE}
   if InitIconvInterface and Assigned(_iconv) then
   begin
-    setLength(Outbuf, length(inbuf) * 4);
-    ib := pointer(inbuf);
-    ob := pointer(Outbuf);
-    ix := length(inbuf);
-    ox := length(Outbuf);
+    setlength(Outbuf, Length(inbuf) * 4);
+    ib := Pointer(inbuf);
+    ob := Pointer(Outbuf);
+    ix := Length(inbuf);
+    ox := Length(Outbuf);
     _iconv(cd, ib, ix, ob, ox);
-    setLength(Outbuf, Cardinal(length(Outbuf)) - ox);
-    result := Cardinal(length(inbuf)) - ix;
+    setlength(Outbuf, cardinal(Length(Outbuf)) - ox);
+    Result := Cardinal(Length(inbuf)) - ix;
   end
   else
   begin
     Outbuf := '';
-    result := 0;
+    Result := 0;
   end;
 {$ENDIF}
 end;
 
-FUNCTION SynaIconvClose(VAR cd: iconv_t): integer;
+function SynaIconvClose(var cd: iconv_t): integer;
 begin
   if cd = iconv_t(-1) then
   begin
-    result := 0;
-    exit;
+    Result := 0;
+    Exit;
   end;
 {$IFDEF CIL}
   try;
-    result := _iconv_close(cd)
+    Result := _iconv_close(cd)
   except
     on Exception do
-      result := -1;
+      Result := -1;
   end;
   cd := iconv_t(-1);
 {$ELSE}
   if InitIconvInterface and Assigned(_iconv_close) then
-    result := _iconv_close(cd)
+    Result := _iconv_close(cd)
   else
-    result := -1;
+    Result := -1;
   cd := iconv_t(-1);
 {$ENDIF}
 end;
 
-FUNCTION SynaIconvCtl (cd: iconv_t; request: integer; argument: argptr): integer;
+function SynaIconvCtl (cd: iconv_t; request: integer; argument: argptr): integer;
 begin
 {$IFDEF CIL}
-  result := _iconvctl(cd, request, argument)
+  Result := _iconvctl(cd, request, argument)
 {$ELSE}
   if InitIconvInterface and Assigned(_iconvctl) then
-    result := _iconvctl(cd, request, argument)
+    Result := _iconvctl(cd, request, argument)
   else
-    result := 0;
+    Result := 0;
 {$ENDIF}
 end;
 
-FUNCTION InitIconvInterface: boolean;
+function InitIconvInterface: Boolean;
 begin
   IconvCS.Enter;
   try
@@ -289,13 +289,13 @@ begin
       if (IconvLibHandle <> 0) then
       begin
 {$IFNDEF CIL}
-        _iconv_open := GetProcAddress(IconvLibHandle, PAnsiChar(ansistring('libiconv_open')));
-        _iconv := GetProcAddress(IconvLibHandle, PAnsiChar(ansistring('libiconv')));
-        _iconv_close := GetProcAddress(IconvLibHandle, PAnsiChar(ansistring('libiconv_close')));
-        _iconvctl := GetProcAddress(IconvLibHandle, PAnsiChar(ansistring('libiconvctl')));
+        _iconv_open := GetProcAddress(IconvLibHandle, PAnsiChar(AnsiString('libiconv_open')));
+        _iconv := GetProcAddress(IconvLibHandle, PAnsiChar(AnsiString('libiconv')));
+        _iconv_close := GetProcAddress(IconvLibHandle, PAnsiChar(AnsiString('libiconv_close')));
+        _iconvctl := GetProcAddress(IconvLibHandle, PAnsiChar(AnsiString('libiconvctl')));
 {$ENDIF}
-        result := true;
-        Iconvloaded := true;
+        Result := True;
+        Iconvloaded := True;
       end
       else
       begin
@@ -307,18 +307,18 @@ begin
 {$ENDIF}
           IconvLibHandle := 0;
         end;
-        result := false;
+        Result := False;
       end;
     end
     else
       //loaded before...
-      result := true;
+      Result := true;
   finally
     IconvCS.Leave;
   end;
 end;
 
-FUNCTION DestroyIconvInterface: boolean;
+function DestroyIconvInterface: Boolean;
 begin
   IconvCS.Enter;
   try
@@ -339,25 +339,25 @@ begin
   finally
     IconvCS.Leave;
   end;
-  result := true;
+  Result := True;
 end;
 
-FUNCTION IsIconvloaded: boolean;
+function IsIconvloaded: Boolean;
 begin
-  result := IconvLoaded;
+  Result := IconvLoaded;
 end;
 
- INITIALIZATION
+ initialization
 begin
-  IconvCS:= TCriticalSection.create;
+  IconvCS:= TCriticalSection.Create;
 end;
 
-FINALIZATION
+finalization
 begin
 {$IFNDEF CIL}
   DestroyIconvInterface;
 {$ENDIF}
-  IconvCS.free;
+  IconvCS.Free;
 end;
 
 end.

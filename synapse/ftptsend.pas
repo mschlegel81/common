@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.001.001 |
+| Project : Ararat Synapse                                       | 001.001.001 |
 |==============================================================================|
-| content: Trivial FTP (TFTP) Client and Server                                |
+| Content: Trivial FTP (TFTP) client and server                                |
 |==============================================================================|
 | Copyright (c)1999-2010, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,31 +20,31 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2003-2010.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {: @abstract(TFTP client and server protocol)
 
-used RFC: RFC-1350
+Used RFC: RFC-1350
 }
 
 {$IFDEF FPC}
@@ -58,15 +58,15 @@ used RFC: RFC-1350
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT ftptsend;
+unit ftptsend;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes,
+uses
+  SysUtils, Classes,
   blcksock, synautil;
 
-CONST
+const
   cTFTPProtocol = '69';
 
   cTFTP_RRQ = word(1);
@@ -75,9 +75,9 @@ CONST
   cTFTP_ACK = word(4);
   cTFTP_ERR = word(5);
 
-TYPE
+type
   {:@abstract(Implementation of TFTP client and server)
-   Note: Are you missing properties for specify Server address and port? Look to
+   Note: Are you missing properties for specify server address and port? Look to
    parent @link(TSynaClient) too!}
   TTFTPSend = class(TSynaClient)
   private
@@ -87,91 +87,91 @@ TYPE
     FData: TMemoryStream;
     FRequestIP: string;
     FRequestPort: string;
-    FUNCTION SendPacket(cmd: word; Serial: word; CONST value: string): boolean;
-    FUNCTION RecvPacket(Serial: word; VAR value: string): boolean;
+    function SendPacket(Cmd: word; Serial: word; const Value: string): Boolean;
+    function RecvPacket(Serial: word; var Value: string): Boolean;
   public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
+    constructor Create;
+    destructor Destroy; override;
 
     {:Upload @link(data) as file to TFTP server.}
-    FUNCTION SendFile(CONST fileName: string): boolean;
+    function SendFile(const Filename: string): Boolean;
 
     {:Download file from TFTP server to @link(data).}
-    FUNCTION RecvFile(CONST fileName: string): boolean;
+    function RecvFile(const Filename: string): Boolean;
 
     {:Acts as TFTP server and wait for client request. When some request
      incoming within Timeout, result is @true and parametres is filled with
      information from request. You must handle this request, validate it, and
      call @link(ReplyError), @link(ReplyRecv) or @link(ReplySend) for send reply
      to TFTP Client.}
-    FUNCTION WaitForRequest(VAR Req: word; VAR fileName: string): boolean;
+    function WaitForRequest(var Req: word; var filename: string): Boolean;
 
     {:send error to TFTP client, when you acts as TFTP server.}
-    PROCEDURE ReplyError(Error: word; description: string);
+    procedure ReplyError(Error: word; Description: string);
 
     {:Accept uploaded file from TFTP client to @link(data), when you acts as
-     TFTP Server.}
-    FUNCTION ReplyRecv: boolean;
+     TFTP server.}
+    function ReplyRecv: Boolean;
 
     {:Accept download request file from TFTP client and send content of
-     @link(data), when you acts as TFTP Server.}
-    FUNCTION ReplySend: boolean;
-  Published
+     @link(data), when you acts as TFTP server.}
+    function ReplySend: Boolean;
+  published
     {:Code of TFTP error.}
-    PROPERTY ErrorCode: integer read FErrorCode;
+    property ErrorCode: integer read FErrorCode;
 
     {:Human readable decription of TFTP error. (if is sended by remote side)}
-    PROPERTY ErrorString: string read FErrorString;
+    property ErrorString: string read FErrorString;
 
     {:MemoryStream with datas for sending or receiving}
-    PROPERTY data: TMemoryStream read FData;
+    property Data: TMemoryStream read FData;
 
     {:Address of TFTP remote side.}
-    PROPERTY RequestIP: string read FRequestIP write FRequestIP;
+    property RequestIP: string read FRequestIP write FRequestIP;
 
     {:Port of TFTP remote side.}
-    PROPERTY RequestPort: string read FRequestPort write FRequestPort;
+    property RequestPort: string read FRequestPort write FRequestPort;
   end;
 
-IMPLEMENTATION
+implementation
 
-CONSTRUCTOR TTFTPSend.create;
+constructor TTFTPSend.Create;
 begin
-  inherited create;
-  FSock := TUDPBlockSocket.create;
+  inherited Create;
+  FSock := TUDPBlockSocket.Create;
   FSock.Owner := self;
   FTargetPort := cTFTPProtocol;
-  FData := TMemoryStream.create;
+  FData := TMemoryStream.Create;
   FErrorCode := 0;
   FErrorString := '';
 end;
 
-DESTRUCTOR TTFTPSend.destroy;
+destructor TTFTPSend.Destroy;
 begin
-  FSock.free;
-  FData.free;
-  inherited destroy;
+  FSock.Free;
+  FData.Free;
+  inherited Destroy;
 end;
 
-FUNCTION TTFTPSend.SendPacket(cmd: word; Serial: word; CONST value: string): boolean;
-VAR
+function TTFTPSend.SendPacket(Cmd: word; Serial: word; const Value: string): Boolean;
+var
   s, sh: string;
 begin
   FErrorCode := 0;
   FErrorString := '';
-  result := false;
-  if cmd <> 2 then
-    s := CodeInt(cmd) + CodeInt(Serial) + value
+  Result := false;
+  if Cmd <> 2 then
+    s := CodeInt(Cmd) + CodeInt(Serial) + Value
   else
-    s := CodeInt(cmd) + value;
+    s := CodeInt(Cmd) + Value;
   FSock.SendString(s);
   s := FSock.RecvPacket(FTimeout);
   if FSock.LastError = 0 then
     if length(s) >= 4 then
     begin
       sh := CodeInt(4) + CodeInt(Serial);
-      if pos(sh, s) = 1 then
-        result := true
+      if Pos(sh, s) = 1 then
+        Result := True
       else
         if s[1] = #5 then
         begin
@@ -182,15 +182,15 @@ begin
     end;
 end;
 
-FUNCTION TTFTPSend.RecvPacket(Serial: word; VAR value: string): boolean;
-VAR
+function TTFTPSend.RecvPacket(Serial: word; var Value: string): Boolean;
+var
   s: string;
   ser: word;
 begin
   FErrorCode := 0;
   FErrorString := '';
-  result := false;
-  value := '';
+  Result := False;
+  Value := '';
   s := FSock.RecvPacket(FTimeout);
   if FSock.LastError = 0 then
     if length(s) >= 4 then
@@ -200,10 +200,10 @@ begin
         if ser = Serial then
         begin
           Delete(s, 1, 4);
-          value := s;
+          Value := s;
           S := CodeInt(4) + CodeInt(ser);
           FSock.SendString(s);
-          result := FSock.LastError = 0;
+          Result := FSock.LastError = 0;
         end
         else
         begin
@@ -219,13 +219,13 @@ begin
       end;
 end;
 
-FUNCTION TTFTPSend.SendFile(CONST fileName: string): boolean;
-VAR
+function TTFTPSend.SendFile(const Filename: string): Boolean;
+var
   s: string;
   ser: word;
   n, n1, n2: integer;
 begin
-  result := false;
+  Result := False;
   FErrorCode := 0;
   FErrorString := '';
   FSock.CloseSocket;
@@ -233,40 +233,40 @@ begin
   try
     if FSock.LastError = 0 then
     begin
-      s := fileName + #0 + 'octet' + #0;
+      s := Filename + #0 + 'octet' + #0;
       if not Sendpacket(2, 0, s) then
-        exit;
+        Exit;
       ser := 1;
-      FData.position := 0;
-      n1 := FData.size div 512;
-      n2 := FData.size mod 512;
+      FData.Position := 0;
+      n1 := FData.Size div 512;
+      n2 := FData.Size mod 512;
       for n := 1 to n1 do
       begin
         s := ReadStrFromStream(FData, 512);
 //        SetLength(s, 512);
 //        FData.Read(pointer(s)^, 512);
         if not Sendpacket(3, ser, s) then
-          exit;
+          Exit;
         inc(ser);
       end;
       s := ReadStrFromStream(FData, n2);
 //      SetLength(s, n2);
 //      FData.Read(pointer(s)^, n2);
       if not Sendpacket(3, ser, s) then
-        exit;
-      result := true;
+        Exit;
+      Result := True;
     end;
   finally
     FSock.CloseSocket;
   end;
 end;
 
-FUNCTION TTFTPSend.RecvFile(CONST fileName: string): boolean;
-VAR
+function TTFTPSend.RecvFile(const Filename: string): Boolean;
+var
   s: string;
   ser: word;
 begin
-  result := false;
+  Result := False;
   FErrorCode := 0;
   FErrorString := '';
   FSock.CloseSocket;
@@ -274,32 +274,32 @@ begin
   try
     if FSock.LastError = 0 then
     begin
-      s := CodeInt(1) + fileName + #0 + 'octet' + #0;
+      s := CodeInt(1) + Filename + #0 + 'octet' + #0;
       FSock.SendString(s);
       if FSock.LastError <> 0 then
-        exit;
-      FData.clear;
+        Exit;
+      FData.Clear;
       ser := 1;
       repeat
         if not RecvPacket(ser, s) then
-          exit;
+          Exit;
         inc(ser);
         WriteStrToStream(FData, s);
 //        FData.Write(pointer(s)^, length(s));
       until length(s) <> 512;
-      FData.position := 0;
-      result := true;
+      FData.Position := 0;
+      Result := true;
     end;
   finally
     FSock.CloseSocket;
   end;
 end;
 
-FUNCTION TTFTPSend.WaitForRequest(VAR Req: word; VAR fileName: string): boolean;
-VAR
+function TTFTPSend.WaitForRequest(var Req: word; var filename: string): Boolean;
+var
   s: string;
 begin
-  result := false;
+  Result := False;
   FErrorCode := 0;
   FErrorString := '';
   FSock.CloseSocket;
@@ -308,37 +308,37 @@ begin
   begin
     s := FSock.RecvPacket(FTimeout);
     if FSock.LastError = 0 then
-      if length(s) >= 4 then
+      if Length(s) >= 4 then
       begin
         FRequestIP := FSock.GetRemoteSinIP;
-        FRequestPort := intToStr(FSock.GetRemoteSinPort);
+        FRequestPort := IntToStr(FSock.GetRemoteSinPort);
         Req := DecodeInt(s, 1);
-        Delete(s, 1, 2);
-        fileName := trim(SeparateLeft(s, #0));
+        delete(s, 1, 2);
+        filename := Trim(SeparateLeft(s, #0));
         s := SeparateRight(s, #0);
         s := SeparateLeft(s, #0);
-        result := lowercase(trim(s)) = 'octet';
+        Result := lowercase(trim(s)) = 'octet';
       end;
   end;
 end;
 
-PROCEDURE TTFTPSend.ReplyError(Error: word; description: string);
-VAR
+procedure TTFTPSend.ReplyError(Error: word; Description: string);
+var
   s: string;
 begin
   FSock.CloseSocket;
   FSock.Connect(FRequestIP, FRequestPort);
-  s := CodeInt(5) + CodeInt(Error) + description + #0;
+  s := CodeInt(5) + CodeInt(Error) + Description + #0;
   FSock.SendString(s);
   FSock.CloseSocket;
 end;
 
-FUNCTION TTFTPSend.ReplyRecv: boolean;
-VAR
+function TTFTPSend.ReplyRecv: Boolean;
+var
   s: string;
   ser: integer;
 begin
-  result := false;
+  Result := False;
   FErrorCode := 0;
   FErrorString := '';
   FSock.CloseSocket;
@@ -346,53 +346,53 @@ begin
   try
     s := CodeInt(4) + CodeInt(0);
     FSock.SendString(s);
-    FData.clear;
+    FData.Clear;
     ser := 1;
     repeat
       if not RecvPacket(ser, s) then
-        exit;
+        Exit;
       inc(ser);
       WriteStrToStream(FData, s);
 //      FData.Write(pointer(s)^, length(s));
     until length(s) <> 512;
-    FData.position := 0;
-    result := true;
+    FData.Position := 0;
+    Result := true;
   finally
     FSock.CloseSocket;
   end;
 end;
 
-FUNCTION TTFTPSend.ReplySend: boolean;
-VAR
+function TTFTPSend.ReplySend: Boolean;
+var
   s: string;
   ser: word;
   n, n1, n2: integer;
 begin
-  result := false;
+  Result := False;
   FErrorCode := 0;
   FErrorString := '';
   FSock.CloseSocket;
   FSock.Connect(FRequestIP, FRequestPort);
   try
     ser := 1;
-    FData.position := 0;
-    n1 := FData.size div 512;
-    n2 := FData.size mod 512;
+    FData.Position := 0;
+    n1 := FData.Size div 512;
+    n2 := FData.Size mod 512;
     for n := 1 to n1 do
     begin
       s := ReadStrFromStream(FData, 512);
 //      SetLength(s, 512);
 //      FData.Read(pointer(s)^, 512);
       if not Sendpacket(3, ser, s) then
-        exit;
+        Exit;
       inc(ser);
     end;
     s := ReadStrFromStream(FData, n2);
 //    SetLength(s, n2);
 //    FData.Read(pointer(s)^, n2);
     if not Sendpacket(3, ser, s) then
-      exit;
-    result := true;
+      Exit;
+    Result := True;
   finally
     FSock.CloseSocket;
   end;

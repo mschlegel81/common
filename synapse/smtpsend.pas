@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 003.005.001 |
+| Project : Ararat Synapse                                       | 003.005.001 |
 |==============================================================================|
-| content: SMTP Client                                                         |
+| Content: SMTP client                                                         |
 |==============================================================================|
 | Copyright (c)1999-2010, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,31 +20,31 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c) 1999-2010.               |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(SMTP client)
 
-used RFC: RFC-1869, RFC-1870, RFC-1893, RFC-2034, RFC-2104, RFC-2195, RFC-2487,
+Used RFC: RFC-1869, RFC-1870, RFC-1893, RFC-2034, RFC-2104, RFC-2195, RFC-2487,
  RFC-2554, RFC-2821
 }
 
@@ -58,326 +58,326 @@ used RFC: RFC-1869, RFC-1870, RFC-1893, RFC-2034, RFC-2104, RFC-2195, RFC-2487,
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT smtpsend;
+unit smtpsend;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes,
+uses
+  SysUtils, Classes,
   blcksock, synautil, synacode;
 
-CONST
+const
   cSmtpProtocol = '25';
 
-TYPE
+type
   {:@abstract(Implementation of SMTP and ESMTP procotol),
    include some ESMTP extensions, include SSL/TLS too.
 
    Note: Are you missing properties for setting Username and Password for ESMTP?
    Look to parent @link(TSynaClient) object!
 
-   Are you missing properties for specify Server address and port? Look to
+   Are you missing properties for specify server address and port? Look to
    parent @link(TSynaClient) too!}
   TSMTPSend = class(TSynaClient)
   private
     FSock: TTCPBlockSocket;
-    FResultCode: integer;
+    FResultCode: Integer;
     FResultString: string;
     FFullResult: TStringList;
     FESMTPcap: TStringList;
-    FESMTP: boolean;
-    FAuthDone: boolean;
-    FESMTPSize: boolean;
-    FMaxSize: integer;
-    FEnhCode1: integer;
-    FEnhCode2: integer;
-    FEnhCode3: integer;
+    FESMTP: Boolean;
+    FAuthDone: Boolean;
+    FESMTPSize: Boolean;
+    FMaxSize: Integer;
+    FEnhCode1: Integer;
+    FEnhCode2: Integer;
+    FEnhCode3: Integer;
     FSystemName: string;
-    FAutoTLS: boolean;
-    FFullSSL: boolean;
-    PROCEDURE EnhancedCode(CONST value: string);
-    FUNCTION ReadResult: integer;
-    FUNCTION AuthLogin: boolean;
-    FUNCTION AuthCram: boolean;
-    FUNCTION AuthPlain: boolean;
-    FUNCTION Helo: boolean;
-    FUNCTION Ehlo: boolean;
-    FUNCTION Connect: boolean;
+    FAutoTLS: Boolean;
+    FFullSSL: Boolean;
+    procedure EnhancedCode(const Value: string);
+    function ReadResult: Integer;
+    function AuthLogin: Boolean;
+    function AuthCram: Boolean;
+    function AuthPlain: Boolean;
+    function Helo: Boolean;
+    function Ehlo: Boolean;
+    function Connect: Boolean;
   public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
+    constructor Create;
+    destructor Destroy; override;
 
     {:Connects to SMTP server (defined in @link(TSynaClient.TargetHost)) and
-     begin SMTP session. (first try ESMTP EHLO, next old HELO handshake). Parses
+     begin SMTP session. (First try ESMTP EHLO, next old HELO handshake). Parses
      ESMTP capabilites and if you specified Username and password and remote
-     Server can handle AUTH command, try login by AUTH command. Preffered login
-     method is CRAM-MD5 (if safer!). if all ok, result is @true, else result is
+     server can handle AUTH command, try login by AUTH command. Preffered login
+     method is CRAM-MD5 (if safer!). If all OK, result is @true, else result is
      @false.}
-    FUNCTION Login: boolean;
+    function Login: Boolean;
 
     {:Close SMTP session (QUIT command) and disconnect from SMTP server.}
-    FUNCTION Logout: boolean;
+    function Logout: Boolean;
 
     {:Send RSET SMTP command for reset SMTP session. If all OK, result is @true,
      else result is @false.}
-    FUNCTION reset: boolean;
+    function Reset: Boolean;
 
     {:Send NOOP SMTP command for keep SMTP session. If all OK, result is @true,
      else result is @false.}
-    FUNCTION NoOp: boolean;
+    function NoOp: Boolean;
 
     {:Send MAIL FROM SMTP command for set sender e-mail address. If sender's
      e-mail address is empty string, transmited message is error message.
 
-     if size not 0 and remote Server can handle size parameter, append size
-     parameter to request. if all ok, result is @true, else result is @false.}
-    FUNCTION MailFrom(CONST value: string; size: integer): boolean;
+     If size not 0 and remote server can handle SIZE parameter, append SIZE
+     parameter to request. If all OK, result is @true, else result is @false.}
+    function MailFrom(const Value: string; Size: Integer): Boolean;
 
     {:Send RCPT TO SMTP command for set receiver e-mail address. It cannot be an
-     empty string. if all ok, result is @true, else result is @false.}
-    FUNCTION MailTo(CONST value: string): boolean;
+     empty string. If all OK, result is @true, else result is @false.}
+    function MailTo(const Value: string): Boolean;
 
     {:Send DATA SMTP command and transmit message data. If all OK, result is
      @true, else result is @false.}
-    FUNCTION MailData(CONST value: TStrings): boolean;
+    function MailData(const Value: Tstrings): Boolean;
 
     {:Send ETRN SMTP command for start sending of remote queue for domain in
-     value. if all ok, result is @true, else result is @false.}
-    FUNCTION Etrn(CONST value: string): boolean;
+     Value. If all OK, result is @true, else result is @false.}
+    function Etrn(const Value: string): Boolean;
 
     {:Send VRFY SMTP command for check receiver e-mail address. It cannot be
-     an empty string. if all ok, result is @true, else result is @false.}
-    FUNCTION Verify(CONST value: string): boolean;
+     an empty string. If all OK, result is @true, else result is @false.}
+    function Verify(const Value: string): Boolean;
 
     {:Call STARTTLS command for upgrade connection to SSL/TLS mode.}
-    FUNCTION StartTLS: boolean;
+    function StartTLS: Boolean;
 
     {:Return string descriptive text for enhanced result codes stored in
      @link(EnhCode1), @link(EnhCode2) and @link(EnhCode3).}
-    FUNCTION EnhCodeString: string;
+    function EnhCodeString: string;
 
     {:Try to find specified capability in ESMTP response.}
-    FUNCTION FindCap(CONST value: string): string;
-  Published
+    function FindCap(const Value: string): string;
+  published
     {:result code of last SMTP command.}
-    PROPERTY ResultCode: integer read FResultCode;
+    property ResultCode: Integer read FResultCode;
 
     {:result string of last SMTP command (begin with string representation of
      result code).}
-    PROPERTY resultString: string read FResultString;
+    property ResultString: string read FResultString;
 
     {:All result strings of last SMTP command (result is maybe multiline!).}
-    PROPERTY FullResult: TStringList read FFullResult;
+    property FullResult: TStringList read FFullResult;
 
     {:List of ESMTP capabilites of remote ESMTP server. (If you connect to ESMTP
-     Server only!).}
-    PROPERTY ESMTPcap: TStringList read FESMTPcap;
+     server only!).}
+    property ESMTPcap: TStringList read FESMTPcap;
 
     {:@TRUE if you successfuly logged to ESMTP server.}
-    PROPERTY ESMTP: boolean read FESMTP;
+    property ESMTP: Boolean read FESMTP;
 
     {:@TRUE if you successfuly pass authorisation to remote server.}
-    PROPERTY AuthDone: boolean read FAuthDone;
+    property AuthDone: Boolean read FAuthDone;
 
     {:@TRUE if remote server can handle SIZE parameter.}
-    PROPERTY ESMTPSize: boolean read FESMTPSize;
+    property ESMTPSize: Boolean read FESMTPSize;
 
     {:When @link(ESMTPsize) is @TRUE, contains max length of message that remote
-     Server can handle.}
-    PROPERTY MaxSize: integer read FMaxSize;
+     server can handle.}
+    property MaxSize: Integer read FMaxSize;
 
     {:First digit of Enhanced result code. If last operation does not have
      enhanced result code, values is 0.}
-    PROPERTY EnhCode1: integer read FEnhCode1;
+    property EnhCode1: Integer read FEnhCode1;
 
     {:Second digit of Enhanced result code. If last operation does not have
      enhanced result code, values is 0.}
-    PROPERTY EnhCode2: integer read FEnhCode2;
+    property EnhCode2: Integer read FEnhCode2;
 
     {:Third digit of Enhanced result code. If last operation does not have
      enhanced result code, values is 0.}
-    PROPERTY EnhCode3: integer read FEnhCode3;
+    property EnhCode3: Integer read FEnhCode3;
 
     {:name of our system used in HELO and EHLO command. Implicit value is
      internet address of your machine.}
-    PROPERTY SystemName: string read FSystemName write FSystemName;
+    property SystemName: string read FSystemName Write FSystemName;
 
     {:If is set to true, then upgrade to SSL/TLS mode if remote server support it.}
-    PROPERTY AutoTLS: boolean read FAutoTLS write FAutoTLS;
+    property AutoTLS: Boolean read FAutoTLS Write FAutoTLS;
 
     {:SSL/TLS mode is used from first contact to server. Servers with full
      SSL/TLS mode usualy using non-standard TCP port!}
-    PROPERTY FullSSL: boolean read FFullSSL write FFullSSL;
+    property FullSSL: Boolean read FFullSSL Write FFullSSL;
 
     {:Socket object used for TCP/IP operation. Good for seting OnStatus hook, etc.}
-    PROPERTY Sock: TTCPBlockSocket read FSock;
+    property Sock: TTCPBlockSocket read FSock;
   end;
 
 {:A very useful function and example of its use would be found in the TSMTPsend
- object. Send maildata (text of e-mail with all SMTP headers! for example when
+ object. Send maildata (text of e-mail with all SMTP headers! For example when
  text of message is created by @link(TMimemess) object) from "MailFrom" e-mail
- address to "MailTo" e-mail address (if you need more then one receiver, then
+ address to "MailTo" e-mail address (If you need more then one receiver, then
  separate their addresses by comma).
 
- FUNCTION sends e-mail to a SMTP Server defined in "SMTPhost" parameter.
- Username and password are used for authorization to the "SMTPhost". if you
+ Function sends e-mail to a SMTP server defined in "SMTPhost" parameter.
+ Username and password are used for authorization to the "SMTPhost". If you
  don't want authorization, set "Username" and "Password" to empty strings. If
  e-mail message is successfully sent, the result returns @true.
 
- if you need use different port number then standard, then add this port number
+ If you need use different port number then standard, then add this port number
  to SMTPhost after colon. (i.e. '127.0.0.1:1025')}
-FUNCTION SendToRaw(CONST MailFrom, MailTo, SMTPHost: string;
-  CONST MailData: TStrings; CONST Username, Password: string): boolean;
+function SendToRaw(const MailFrom, MailTo, SMTPHost: string;
+  const MailData: TStrings; const Username, Password: string): Boolean;
 
 {:A very useful function and example of its use would be found in the TSMTPsend
  object. Send "Maildata" (text of e-mail without any SMTP headers!) from
- "MailFrom" e-mail address to "MailTo" e-mail address with "Subject".  (if you
+ "MailFrom" e-mail address to "MailTo" e-mail address with "Subject".  (If you
  need more then one receiver, then separate their addresses by comma).
 
- This FUNCTION constructs all needed SMTP headers (with DATE header) and sends
- the e-mail to the SMTP Server defined in the "SMTPhost" parameter. if the
- e-mail message is successfully sent, the result will be @true.
+ This function constructs all needed SMTP headers (with DATE header) and sends
+ the e-mail to the SMTP server defined in the "SMTPhost" parameter. If the
+ e-mail message is successfully sent, the result will be @TRUE.
 
- if you need use different port number then standard, then add this port number
+ If you need use different port number then standard, then add this port number
  to SMTPhost after colon. (i.e. '127.0.0.1:1025')}
-FUNCTION SendTo(CONST MailFrom, MailTo, Subject, SMTPHost: string;
-  CONST MailData: TStrings): boolean;
+function SendTo(const MailFrom, MailTo, Subject, SMTPHost: string;
+  const MailData: TStrings): Boolean;
 
 {:A very useful function and example of its use would be found in the TSMTPsend
  object. Sends "MailData" (text of e-mail without any SMTP headers!) from
- "MailFrom" e-mail address to "MailTo" e-mail address (if you need more then one
+ "MailFrom" e-mail address to "MailTo" e-mail address (If you need more then one
  receiver, then separate their addresses by comma).
 
- This FUNCTION sends the e-mail to the SMTP Server defined in the "SMTPhost"
+ This function sends the e-mail to the SMTP server defined in the "SMTPhost"
  parameter. Username and password are used for authorization to the "SMTPhost".
- if you dont want authorization, set "Username" and "Password" to empty Strings.
- if the e-mail message is successfully sent, the result will be @true.
+ If you dont want authorization, set "Username" and "Password" to empty Strings.
+ If the e-mail message is successfully sent, the result will be @TRUE.
 
- if you need use different port number then standard, then add this port number
+ If you need use different port number then standard, then add this port number
  to SMTPhost after colon. (i.e. '127.0.0.1:1025')}
-FUNCTION SendToEx(CONST MailFrom, MailTo, Subject, SMTPHost: string;
-  CONST MailData: TStrings; CONST Username, Password: string): boolean;
+function SendToEx(const MailFrom, MailTo, Subject, SMTPHost: string;
+  const MailData: TStrings; const Username, Password: string): Boolean;
 
-IMPLEMENTATION
+implementation
 
-CONSTRUCTOR TSMTPSend.create;
+constructor TSMTPSend.Create;
 begin
-  inherited create;
-  FFullResult := TStringList.create;
-  FESMTPcap := TStringList.create;
-  FSock := TTCPBlockSocket.create;
+  inherited Create;
+  FFullResult := TStringList.Create;
+  FESMTPcap := TStringList.Create;
+  FSock := TTCPBlockSocket.Create;
   FSock.Owner := self;
   FSock.ConvertLineEnd := true;
   FTimeout := 60000;
   FTargetPort := cSmtpProtocol;
   FSystemName := FSock.LocalName;
-  FAutoTLS := false;
-  FFullSSL := false;
+  FAutoTLS := False;
+  FFullSSL := False;
 end;
 
-DESTRUCTOR TSMTPSend.destroy;
+destructor TSMTPSend.Destroy;
 begin
-  FSock.free;
-  FESMTPcap.free;
-  FFullResult.free;
-  inherited destroy;
+  FSock.Free;
+  FESMTPcap.Free;
+  FFullResult.Free;
+  inherited Destroy;
 end;
 
-PROCEDURE TSMTPSend.EnhancedCode(CONST value: string);
-VAR
+procedure TSMTPSend.EnhancedCode(const Value: string);
+var
   s, t: string;
-  e1, e2, e3: integer;
+  e1, e2, e3: Integer;
 begin
   FEnhCode1 := 0;
   FEnhCode2 := 0;
   FEnhCode3 := 0;
-  s := copy(value, 5, length(value) - 4);
-  t := trim(SeparateLeft(s, '.'));
-  s := trim(SeparateRight(s, '.'));
+  s := Copy(Value, 5, Length(Value) - 4);
+  t := Trim(SeparateLeft(s, '.'));
+  s := Trim(SeparateRight(s, '.'));
   if t = '' then
-    exit;
-  if length(t) > 1 then
-    exit;
-  e1 := strToIntDef(t, 0);
+    Exit;
+  if Length(t) > 1 then
+    Exit;
+  e1 := StrToIntDef(t, 0);
   if e1 = 0 then
-    exit;
-  t := trim(SeparateLeft(s, '.'));
-  s := trim(SeparateRight(s, '.'));
+    Exit;
+  t := Trim(SeparateLeft(s, '.'));
+  s := Trim(SeparateRight(s, '.'));
   if t = '' then
-    exit;
-  if length(t) > 3 then
-    exit;
-  e2 := strToIntDef(t, 0);
-  t := trim(SeparateLeft(s, ' '));
+    Exit;
+  if Length(t) > 3 then
+    Exit;
+  e2 := StrToIntDef(t, 0);
+  t := Trim(SeparateLeft(s, ' '));
   if t = '' then
-    exit;
-  if length(t) > 3 then
-    exit;
-  e3 := strToIntDef(t, 0);
+    Exit;
+  if Length(t) > 3 then
+    Exit;
+  e3 := StrToIntDef(t, 0);
   FEnhCode1 := e1;
   FEnhCode2 := e2;
   FEnhCode3 := e3;
 end;
 
-FUNCTION TSMTPSend.ReadResult: integer;
-VAR
-  s: string;
+function TSMTPSend.ReadResult: Integer;
+var
+  s: String;
 begin
-  result := 0;
-  FFullResult.clear;
+  Result := 0;
+  FFullResult.Clear;
   repeat
     s := FSock.RecvString(FTimeout);
     FResultString := s;
-    FFullResult.add(s);
+    FFullResult.Add(s);
     if FSock.LastError <> 0 then
-      break;
-  until pos('-', s) <> 4;
+      Break;
+  until Pos('-', s) <> 4;
   s := FFullResult[0];
-  if length(s) >= 3 then
-    result := strToIntDef(copy(s, 1, 3), 0);
-  FResultCode := result;
+  if Length(s) >= 3 then
+    Result := StrToIntDef(Copy(s, 1, 3), 0);
+  FResultCode := Result;
   EnhancedCode(s);
 end;
 
-FUNCTION TSMTPSend.AuthLogin: boolean;
+function TSMTPSend.AuthLogin: Boolean;
 begin
-  result := false;
+  Result := False;
   FSock.SendString('AUTH LOGIN' + CRLF);
   if ReadResult <> 334 then
-    exit;
+    Exit;
   FSock.SendString(EncodeBase64(FUsername) + CRLF);
   if ReadResult <> 334 then
-    exit;
+    Exit;
   FSock.SendString(EncodeBase64(FPassword) + CRLF);
-  result := ReadResult = 235;
+  Result := ReadResult = 235;
 end;
 
-FUNCTION TSMTPSend.AuthCram: boolean;
-VAR
+function TSMTPSend.AuthCram: Boolean;
+var
   s: ansistring;
 begin
-  result := false;
+  Result := False;
   FSock.SendString('AUTH CRAM-MD5' + CRLF);
   if ReadResult <> 334 then
-    exit;
-  s := copy(FResultString, 5, length(FResultString) - 4);
+    Exit;
+  s := Copy(FResultString, 5, Length(FResultString) - 4);
   s := DecodeBase64(s);
   s := HMAC_MD5(s, FPassword);
   s := FUsername + ' ' + StrToHex(s);
   FSock.SendString(EncodeBase64(s) + CRLF);
-  result := ReadResult = 235;
+  Result := ReadResult = 235;
 end;
 
-FUNCTION TSMTPSend.AuthPlain: boolean;
-VAR
+function TSMTPSend.AuthPlain: Boolean;
+var
   s: ansistring;
 begin
   s := ansichar(0) + FUsername + ansichar(0) + FPassword;
   FSock.SendString('AUTH PLAIN ' + EncodeBase64(s) + CRLF);
-  result := ReadResult = 235;
+  Result := ReadResult = 235;
 end;
 
-FUNCTION TSMTPSend.Connect: boolean;
+function TSMTPSend.Connect: Boolean;
 begin
   FSock.CloseSocket;
   FSock.Bind(FIPInterface, cAnyPort);
@@ -386,148 +386,148 @@ begin
   if FSock.LastError = 0 then
     if FFullSSL then
       FSock.SSLDoConnect;
-  result := FSock.LastError = 0;
+  Result := FSock.LastError = 0;
 end;
 
-FUNCTION TSMTPSend.Helo: boolean;
-VAR
-  x: integer;
+function TSMTPSend.Helo: Boolean;
+var
+  x: Integer;
 begin
   FSock.SendString('HELO ' + FSystemName + CRLF);
   x := ReadResult;
-  result := (x >= 250) and (x <= 259);
+  Result := (x >= 250) and (x <= 259);
 end;
 
-FUNCTION TSMTPSend.Ehlo: boolean;
-VAR
-  x: integer;
+function TSMTPSend.Ehlo: Boolean;
+var
+  x: Integer;
 begin
   FSock.SendString('EHLO ' + FSystemName + CRLF);
   x := ReadResult;
-  result := (x >= 250) and (x <= 259);
+  Result := (x >= 250) and (x <= 259);
 end;
 
-FUNCTION TSMTPSend.Login: boolean;
-VAR
-  n: integer;
+function TSMTPSend.Login: Boolean;
+var
+  n: Integer;
   auths: string;
   s: string;
 begin
-  result := false;
-  FESMTP := true;
-  FAuthDone := false;
+  Result := False;
+  FESMTP := True;
+  FAuthDone := False;
   FESMTPcap.clear;
-  FESMTPSize := false;
+  FESMTPSize := False;
   FMaxSize := 0;
   if not Connect then
-    exit;
+    Exit;
   if ReadResult <> 220 then
-    exit;
+    Exit;
   if not Ehlo then
   begin
-    FESMTP := false;
+    FESMTP := False;
     if not Helo then
-      exit;
+      Exit;
   end;
-  result := true;
+  Result := True;
   if FESMTP then
   begin
-    for n := 1 to FFullResult.count - 1 do
-      FESMTPcap.add(copy(FFullResult[n], 5, length(FFullResult[n]) - 4));
+    for n := 1 to FFullResult.Count - 1 do
+      FESMTPcap.Add(Copy(FFullResult[n], 5, Length(FFullResult[n]) - 4));
     if (not FullSSL) and FAutoTLS and (FindCap('STARTTLS') <> '') then
       if StartTLS then
       begin
         Ehlo;
-        FESMTPcap.clear;
-        for n := 1 to FFullResult.count - 1 do
-          FESMTPcap.add(copy(FFullResult[n], 5, length(FFullResult[n]) - 4));
+        FESMTPcap.Clear;
+        for n := 1 to FFullResult.Count - 1 do
+          FESMTPcap.Add(Copy(FFullResult[n], 5, Length(FFullResult[n]) - 4));
       end
       else
       begin
-        result := false;
-        exit;
+        Result := False;
+        Exit;
       end;
     if not ((FUsername = '') and (FPassword = '')) then
     begin
       s := FindCap('AUTH ');
       if s = '' then
         s := FindCap('AUTH=');
-      auths := uppercase(s);
+      auths := UpperCase(s);
       if s <> '' then
       begin
-        if pos('CRAM-MD5', auths) > 0 then
+        if Pos('CRAM-MD5', auths) > 0 then
           FAuthDone := AuthCram;
-        if (not FauthDone) and (pos('PLAIN', auths) > 0) then
+        if (not FauthDone) and (Pos('PLAIN', auths) > 0) then
           FAuthDone := AuthPlain;
-        if (not FauthDone) and (pos('LOGIN', auths) > 0) then
+        if (not FauthDone) and (Pos('LOGIN', auths) > 0) then
           FAuthDone := AuthLogin;
       end;
     end;
     s := FindCap('SIZE');
     if s <> '' then
     begin
-      FESMTPsize := true;
-      FMaxSize := strToIntDef(copy(s, 6, length(s) - 5), 0);
+      FESMTPsize := True;
+      FMaxSize := StrToIntDef(Copy(s, 6, Length(s) - 5), 0);
     end;
   end;
 end;
 
-FUNCTION TSMTPSend.Logout: boolean;
+function TSMTPSend.Logout: Boolean;
 begin
   FSock.SendString('QUIT' + CRLF);
-  result := ReadResult = 221;
+  Result := ReadResult = 221;
   FSock.CloseSocket;
 end;
 
-FUNCTION TSMTPSend.reset: boolean;
+function TSMTPSend.Reset: Boolean;
 begin
   FSock.SendString('RSET' + CRLF);
-  result := ReadResult div 100 = 2;
+  Result := ReadResult div 100 = 2;
 end;
 
-FUNCTION TSMTPSend.NoOp: boolean;
+function TSMTPSend.NoOp: Boolean;
 begin
   FSock.SendString('NOOP' + CRLF);
-  result := ReadResult div 100 = 2;
+  Result := ReadResult div 100 = 2;
 end;
 
-FUNCTION TSMTPSend.MailFrom(CONST value: string; size: integer): boolean;
-VAR
+function TSMTPSend.MailFrom(const Value: string; Size: Integer): Boolean;
+var
   s: string;
 begin
-  s := 'MAIL FROM:<' + value + '>';
-  if FESMTPsize and (size > 0) then
-    s := s + ' SIZE=' + intToStr(size);
+  s := 'MAIL FROM:<' + Value + '>';
+  if FESMTPsize and (Size > 0) then
+    s := s + ' SIZE=' + IntToStr(Size);
   FSock.SendString(s + CRLF);
-  result := ReadResult div 100 = 2;
+  Result := ReadResult div 100 = 2;
 end;
 
-FUNCTION TSMTPSend.MailTo(CONST value: string): boolean;
+function TSMTPSend.MailTo(const Value: string): Boolean;
 begin
-  FSock.SendString('RCPT TO:<' + value + '>' + CRLF);
-  result := ReadResult div 100 = 2;
+  FSock.SendString('RCPT TO:<' + Value + '>' + CRLF);
+  Result := ReadResult div 100 = 2;
 end;
 
-FUNCTION TSMTPSend.MailData(CONST value: TStrings): boolean;
-VAR
-  n: integer;
+function TSMTPSend.MailData(const Value: TStrings): Boolean;
+var
+  n: Integer;
   s: string;
   t: string;
   x: integer;
 begin
-  result := false;
+  Result := False;
   FSock.SendString('DATA' + CRLF);
   if ReadResult <> 354 then
-    exit;
+    Exit;
   t := '';
   x := 1500;
-  for n := 0 to value.count - 1 do
+  for n := 0 to Value.Count - 1 do
   begin
-    s := value[n];
-    if length(s) >= 1 then
+    s := Value[n];
+    if Length(s) >= 1 then
       if s[1] = '.' then
         s := '.' + s;
-    if length(t) + length(s) >= x then
+    if Length(t) + Length(s) >= x then
     begin
       FSock.SendString(t);
       t := '';
@@ -537,46 +537,46 @@ begin
   if t <> '' then
     FSock.SendString(t);
   FSock.SendString('.' + CRLF);
-  result := ReadResult div 100 = 2;
+  Result := ReadResult div 100 = 2;
 end;
 
-FUNCTION TSMTPSend.Etrn(CONST value: string): boolean;
-VAR
-  x: integer;
+function TSMTPSend.Etrn(const Value: string): Boolean;
+var
+  x: Integer;
 begin
-  FSock.SendString('ETRN ' + value + CRLF);
+  FSock.SendString('ETRN ' + Value + CRLF);
   x := ReadResult;
-  result := (x >= 250) and (x <= 259);
+  Result := (x >= 250) and (x <= 259);
 end;
 
-FUNCTION TSMTPSend.Verify(CONST value: string): boolean;
-VAR
-  x: integer;
+function TSMTPSend.Verify(const Value: string): Boolean;
+var
+  x: Integer;
 begin
-  FSock.SendString('VRFY ' + value + CRLF);
+  FSock.SendString('VRFY ' + Value + CRLF);
   x := ReadResult;
-  result := (x >= 250) and (x <= 259);
+  Result := (x >= 250) and (x <= 259);
 end;
 
-FUNCTION TSMTPSend.StartTLS: boolean;
+function TSMTPSend.StartTLS: Boolean;
 begin
-  result := false;
+  Result := False;
   if FindCap('STARTTLS') <> '' then
   begin
     FSock.SendString('STARTTLS' + CRLF);
     if (ReadResult = 220) and (FSock.LastError = 0) then
     begin
       Fsock.SSLDoConnect;
-      result := FSock.LastError = 0;
+      Result := FSock.LastError = 0;
     end;
   end;
 end;
 
-FUNCTION TSMTPSend.EnhCodeString: string;
-VAR
+function TSMTPSend.EnhCodeString: string;
+var
   s, t: string;
 begin
-  s := intToStr(FEnhCode2) + '.' + intToStr(FEnhCode3);
+  s := IntToStr(FEnhCode2) + '.' + IntToStr(FEnhCode3);
   t := '';
   if s = '0.0' then t := 'Other undefined Status';
   if s = '1.0' then t := 'Other address status';
@@ -631,34 +631,34 @@ begin
   if FEnhCode1 = 2 then s := 'Success-';
   if FEnhCode1 = 4 then s := 'Persistent Transient Failure-';
   if FEnhCode1 = 5 then s := 'Permanent Failure-';
-  result := s + t;
+  Result := s + t;
 end;
 
-FUNCTION TSMTPSend.FindCap(CONST value: string): string;
-VAR
-  n: integer;
+function TSMTPSend.FindCap(const Value: string): string;
+var
+  n: Integer;
   s: string;
 begin
-  s := uppercase(value);
-  result := '';
-  for n := 0 to FESMTPcap.count - 1 do
-    if pos(s, uppercase(FESMTPcap[n])) = 1 then
+  s := UpperCase(Value);
+  Result := '';
+  for n := 0 to FESMTPcap.Count - 1 do
+    if Pos(s, UpperCase(FESMTPcap[n])) = 1 then
     begin
-      result := FESMTPcap[n];
-      break;
+      Result := FESMTPcap[n];
+      Break;
     end;
 end;
 
 {==============================================================================}
 
-FUNCTION SendToRaw(CONST MailFrom, MailTo, SMTPHost: string;
-  CONST MailData: TStrings; CONST Username, Password: string): boolean;
-VAR
+function SendToRaw(const MailFrom, MailTo, SMTPHost: string;
+  const MailData: TStrings; const Username, Password: string): Boolean;
+var
   SMTP: TSMTPSend;
   s, t: string;
 begin
-  result := false;
-  SMTP := TSMTPSend.create;
+  Result := False;
+  SMTP := TSMTPSend.Create;
   try
 // if you need SOCKS5 support, uncomment next lines:
     // SMTP.Sock.SocksIP := '127.0.0.1';
@@ -667,58 +667,58 @@ begin
     // SMTP.AutoTLS := True;
 // if you need support for TSL/SSL tunnel, uncomment next lines:
     // SMTP.FullSSL := True;
-    SMTP.TargetHost := trim(SeparateLeft(SMTPHost, ':'));
-    s := trim(SeparateRight(SMTPHost, ':'));
+    SMTP.TargetHost := Trim(SeparateLeft(SMTPHost, ':'));
+    s := Trim(SeparateRight(SMTPHost, ':'));
     if (s <> '') and (s <> SMTPHost) then
       SMTP.TargetPort := s;
     SMTP.Username := Username;
     SMTP.Password := Password;
     if SMTP.Login then
     begin
-      if SMTP.MailFrom(GetEmailAddr(MailFrom), length(MailData.text)) then
+      if SMTP.MailFrom(GetEmailAddr(MailFrom), Length(MailData.Text)) then
       begin
         s := MailTo;
         repeat
-          t := GetEmailAddr(trim(FetchEx(s, ',', '"')));
+          t := GetEmailAddr(Trim(FetchEx(s, ',', '"')));
           if t <> '' then
-            result := SMTP.MailTo(t);
-          if not result then
-            break;
+            Result := SMTP.MailTo(t);
+          if not Result then
+            Break;
         until s = '';
-        if result then
-          result := SMTP.MailData(MailData);
+        if Result then
+          Result := SMTP.MailData(MailData);
       end;
       SMTP.Logout;
     end;
   finally
-    SMTP.free;
+    SMTP.Free;
   end;
 end;
 
-FUNCTION SendToEx(CONST MailFrom, MailTo, Subject, SMTPHost: string;
-  CONST MailData: TStrings; CONST Username, Password: string): boolean;
-VAR
+function SendToEx(const MailFrom, MailTo, Subject, SMTPHost: string;
+  const MailData: TStrings; const Username, Password: string): Boolean;
+var
   t: TStrings;
 begin
-  t := TStringList.create;
+  t := TStringList.Create;
   try
-    t.assign(MailData);
+    t.Assign(MailData);
     t.Insert(0, '');
     t.Insert(0, 'X-mailer: Synapse - Delphi & Kylix TCP/IP library by Lukas Gebauer');
     t.Insert(0, 'Subject: ' + Subject);
     t.Insert(0, 'Date: ' + Rfc822DateTime(now));
     t.Insert(0, 'To: ' + MailTo);
     t.Insert(0, 'From: ' + MailFrom);
-    result := SendToRaw(MailFrom, MailTo, SMTPHost, t, Username, Password);
+    Result := SendToRaw(MailFrom, MailTo, SMTPHost, t, Username, Password);
   finally
-    t.free;
+    t.Free;
   end;
 end;
 
-FUNCTION SendTo(CONST MailFrom, MailTo, Subject, SMTPHost: string;
-  CONST MailData: TStrings): boolean;
+function SendTo(const MailFrom, MailTo, Subject, SMTPHost: string;
+  const MailData: TStrings): Boolean;
 begin
-  result := SendToEx(MailFrom, MailTo, Subject, SMTPHost, MailData, '', '');
+  Result := SendToEx(MailFrom, MailTo, Subject, SMTPHost, MailData, '', '');
 end;
 
 end.

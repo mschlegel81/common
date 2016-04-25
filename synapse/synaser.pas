@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 007.005.002 |
+| Project : Ararat Synapse                                       | 007.005.002 |
 |==============================================================================|
-| content: Serial port support                                                 |
+| Content: Serial port support                                                 |
 |==============================================================================|
 | Copyright (c)2001-2011, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,47 +20,47 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2001-2011.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |  (c)2002, Hans-Georg Joepgen (cpom Comport Ownership Manager and bugfixes)   |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {: @abstract(Serial port communication library)
-This UNIT contains a class that implements serial port communication
- for windows, Linux, unix or MacOSx. This class provides numerous methods with
+This unit contains a class that implements serial port communication 
+ for Windows, Linux, Unix or MacOSx. This class provides numerous methods with 
  same name and functionality as methods of the Ararat Synapse TCP/IP library.
 
-the following is a small example how establish a connection by modem (in this
+The following is a small example how establish a connection by modem (in this
 case with my USB modem):
 @longcode(#
-  ser:=TBlockSerial.create;
+  ser:=TBlockSerial.Create;
   try
     ser.Connect('COM3');
     ser.config(460800,8,'N',0,false,true);
     ser.ATCommand('AT');
     if (ser.LastError <> 0) or (not ser.ATResult) then
-      exit;
+      Exit;
     ser.ATConnect('ATDT+420971200111');
     if (ser.LastError <> 0) or (not ser.ATResult) then
-      exit;
+      Exit;
     // you are now connected to a modem at +420971200111
     // you can transmit or receive data now
   finally
@@ -95,11 +95,11 @@ case with my USB modem):
 {$H+}
 {$M+}
 
-UNIT synaser;
+unit synaser;
 
-INTERFACE
+interface
 
-USES
+uses
 {$IFNDEF MSWINDOWS}
   {$IFNDEF NO_LIBC}
   Libc,
@@ -108,18 +108,18 @@ USES
   termio, baseunix, unix,
   {$ENDIF}
   {$IFNDEF FPC}
-  types,
+  Types,
   {$ENDIF}
 {$ELSE}
-  windows, registry,
+  Windows, registry,
   {$IFDEF FPC}
   winver,
   {$ENDIF}
 {$ENDIF}
   synafpc,
-  Classes, sysutils, synautil;
+  Classes, SysUtils, synautil;
 
-CONST
+const
   CR = #$0d;
   LF = #$0a;
   CRLF = CR + LF;
@@ -171,31 +171,31 @@ CONST
   SB2 = 2;
 
 {$IFNDEF MSWINDOWS}
-CONST
+const
   INVALID_HANDLE_VALUE = THandle(-1);
   CS7fix = $0000020;
 
-TYPE
+type
   TDCB = record
-    DCBlength: dword;
-    BaudRate: dword;
-    Flags: longint;
-    wReserved: word;
-    XonLim: word;
-    XoffLim: word;
-    ByteSize: byte;
-    Parity: byte;
-    StopBits: byte;
-    XonChar: char;
-    XoffChar: char;
-    ErrorChar: char;
-    EofChar: char;
-    EvtChar: char;
-    wReserved1: word;
+    DCBlength: DWORD;
+    BaudRate: DWORD;
+    Flags: Longint;
+    wReserved: Word;
+    XonLim: Word;
+    XoffLim: Word;
+    ByteSize: Byte;
+    Parity: Byte;
+    StopBits: Byte;
+    XonChar: CHAR;
+    XoffChar: CHAR;
+    ErrorChar: CHAR;
+    EofChar: CHAR;
+    EvtChar: CHAR;
+    wReserved1: Word;
   end;
   PDCB = ^TDCB;
 
-CONST
+const
 {$IFDEF UNIX}
   {$IFDEF DARWIN}
   MaxRates = 18;  //MAC
@@ -205,7 +205,7 @@ CONST
 {$ELSE}
   MaxRates = 19;  //WIN
 {$ENDIF}
-  Rates: array[0..MaxRates, 0..1] of Cardinal =
+  Rates: array[0..MaxRates, 0..1] of cardinal =
   (
     (0, B0),
     (50, B50),
@@ -246,15 +246,15 @@ CONST
 {$ENDIF}
 
 {$IFDEF DARWIN}
-CONST // From fcntl.h
+const // From fcntl.h
   O_SYNC = $0080;  { synchronous writes }
 {$ENDIF}
 
-CONST
+const
   sOK = 0;
   sErr = integer(-1);
 
-TYPE
+type
 
   {:Possible status event types for @link(THookSerialStatus)}
   THookSerialReason = (
@@ -268,14 +268,14 @@ TYPE
     );
 
   {:procedural prototype for status event hooking}
-  THookSerialStatus = PROCEDURE(Sender: TObject; Reason: THookSerialReason;
-    CONST value: string) of object;
+  THookSerialStatus = procedure(Sender: TObject; Reason: THookSerialReason;
+    const Value: string) of object;
 
   {:@abstract(Exception type for SynaSer errors)}
   ESynaSerError = class(Exception)
   public
     ErrorCode: integer;
-    errorMessage: string;
+    ErrorMessage: string;
   end;
 
   {:@abstract(Main class implementing all communication routines)}
@@ -287,56 +287,56 @@ TYPE
     FDevice: string;
     FLastError: integer;
     FLastErrorDesc: string;
-    FBuffer: ansistring;
+    FBuffer: AnsiString;
     FRaiseExcept: boolean;
     FRecvBuffer: integer;
     FSendBuffer: integer;
     FModemWord: integer;
-    FRTSToggle: boolean;
+    FRTSToggle: Boolean;
     FDeadlockTimeout: integer;
     FInstanceActive: boolean;      {HGJ}
-    FTestDSR: boolean;
-    FTestCTS: boolean;
-    FLastCR: boolean;
-    FLastLF: boolean;
-    FMaxLineLength: integer;
-    FLinuxLock: boolean;
-    FMaxSendBandwidth: integer;
-    FNextSend: Longword;
-    FMaxRecvBandwidth: integer;
-    FNextRecv: Longword;
-    FConvertLineEnd: boolean;
-    FATResult: boolean;
+    FTestDSR: Boolean;
+    FTestCTS: Boolean;
+    FLastCR: Boolean;
+    FLastLF: Boolean;
+    FMaxLineLength: Integer;
+    FLinuxLock: Boolean;
+    FMaxSendBandwidth: Integer;
+    FNextSend: LongWord;
+    FMaxRecvBandwidth: Integer;
+    FNextRecv: LongWord;
+    FConvertLineEnd: Boolean;
+    FATResult: Boolean;
     FAtTimeout: integer;
-    FInterPacketTimeout: boolean;
+    FInterPacketTimeout: Boolean;
     FComNr: integer;
 {$IFDEF MSWINDOWS}
-    FPortAddr: word;
-    FUNCTION CanEvent(Event: dword; Timeout: integer): boolean;
-    PROCEDURE DecodeCommError(Error: dword); virtual;
-    FUNCTION GetPortAddr: word;  virtual;
-    FUNCTION ReadTxEmpty(PortAddr: word): boolean; virtual;
+    FPortAddr: Word;
+    function CanEvent(Event: dword; Timeout: integer): boolean;
+    procedure DecodeCommError(Error: DWord); virtual;
+    function GetPortAddr: Word;  virtual;
+    function ReadTxEmpty(PortAddr: Word): Boolean; virtual;
 {$ENDIF}
-    PROCEDURE SetSizeRecvBuffer(size: integer); virtual;
-    FUNCTION GetDSR: boolean; virtual;
-    PROCEDURE SetDTRF(value: boolean); virtual;
-    FUNCTION GetCTS: boolean; virtual;
-    PROCEDURE SetRTSF(value: boolean); virtual;
-    FUNCTION GetCarrier: boolean; virtual;
-    FUNCTION GetRing: boolean; virtual;
-    PROCEDURE DoStatus(Reason: THookSerialReason; CONST value: string); virtual;
-    PROCEDURE GetComNr(value: string); virtual;
-    FUNCTION PreTestFailing: boolean; virtual;{HGJ}
-    FUNCTION TestCtrlLine: boolean; virtual;
-{$IFDEF UNIX}
-    PROCEDURE DcbToTermios(CONST dcb: TDCB; VAR term: termios); virtual;
-    PROCEDURE TermiosToDcb(CONST term: termios; VAR dcb: TDCB); virtual;
-    FUNCTION ReadLockfile: integer; virtual;
-    FUNCTION LockfileName: string; virtual;
-    PROCEDURE CreateLockfile(PidNr: integer); virtual;
+    procedure SetSizeRecvBuffer(size: integer); virtual;
+    function GetDSR: Boolean; virtual;
+    procedure SetDTRF(Value: Boolean); virtual;
+    function GetCTS: Boolean; virtual;
+    procedure SetRTSF(Value: Boolean); virtual;
+    function GetCarrier: Boolean; virtual;
+    function GetRing: Boolean; virtual;
+    procedure DoStatus(Reason: THookSerialReason; const Value: string); virtual;
+    procedure GetComNr(Value: string); virtual;
+    function PreTestFailing: boolean; virtual;{HGJ}
+    function TestCtrlLine: Boolean; virtual;
+{$IFDEF UNIX}    
+    procedure DcbToTermios(const dcb: TDCB; var term: termios); virtual;
+    procedure TermiosToDcb(const term: termios; var dcb: TDCB); virtual;
+    function ReadLockfile: integer; virtual;
+    function LockfileName: String; virtual;
+    procedure CreateLockfile(PidNr: integer); virtual;
 {$ENDIF}
-    PROCEDURE LimitBandwidth(length: integer; MaxB: integer; VAR next: Longword); virtual;
-    PROCEDURE SetBandwidth(value: integer); virtual;
+    procedure LimitBandwidth(Length: Integer; MaxB: integer; var Next: LongWord); virtual;
+    procedure SetBandwidth(Value: Integer); virtual;
   public
     {: data Control Block with communication parameters. Usable only when you
      need to call API directly.}
@@ -345,406 +345,406 @@ TYPE
     TermiosStruc: termios;
 {$ENDIF}
     {:Object constructor.}
-    CONSTRUCTOR create;
+    constructor Create;
     {:Object destructor.}
-    DESTRUCTOR destroy; override;
+    destructor Destroy; override;
 
     {:Returns a string containing the version number of the library.}
-    class FUNCTION GetVersion: string; virtual;
+    class function GetVersion: string; virtual;
 
     {:Destroy handle in use. It close connection to serial port.}
-    PROCEDURE CloseSocket; virtual;
+    procedure CloseSocket; virtual;
 
     {:Reconfigure communication parameters on the fly. You must be connected to
      port before!
-     @param(baud define connection speed. Baud rate can be from 50 to 4000000
-      bits per second. (it depends on your Hardware!))
+     @param(baud Define connection speed. Baud rate can be from 50 to 4000000
+      bits per second. (it depends on your hardware!))
      @param(bits Number of bits in communication.)
-     @param(parity define communication parity (N - none, O - odd, E - Even, M - Mark or S - Space).)
-     @param(stop define number of stopbits. use constants @link(SB1),
+     @param(parity Define communication parity (N - None, O - Odd, E - Even, M - Mark or S - Space).)
+     @param(stop Define number of stopbits. Use constants @link(SB1),
       @link(SB1andHalf) and @link(SB2).)
      @param(softflow Enable XON/XOFF handshake.)
      @param(hardflow Enable CTS/RTS handshake.)}
-    PROCEDURE Config(baud, bits: integer; parity: char; stop: integer;
+    procedure Config(baud, bits: integer; parity: char; stop: integer;
       softflow, hardflow: boolean); virtual;
 
     {:Connects to the port indicated by comport. Comport can be used in Windows
      style (COM2), or in Linux style (/dev/ttyS1). When you use windows style
-     in Linux, then it will be converted to Linux name. and vice versa! However
+     in Linux, then it will be converted to Linux name. And vice versa! However
      you can specify any device name! (other device names then standart is not
      converted!)
 
-     After successfull connection the DTR signal is set (if you not set Hardware
+     After successfull connection the DTR signal is set (if you not set hardware
      handshake, then the RTS signal is set, too!)
 
-     Connection parameters is predefined by your system configuration. if you
+     Connection parameters is predefined by your system configuration. If you
      need use another parameters, then you can use Config method after.
      Notes:
 
       - Remember, the commonly used serial Laplink cable does not support
-       Hardware handshake.
+       hardware handshake.
 
       - Before setting any handshake you must be sure that it is supported by
-       your Hardware.
+       your hardware.
 
-      - Some serial devices are slow. in some cases you must wait up to a few
+      - Some serial devices are slow. In some cases you must wait up to a few
        seconds after connection for the device to respond.
 
       - when you connect to a modem device, then is best to test it by an empty
        AT command. (call ATCommand('AT'))}
-    PROCEDURE Connect(comport: string); virtual;
+    procedure Connect(comport: string); virtual;
 
     {:Set communication parameters from the DCB structure (the DCB structure is
      simulated under Linux).}
-    PROCEDURE SetCommState; virtual;
+    procedure SetCommState; virtual;
 
     {:Read communication parameters into the DCB structure (DCB structure is
      simulated under Linux).}
-    PROCEDURE GetCommState; virtual;
+    procedure GetCommState; virtual;
 
     {:Sends Length bytes of data from Buffer through the connected port.}
-    FUNCTION SendBuffer(buffer: pointer; length: integer): integer; virtual;
+    function SendBuffer(buffer: pointer; length: integer): integer; virtual;
 
     {:One data BYTE is sent.}
-    PROCEDURE SendByte(data: byte); virtual;
+    procedure SendByte(data: byte); virtual;
 
     {:Send the string in the data parameter. No terminator is appended by this
-     method. if you need to send a string with CR/LF terminator, you must append
+     method. If you need to send a string with CR/LF terminator, you must append
      the CR/LF characters to the data string!
 
-     Since no terminator is appended, you can use this FUNCTION for sending
+     Since no terminator is appended, you can use this function for sending
      binary data too.}
-    PROCEDURE SendString(data: ansistring); virtual;
+    procedure SendString(data: AnsiString); virtual;
 
     {:send four bytes as integer.}
-    PROCEDURE SendInteger(data: integer); virtual;
+    procedure SendInteger(Data: integer); virtual;
 
     {:send data as one block. Each block begins with integer value with Length
      of block.}
-    PROCEDURE SendBlock(CONST data: ansistring); virtual;
+    procedure SendBlock(const Data: AnsiString); virtual;
 
     {:send content of stream from current position}
-    PROCEDURE SendStreamRaw(CONST Stream: TStream); virtual;
+    procedure SendStreamRaw(const Stream: TStream); virtual;
 
     {:send content of stream as block. see @link(SendBlock)}
-    PROCEDURE SendStream(CONST Stream: TStream); virtual;
+    procedure SendStream(const Stream: TStream); virtual;
 
     {:send content of stream as block, but this is compatioble with Indy library.
      (it have swapped lenght of block). See @link(SendStream)}
-    PROCEDURE SendStreamIndy(CONST Stream: TStream); virtual;
+    procedure SendStreamIndy(const Stream: TStream); virtual;
 
     {:Waits until the allocated buffer is filled by received data. Returns number
-     of data bytes received, which equals to the length value under normal
-     operation. if it is not equal, the communication channel is possibly broken.
+     of data bytes received, which equals to the Length value under normal
+     operation. If it is not equal, the communication channel is possibly broken.
 
      This method not using any internal buffering, like all others receiving
      methods. You cannot freely combine this method with all others receiving
      methods!}
-    FUNCTION RecvBuffer(buffer: pointer; length: integer): integer; virtual;
+    function RecvBuffer(buffer: pointer; length: integer): integer; virtual;
 
     {:Method waits until data is received. If no data is received within
-     the Timeout (in Milliseconds) period, @link(LastError) is set to
+     the Timeout (in milliseconds) period, @link(LastError) is set to
      @link(ErrTimeout). This method is used to read any amount of data
      (e. g. 1MB), and may be freely combined with all receviving methods what
      have Timeout parameter, like the @link(RecvString), @link(RecvByte) or
      @link(RecvTerminated) methods.}
-    FUNCTION RecvBufferEx(buffer: pointer; length: integer; timeout: integer): integer; virtual;
+    function RecvBufferEx(buffer: pointer; length: integer; timeout: integer): integer; virtual;
 
     {:It is like recvBufferEx, but data is readed to dynamicly allocated binary
      string.}
-    FUNCTION RecvBufferStr(length: integer; Timeout: integer): ansistring; virtual;
+    function RecvBufferStr(Length: Integer; Timeout: Integer): AnsiString; virtual;
 
     {:Read all available data and return it in the function result string. This
-     FUNCTION may be combined with @link(RecvString), @link(RecvByte) or related
+     function may be combined with @link(RecvString), @link(RecvByte) or related
      methods.}
-    FUNCTION RecvPacket(Timeout: integer): ansistring; virtual;
+    function RecvPacket(Timeout: Integer): AnsiString; virtual;
 
     {:Waits until one data byte is received which is returned as the function
-     result. if no data is received within the Timeout (in Milliseconds) period,
+     result. If no data is received within the Timeout (in milliseconds) period,
      @link(LastError) is set to @link(ErrTimeout).}
-    FUNCTION RecvByte(timeout: integer): byte; virtual;
+    function RecvByte(timeout: integer): byte; virtual;
 
     {:This method waits until a terminated data string is received. This string
-     is terminated by the Terminator string. the resulting string is returned
-     without this termination string! if no data is received within the Timeout
-     (in Milliseconds) period, @link(LastError) is set to @link(ErrTimeout).}
-    FUNCTION RecvTerminated(Timeout: integer; CONST Terminator: ansistring): ansistring; virtual;
+     is terminated by the Terminator string. The resulting string is returned
+     without this termination string! If no data is received within the Timeout
+     (in milliseconds) period, @link(LastError) is set to @link(ErrTimeout).}
+    function RecvTerminated(Timeout: Integer; const Terminator: AnsiString): AnsiString; virtual;
 
     {:This method waits until a terminated data string is received. The string
-     is terminated by a CR/LF sequence. the resulting string is returned without
-     the terminator (CR/LF)! if no data is received within the Timeout (in
-     Milliseconds) period, @link(LastError) is set to @link(ErrTimeout).
+     is terminated by a CR/LF sequence. The resulting string is returned without
+     the terminator (CR/LF)! If no data is received within the Timeout (in
+     milliseconds) period, @link(LastError) is set to @link(ErrTimeout).
 
-     if @link(ConvertLineEnd) is used, then the CR/LF sequence may not be exactly
+     If @link(ConvertLineEnd) is used, then the CR/LF sequence may not be exactly
      CR/LF. See the description of @link(ConvertLineEnd).
 
-     This method serves for line protocol IMPLEMENTATION and USES its own
-     buffers to maximize performance. Therefore do not use this method with the
+     This method serves for line protocol implementation and uses its own
+     buffers to maximize performance. Therefore do NOT use this method with the
      @link(RecvBuffer) method to receive data as it may cause data loss.}
-    FUNCTION Recvstring(timeout: integer): ansistring; virtual;
+    function Recvstring(timeout: integer): AnsiString; virtual;
 
     {:Waits until four data bytes are received which is returned as the function
-     integer result. if no data is received within the Timeout (in Milliseconds) period,
+     integer result. If no data is received within the Timeout (in milliseconds) period,
      @link(LastError) is set to @link(ErrTimeout).}
-    FUNCTION RecvInteger(Timeout: integer): integer; virtual;
+    function RecvInteger(Timeout: Integer): Integer; virtual;
 
     {:Waits until one data block is received. See @link(sendblock). If no data
-     is received within the Timeout (in Milliseconds) period, @link(LastError)
+     is received within the Timeout (in milliseconds) period, @link(LastError)
      is set to @link(ErrTimeout).}
-    FUNCTION RecvBlock(Timeout: integer): ansistring; virtual;
+    function RecvBlock(Timeout: Integer): AnsiString; virtual;
 
     {:Receive all data to stream, until some error occured. (for example timeout)}
-    PROCEDURE RecvStreamRaw(CONST Stream: TStream; Timeout: integer); virtual;
+    procedure RecvStreamRaw(const Stream: TStream; Timeout: Integer); virtual;
 
     {:receive requested count of bytes to stream}
-    PROCEDURE RecvStreamSize(CONST Stream: TStream; Timeout: integer; size: integer); virtual;
+    procedure RecvStreamSize(const Stream: TStream; Timeout: Integer; Size: Integer); virtual;
 
     {:receive block of data to stream. (Data can be sended by @link(sendstream)}
-    PROCEDURE RecvStream(CONST Stream: TStream; Timeout: integer); virtual;
+    procedure RecvStream(const Stream: TStream; Timeout: Integer); virtual;
 
     {:receive block of data to stream. (Data can be sended by @link(sendstreamIndy)}
-    PROCEDURE RecvStreamIndy(CONST Stream: TStream; Timeout: integer); virtual;
+    procedure RecvStreamIndy(const Stream: TStream; Timeout: Integer); virtual;
 
     {:Returns the number of received bytes waiting for reading. 0 is returned
      when there is no data waiting.}
-    FUNCTION WaitingData: integer; virtual;
+    function WaitingData: integer; virtual;
 
     {:Same as @link(WaitingData), but in respect to data in the internal
      @link(LineBuffer).}
-    FUNCTION WaitingDataEx: integer; virtual;
+    function WaitingDataEx: integer; virtual;
 
     {:Returns the number of bytes waiting to be sent in the output buffer.
      0 is returned when the output buffer is empty.}
-    FUNCTION SendingData: integer; virtual;
+    function SendingData: integer; virtual;
 
     {:Enable or disable RTS driven communication (half-duplex). It can be used
-     to communicate with RS485 converters, or other special equipment. if you
-     enable this feature, the system automatically Controls the RTS signal.
+     to communicate with RS485 converters, or other special equipment. If you
+     enable this feature, the system automatically controls the RTS signal.
 
      Notes:
 
-     - on windows NT (or higher) ir RTS signal driven by system driver.
+     - On Windows NT (or higher) ir RTS signal driven by system driver.
 
-     - on Win9x family is used special code for waiting until last byte is
+     - On Win9x family is used special code for waiting until last byte is
       sended from your UART.
 
-     - on Linux you must have kernel 2.1 or higher!}
-    PROCEDURE EnableRTSToggle(value: boolean); virtual;
+     - On Linux you must have kernel 2.1 or higher!}
+    procedure EnableRTSToggle(value: boolean); virtual;
 
     {:Waits until all data to is sent and buffers are emptied.
-     Warning: on windows systems is this method returns when all buffers are
+     Warning: On Windows systems is this method returns when all buffers are
      flushed to the serial port controller, before the last byte is sent!}
-    PROCEDURE flush; virtual;
+    procedure Flush; virtual;
 
     {:Unconditionally empty all buffers. It is good when you need to interrupt
      communication and for cleanups.}
-    PROCEDURE Purge; virtual;
+    procedure Purge; virtual;
 
     {:Returns @True, if you can from read any data from the port. Status is
-     tested for a period of time given by the Timeout parameter (in Milliseconds).
-     if the value of the Timeout parameter is 0, the status is tested only once
-     and the FUNCTION returns immediately. if the value of the Timeout parameter
-     is set to -1, the FUNCTION returns only after it detects data on the port
-     (this may cause the Process to hang).}
-    FUNCTION CanRead(Timeout: integer): boolean; virtual;
+     tested for a period of time given by the Timeout parameter (in milliseconds).
+     If the value of the Timeout parameter is 0, the status is tested only once
+     and the function returns immediately. If the value of the Timeout parameter
+     is set to -1, the function returns only after it detects data on the port
+     (this may cause the process to hang).}
+    function CanRead(Timeout: integer): boolean; virtual;
 
     {:Returns @True, if you can write any data to the port (this function is not
      sending the contents of the buffer). Status is tested for a period of time
-     given by the Timeout parameter (in Milliseconds). if the value of
-     the Timeout parameter is 0, the status is tested only once and the FUNCTION
-     returns immediately. if the value of the  Timeout parameter is set to -1,
-     the FUNCTION returns only after it detects that it can write data to
-     the port (this may cause the Process to hang).}
-    FUNCTION CanWrite(Timeout: integer): boolean; virtual;
+     given by the Timeout parameter (in milliseconds). If the value of
+     the Timeout parameter is 0, the status is tested only once and the function
+     returns immediately. If the value of the  Timeout parameter is set to -1,
+     the function returns only after it detects that it can write data to
+     the port (this may cause the process to hang).}
+    function CanWrite(Timeout: integer): boolean; virtual;
 
     {:Same as @link(CanRead), but the test is against data in the internal
     @link(LineBuffer) too.}
-    FUNCTION CanReadEx(Timeout: integer): boolean; virtual;
+    function CanReadEx(Timeout: integer): boolean; virtual;
 
     {:Returns the status word of the modem. Decoding the status word could yield
      the status of carrier detect signaland other signals. This method is used
      internally by the modem status reading properties. You usually do not need
      to call this method directly.}
-    FUNCTION ModemStatus: integer; virtual;
+    function ModemStatus: integer; virtual;
 
     {:Send a break signal to the communication device for Duration milliseconds.}
-    PROCEDURE SetBreak(Duration: integer); virtual;
+    procedure SetBreak(Duration: integer); virtual;
 
     {:This function is designed to send AT commands to the modem. The AT command
-     is sent in the value parameter and the response is returned in the FUNCTION
+     is sent in the Value parameter and the response is returned in the function
      return value (may contain multiple lines!).
-     if the AT command is processed successfully (modem returns ok), then the
-     @link(ATResult) PROPERTY is set to true.
+     If the AT command is processed successfully (modem returns OK), then the
+     @link(ATResult) property is set to True.
 
-     This FUNCTION is designed only for AT commands that return ok or ERROR
-     response! to call connection commands the @link(ATConnect) method.
+     This function is designed only for AT commands that return OK or ERROR
+     response! To call connection commands the @link(ATConnect) method.
      Remember, when you connect to a modem device, it is in AT command mode.
-     now you can send AT commands to the modem. if you need to transfer data to
+     Now you can send AT commands to the modem. If you need to transfer data to
      the modem on the other side of the line, you must first switch to data mode
      using the @link(ATConnect) method.}
-    FUNCTION ATCommand(value: ansistring): ansistring; virtual;
+    function ATCommand(value: AnsiString): AnsiString; virtual;
 
     {:This function is used to send connect type AT commands to the modem. It is
      for commands to switch to connected state. (ATD, ATA, ATO,...)
-     it sends the AT command in the value parameter and returns the modem's
+     It sends the AT command in the Value parameter and returns the modem's
      response (may be multiple lines - usually with connection parameters info).
-     if the AT command is processed successfully (the modem returns CONNECT),
-     then the ATResult PROPERTY is set to @true.
+     If the AT command is processed successfully (the modem returns CONNECT),
+     then the ATResult property is set to @True.
 
-     This FUNCTION is designed only for AT commands which respond by CONNECT,
-     BUSY, no DIALTONE no CARRIER or ERROR. for other AT commands use the
+     This function is designed only for AT commands which respond by CONNECT,
+     BUSY, NO DIALTONE NO CARRIER or ERROR. For other AT commands use the
      @link(ATCommand) method.
 
-     the connect timeout is 90*@link(ATTimeout). if this command is successful
+     The connect timeout is 90*@link(ATTimeout). If this command is successful
      (@link(ATresult) is @true), then the modem is in data state. When you now
      send or receive some data, it is not to or from your modem, but from the
-     modem on other side of the line. now you can transfer your data.
-     if the connection attempt failed (@link(ATResult) is @false), then the
+     modem on other side of the line. Now you can transfer your data.
+     If the connection attempt failed (@link(ATResult) is @False), then the
      modem is still in AT command mode.}
-    FUNCTION ATConnect(value: ansistring): ansistring; virtual;
+    function ATConnect(value: AnsiString): AnsiString; virtual;
 
     {:If you "manually" call API functions, forward their return code in
-     the SerialResult parameter to this FUNCTION, which evaluates it and sets
+     the SerialResult parameter to this function, which evaluates it and sets
      @link(LastError) and @link(LastErrorDesc).}
-    FUNCTION SerialCheck(SerialResult: integer): integer; virtual;
+    function SerialCheck(SerialResult: integer): integer; virtual;
 
     {:If @link(Lasterror) is not 0 and exceptions are enabled, then this procedure
-     raises an Exception. This method is used internally. You may need it only
+     raises an exception. This method is used internally. You may need it only
      in special cases.}
-    PROCEDURE ExceptCheck; virtual;
+    procedure ExceptCheck; virtual;
 
     {:Set Synaser to error state with ErrNumber code. Usually used by internal
      routines.}
-    PROCEDURE SetSynaError(ErrNumber: integer); virtual;
+    procedure SetSynaError(ErrNumber: integer); virtual;
 
     {:Raise Synaser error with ErrNumber code. Usually used by internal routines.}
-    PROCEDURE RaiseSynaError(ErrNumber: integer); virtual;
+    procedure RaiseSynaError(ErrNumber: integer); virtual;
 {$IFDEF UNIX}
-    FUNCTION  cpomComportAccessible: boolean; virtual;{HGJ}
-    PROCEDURE cpomReleaseComport; virtual; {HGJ}
+    function  cpomComportAccessible: boolean; virtual;{HGJ}
+    procedure cpomReleaseComport; virtual; {HGJ}
 {$ENDIF}
     {:True device name of currently used port}
-    PROPERTY Device: string read FDevice;
+    property Device: string read FDevice;
 
     {:Error code of last operation. Value is defined by the host operating
-     system, but value 0 is always ok.}
-    PROPERTY LastError: integer read FLastError;
+     system, but value 0 is always OK.}
+    property LastError: integer read FLastError;
 
     {:Human readable description of LastError code.}
-    PROPERTY LastErrorDesc: string read FLastErrorDesc;
+    property LastErrorDesc: string read FLastErrorDesc;
 
     {:Indicates if the last @link(ATCommand) or @link(ATConnect) method was successful}
-    PROPERTY ATResult: boolean read FATResult;
+    property ATResult: Boolean read FATResult;
 
     {:Read the value of the RTS signal.}
-    PROPERTY RTS: boolean write SetRTSF;
+    property RTS: Boolean write SetRTSF;
 
     {:Indicates the presence of the CTS signal}
-    PROPERTY CTS: boolean read GetCTS;
+    property CTS: boolean read GetCTS;
 
     {:Use this property to set the value of the DTR signal.}
-    PROPERTY DTR: boolean write SetDTRF;
+    property DTR: Boolean write SetDTRF;
 
     {:Exposes the status of the DSR signal.}
-    PROPERTY DSR: boolean read GetDSR;
+    property DSR: boolean read GetDSR;
 
     {:Indicates the presence of the Carrier signal}
-    PROPERTY Carrier: boolean read GetCarrier;
+    property Carrier: boolean read GetCarrier;
 
     {:Reflects the status of the Ring signal.}
-    PROPERTY Ring: boolean read GetRing;
+    property Ring: boolean read GetRing;
 
     {:indicates if this instance of SynaSer is active. (Connected to some port)}
-    PROPERTY InstanceActive: boolean read FInstanceActive; {HGJ}
+    property InstanceActive: boolean read FInstanceActive; {HGJ}
 
     {:Defines maximum bandwidth for all sending operations in bytes per second.
-     if this value is set to 0 (default), bandwidth limitation is not used.}
-    PROPERTY MaxSendBandwidth: integer read FMaxSendBandwidth write FMaxSendBandwidth;
+     If this value is set to 0 (default), bandwidth limitation is not used.}
+    property MaxSendBandwidth: Integer read FMaxSendBandwidth Write FMaxSendBandwidth;
 
     {:Defines maximum bandwidth for all receiving operations in bytes per second.
-     if this value is set to 0 (default), bandwidth limitation is not used.}
-    PROPERTY MaxRecvBandwidth: integer read FMaxRecvBandwidth write FMaxRecvBandwidth;
+     If this value is set to 0 (default), bandwidth limitation is not used.}
+    property MaxRecvBandwidth: Integer read FMaxRecvBandwidth Write FMaxRecvBandwidth;
 
     {:Defines maximum bandwidth for all sending and receiving operations
-     in bytes per second. if this value is set to 0 (default), bandwidth
+     in bytes per second. If this value is set to 0 (default), bandwidth
      limitation is not used.}
-    PROPERTY MaxBandwidth: integer write SetBandwidth;
+    property MaxBandwidth: Integer Write SetBandwidth;
 
     {:Size of the Windows internal receive buffer. Default value is usually
-     4096 bytes. Note: valid only in windows versions!}
-    PROPERTY SizeRecvBuffer: integer read FRecvBuffer write SetSizeRecvBuffer;
-  Published
+     4096 bytes. Note: Valid only in Windows versions!}
+    property SizeRecvBuffer: integer read FRecvBuffer write SetSizeRecvBuffer;
+  published
     {:Returns the descriptive text associated with ErrorCode. You need this
-     method only in special cases. description of LastError is now accessible
-     through the LastErrorDesc PROPERTY.}
-    class FUNCTION GetErrorDesc(ErrorCode: integer): string;
+     method only in special cases. Description of LastError is now accessible
+     through the LastErrorDesc property.}
+    class function GetErrorDesc(ErrorCode: integer): string;
 
     {:Freely usable property}
-    PROPERTY Tag: integer read FTag write FTag;
+    property Tag: integer read FTag write FTag;
 
     {:Contains the handle of the open communication port.
     You may need this value to directly call communication functions outside
     SynaSer.}
-    PROPERTY handle: THandle read Fhandle write FHandle;
+    property Handle: THandle read Fhandle write FHandle;
 
     {:Internally used read buffer.}
-    PROPERTY LineBuffer: ansistring read FBuffer write FBuffer;
+    property LineBuffer: AnsiString read FBuffer write FBuffer;
 
     {:If @true, communication errors raise exceptions. If @false (default), only
      the @link(LastError) value is set.}
-    PROPERTY RaiseExcept: boolean read FRaiseExcept write FRaiseExcept;
+    property RaiseExcept: boolean read FRaiseExcept write FRaiseExcept;
 
     {:This event is triggered when the communication status changes. It can be
      used to monitor communication status.}
-    PROPERTY OnStatus: THookSerialStatus read FOnStatus write FOnStatus;
+    property OnStatus: THookSerialStatus read FOnStatus write FOnStatus;
 
     {:If you set this property to @true, then the value of the DSR signal
-     is tested before every data transfer. it can be used to detect the presence
+     is tested before every data transfer. It can be used to detect the presence
      of a communications device.}
-    PROPERTY TestDSR: boolean read FTestDSR write FTestDSR;
+    property TestDSR: boolean read FTestDSR write FTestDSR;
 
     {:If you set this property to @true, then the value of the CTS signal
-     is tested before every data transfer. it can be used to detect the presence
-     of a communications device. Warning: This PROPERTY cannot be used if you
-     need Hardware handshake!}
-    PROPERTY TestCTS: boolean read FTestCTS write FTestCTS;
+     is tested before every data transfer. It can be used to detect the presence
+     of a communications device. Warning: This property cannot be used if you
+     need hardware handshake!}
+    property TestCTS: boolean read FTestCTS write FTestCTS;
 
     {:Use this property you to limit the maximum size of LineBuffer
      (as a protection against unlimited memory allocation for LineBuffer).
-     default value is 0 - no limit.}
-    PROPERTY maxLineLength: integer read FMaxLineLength write FMaxLineLength;
+     Default value is 0 - no limit.}
+    property MaxLineLength: Integer read FMaxLineLength Write FMaxLineLength;
 
     {:This timeout value is used as deadlock protection when trying to send data
      to (or receive data from) a device that stopped communicating during data
      transmission (e.g. by physically disconnecting the device).
-     the timeout value is in Milliseconds. the default value is 30,000 (30 seconds).}
-    PROPERTY DeadlockTimeout: integer read FDeadlockTimeout write FDeadlockTimeout;
+     The timeout value is in milliseconds. The default value is 30,000 (30 seconds).}
+    property DeadlockTimeout: Integer read FDeadlockTimeout Write FDeadlockTimeout;
 
     {:If set to @true (default value), port locking is enabled (under Linux only).
-     WARNING: to use this feature, the application must run by a user with full
-     permission to the /VAR/lock directory!}
-    PROPERTY LinuxLock: boolean read FLinuxLock write FLinuxLock;
+     WARNING: To use this feature, the application must run by a user with full
+     permission to the /var/lock directory!}
+    property LinuxLock: Boolean read FLinuxLock write FLinuxLock;
 
     {:Indicates if non-standard line terminators should be converted to a CR/LF pair
-     (standard dos line terminator). if @true, line terminators CR, single LF
-     or LF/CR are converted to CR/LF. Defaults to @false.
-     This PROPERTY has effect only on the behavior of the RecvString method.}
-    PROPERTY ConvertLineEnd: boolean read FConvertLineEnd write FConvertLineEnd;
+     (standard DOS line terminator). If @TRUE, line terminators CR, single LF
+     or LF/CR are converted to CR/LF. Defaults to @FALSE.
+     This property has effect only on the behavior of the RecvString method.}
+    property ConvertLineEnd: Boolean read FConvertLineEnd Write FConvertLineEnd;
 
     {:Timeout for AT modem based operations}
-    PROPERTY AtTimeout: integer read FAtTimeout write FAtTimeout;
+    property AtTimeout: integer read FAtTimeout Write FAtTimeout;
 
     {:If @true (default), then all timeouts is timeout between two characters.
-     if @false, then timeout is overall for whoole reading operation.}
-    PROPERTY InterPacketTimeout: boolean read FInterPacketTimeout write FInterPacketTimeout;
+     If @False, then timeout is overall for whoole reading operation.}
+    property InterPacketTimeout: Boolean read FInterPacketTimeout Write FInterPacketTimeout;
   end;
 
 {:Returns list of existing computer serial ports. Working properly only in Windows!}
-FUNCTION GetSerialPortNames: string;
+function GetSerialPortNames: string;
 
-IMPLEMENTATION
+implementation
 
-CONSTRUCTOR TBlockSerial.create;
+constructor TBlockSerial.Create;
 begin
   inherited create;
   FRaiseExcept := false;
@@ -753,43 +753,43 @@ begin
   FComNr:= PortIsClosed;               {HGJ}
   FInstanceActive:= false;             {HGJ}
   Fbuffer := '';
-  FRTSToggle := false;
+  FRTSToggle := False;
   FMaxLineLength := 0;
-  FTestDSR := false;
-  FTestCTS := false;
+  FTestDSR := False;
+  FTestCTS := False;
   FDeadlockTimeout := 30000;
-  FLinuxLock := true;
+  FLinuxLock := True;
   FMaxSendBandwidth := 0;
   FNextSend := 0;
   FMaxRecvBandwidth := 0;
   FNextRecv := 0;
-  FConvertLineEnd := false;
+  FConvertLineEnd := False;
   SetSynaError(sOK);
   FRecvBuffer := 4096;
-  FLastCR := false;
-  FLastLF := false;
+  FLastCR := False;
+  FLastLF := False;
   FAtTimeout := 1000;
-  FInterPacketTimeout := true;
+  FInterPacketTimeout := True;
 end;
 
-DESTRUCTOR TBlockSerial.destroy;
+destructor TBlockSerial.Destroy;
 begin
   CloseSocket;
   inherited destroy;
 end;
 
-class FUNCTION TBlockSerial.GetVersion: string;
+class function TBlockSerial.GetVersion: string;
 begin
-	result := 'SynaSer 7.5.0';
+	Result := 'SynaSer 7.5.0';
 end;
 
-PROCEDURE TBlockSerial.CloseSocket;
+procedure TBlockSerial.CloseSocket;
 begin
   if Fhandle <> INVALID_HANDLE_VALUE then
   begin
     Purge;
-    RTS := false;
-    DTR := false;
+    RTS := False;
+    DTR := False;
     FileClose(FHandle);
   end;
   if InstanceActive then
@@ -807,78 +807,78 @@ begin
 end;
 
 {$IFDEF MSWINDOWS}
-FUNCTION TBlockSerial.GetPortAddr: word;
+function TBlockSerial.GetPortAddr: Word;
 begin
-  result := 0;
+  Result := 0;
   if Win32Platform <> VER_PLATFORM_WIN32_NT then
   begin
     EscapeCommFunction(FHandle, 10);
     asm
-      MOV @result, dx;
+      MOV @Result, DX;
     end;
   end;
 end;
 
-FUNCTION TBlockSerial.ReadTxEmpty(PortAddr: word): boolean;
+function TBlockSerial.ReadTxEmpty(PortAddr: Word): Boolean;
 begin
-  result := true;
+  Result := True;
   if Win32Platform <> VER_PLATFORM_WIN32_NT then
   begin
     asm
-      MOV dx, PortAddr;
-      add dx, 5;
-      in AL, dx;
-      and AL, $40;
+      MOV DX, PortAddr;
+      ADD DX, 5;
+      IN AL, DX;
+      AND AL, $40;
       JZ @K;
       MOV AL,1;
-    @K: MOV @result, AL;
+    @K: MOV @Result, AL;
     end;
   end;
 end;
 {$ENDIF}
 
-PROCEDURE TBlockSerial.GetComNr(value: string);
+procedure TBlockSerial.GetComNr(Value: string);
 begin
   FComNr := PortIsClosed;
-  if pos('COM', uppercase(value)) = 1 then
-    FComNr := strToIntDef(copy(value, 4, length(value) - 3), PortIsClosed + 1) - 1;
-  if pos('/DEV/TTYS', uppercase(value)) = 1 then
-    FComNr := strToIntDef(copy(value, 10, length(value) - 9), PortIsClosed - 1);
+  if pos('COM', uppercase(Value)) = 1 then
+    FComNr := StrToIntdef(copy(Value, 4, Length(Value) - 3), PortIsClosed + 1) - 1;
+  if pos('/DEV/TTYS', uppercase(Value)) = 1 then
+    FComNr := StrToIntdef(copy(Value, 10, Length(Value) - 9), PortIsClosed - 1);
 end;
 
-PROCEDURE TBlockSerial.SetBandwidth(value: integer);
+procedure TBlockSerial.SetBandwidth(Value: Integer);
 begin
-  MaxSendBandwidth := value;
-  MaxRecvBandwidth := value;
+  MaxSendBandwidth := Value;
+  MaxRecvBandwidth := Value;
 end;
 
-PROCEDURE TBlockSerial.LimitBandwidth(length: integer; MaxB: integer; VAR next: Longword);
-VAR
-  x: Longword;
-  y: Longword;
+procedure TBlockSerial.LimitBandwidth(Length: Integer; MaxB: integer; var Next: LongWord);
+var
+  x: LongWord;
+  y: LongWord;
 begin
   if MaxB > 0 then
   begin
     y := GetTick;
-    if next > y then
+    if Next > y then
     begin
-      x := next - y;
+      x := Next - y;
       if x > 0 then
       begin
-        DoStatus(HR_Wait, intToStr(x));
+        DoStatus(HR_Wait, IntToStr(x));
         sleep(x);
       end;
     end;
-    next := GetTick + trunc((length / MaxB) * 1000);
+    Next := GetTick + Trunc((Length / MaxB) * 1000);
   end;
 end;
 
-PROCEDURE TBlockSerial.Config(baud, bits: integer; parity: char; stop: integer;
+procedure TBlockSerial.Config(baud, bits: integer; parity: char; stop: integer;
   softflow, hardflow: boolean);
 begin
-  FillChar(dcb, sizeOf(dcb), 0);
+  FillChar(dcb, SizeOf(dcb), 0);
   GetCommState;
-  dcb.DCBlength := sizeOf(dcb);
+  dcb.DCBlength := SizeOf(dcb);
   dcb.BaudRate := baud;
   dcb.ByteSize := bits;
   case parity of
@@ -906,9 +906,9 @@ begin
   SetCommState;
 end;
 
-PROCEDURE TBlockSerial.Connect(comport: string);
+procedure TBlockSerial.Connect(comport: string);
 {$IFDEF MSWINDOWS}
-VAR
+var
   CommTimeouts: TCommTimeouts;
 {$ENDIF}
 begin
@@ -916,7 +916,7 @@ begin
   if InstanceActive then           {HGJ}
   begin                            {HGJ}
     RaiseSynaError(ErrAlreadyInUse);
-    exit;                          {HGJ}
+    Exit;                          {HGJ}
   end;                             {HGJ}
   FBuffer := '';
   FDevice := comport;
@@ -932,18 +932,18 @@ begin
 {$ENDIF}
 {$IFNDEF MSWINDOWS}
   if FComNr <> PortIsClosed then
-    FDevice := '/dev/ttyS' + intToStr(FComNr);
+    FDevice := '/dev/ttyS' + IntToStr(FComNr);
   // Comport already owned by another process?          {HGJ}
   if FLinuxLock then
     if not cpomComportAccessible then
     begin
       RaiseSynaError(ErrAlreadyOwned);
-      exit;
+      Exit;
     end;
 {$IFNDEF FPC}
-  FHandle := THandle(Libc.open(PChar(FDevice), O_RDWR or O_SYNC));
+  FHandle := THandle(Libc.open(pchar(FDevice), O_RDWR or O_SYNC));
 {$ELSE}
-  FHandle := THandle(FpOpen(FDevice, O_RDWR or O_SYNC));
+  FHandle := THandle(fpOpen(FDevice, O_RDWR or O_SYNC));
 {$ENDIF}
   if FHandle = INVALID_HANDLE_VALUE then  //because THandle is not integer on all platforms!
     SerialCheck(-1)
@@ -956,10 +956,10 @@ begin
   {$ENDIF}
   ExceptCheck;
   if FLastError <> sOK then
-    exit;
+    Exit;
 {$ELSE}
   if FComNr <> PortIsClosed then
-    FDevice := '\\.\COM' + intToStr(FComNr + 1);
+    FDevice := '\\.\COM' + IntToStr(FComNr + 1);
   FHandle := THandle(CreateFile(PChar(FDevice), GENERIC_READ or GENERIC_WRITE,
     0, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL or FILE_FLAG_OVERLAPPED, 0));
   if FHandle = INVALID_HANDLE_VALUE then  //because THandle is not integer on all platforms!
@@ -968,7 +968,7 @@ begin
     SerialCheck(0);
   ExceptCheck;
   if FLastError <> sOK then
-    exit;
+    Exit;
   SetCommMask(FHandle, 0);
   SetupComm(Fhandle, FRecvBuffer, 0);
   CommTimeOuts.ReadIntervalTimeout := MAXWORD;
@@ -993,39 +993,39 @@ begin
   end
   else
   begin
-    FInstanceActive:= true;
-    RTS := true;
-    DTR := true;
+    FInstanceActive:= True;
+    RTS := True;
+    DTR := True;
     Purge;
   end;
   ExceptCheck;
   DoStatus(HR_Connect, FDevice);
 end;
 
-FUNCTION TBlockSerial.SendBuffer(buffer: pointer; length: integer): integer;
+function TBlockSerial.SendBuffer(buffer: pointer; length: integer): integer;
 {$IFDEF MSWINDOWS}
-VAR
+var
   Overlapped: TOverlapped;
-  x, y, Err: dword;
+  x, y, Err: DWord;
 {$ENDIF}
 begin
-  result := 0;
+  Result := 0;
   if PreTestFailing then   {HGJ}
-    exit;                  {HGJ}
-  LimitBandwidth(length, FMaxSendBandwidth, FNextsend);
+    Exit;                  {HGJ}
+  LimitBandwidth(Length, FMaxSendBandwidth, FNextsend);
   if FRTSToggle then
   begin
-    flush;
-    RTS := true;
+    Flush;
+    RTS := True;
   end;
 {$IFNDEF MSWINDOWS}
-  result := FileWrite(Fhandle, buffer^, length);
+  result := FileWrite(Fhandle, Buffer^, Length);
   serialcheck(result);
 {$ELSE}
-  FillChar(Overlapped, sizeOf(Overlapped), 0);
+  FillChar(Overlapped, Sizeof(Overlapped), 0);
   SetSynaError(sOK);
   y := 0;
-  if not writeFile(FHandle, buffer^, length, dword(result), @Overlapped) then
+  if not WriteFile(FHandle, Buffer^, Length, DWord(Result), @Overlapped) then
     y := GetLastError;
   if y = ERROR_IO_PENDING then
   begin
@@ -1035,7 +1035,7 @@ begin
       PurgeComm(FHandle, PURGE_TXABORT);
       SetSynaError(ErrTimeout);
     end;
-    GetOverlappedResult(FHandle, Overlapped, dword(result), false);
+    GetOverlappedResult(FHandle, Overlapped, Dword(Result), False);
   end
   else
     SetSynaError(y);
@@ -1045,102 +1045,102 @@ begin
 {$ENDIF}
   if FRTSToggle then
   begin
-    flush;
+    Flush;
     CanWrite(255);
-    RTS := false;
+    RTS := False;
   end;
   ExceptCheck;
-  DoStatus(HR_WriteCount, intToStr(result));
+  DoStatus(HR_WriteCount, IntToStr(Result));
 end;
 
-PROCEDURE TBlockSerial.SendByte(data: byte);
+procedure TBlockSerial.SendByte(data: byte);
 begin
-  SendBuffer(@data, 1);
+  SendBuffer(@Data, 1);
 end;
 
-PROCEDURE TBlockSerial.SendString(data: ansistring);
+procedure TBlockSerial.SendString(data: AnsiString);
 begin
-  SendBuffer(pointer(data), length(data));
+  SendBuffer(Pointer(Data), Length(Data));
 end;
 
-PROCEDURE TBlockSerial.SendInteger(data: integer);
+procedure TBlockSerial.SendInteger(Data: integer);
 begin
-  SendBuffer(@data, sizeOf(data));
+  SendBuffer(@data, SizeOf(Data));
 end;
 
-PROCEDURE TBlockSerial.SendBlock(CONST data: ansistring);
+procedure TBlockSerial.SendBlock(const Data: AnsiString);
 begin
-  SendInteger(length(data));
-  SendString(data);
+  SendInteger(Length(data));
+  SendString(Data);
 end;
 
-PROCEDURE TBlockSerial.SendStreamRaw(CONST Stream: TStream);
-VAR
+procedure TBlockSerial.SendStreamRaw(const Stream: TStream);
+var
   si: integer;
   x, y, yr: integer;
-  s: ansistring;
+  s: AnsiString;
 begin
-  si := Stream.size - Stream.position;
+  si := Stream.Size - Stream.Position;
   x := 0;
   while x < si do
   begin
     y := si - x;
     if y > cSerialChunk then
       y := cSerialChunk;
-    setLength(s, y);
+    Setlength(s, y);
     yr := Stream.read(PAnsiChar(s)^, y);
     if yr > 0 then
     begin
-      setLength(s, yr);
+      SetLength(s, yr);
       SendString(s);
-      inc(x, yr);
+      Inc(x, yr);
     end
     else
       break;
   end;
 end;
 
-PROCEDURE TBlockSerial.SendStreamIndy(CONST Stream: TStream);
-VAR
+procedure TBlockSerial.SendStreamIndy(const Stream: TStream);
+var
   si: integer;
 begin
-  si := Stream.size - Stream.position;
+  si := Stream.Size - Stream.Position;
   si := Swapbytes(si);
   SendInteger(si);
   SendStreamRaw(Stream);
 end;
 
-PROCEDURE TBlockSerial.SendStream(CONST Stream: TStream);
-VAR
+procedure TBlockSerial.SendStream(const Stream: TStream);
+var
   si: integer;
 begin
-  si := Stream.size - Stream.position;
+  si := Stream.Size - Stream.Position;
   SendInteger(si);
   SendStreamRaw(Stream);
 end;
 
-FUNCTION TBlockSerial.RecvBuffer(buffer: pointer; length: integer): integer;
+function TBlockSerial.RecvBuffer(buffer: pointer; length: integer): integer;
 {$IFNDEF MSWINDOWS}
 begin
-  result := 0;
+  Result := 0;
   if PreTestFailing then   {HGJ}
-    exit;                  {HGJ}
-  LimitBandwidth(length, FMaxRecvBandwidth, FNextRecv);
-  result := FileRead(FHandle, buffer^, length);
+    Exit;                  {HGJ}
+  LimitBandwidth(Length, FMaxRecvBandwidth, FNextRecv);
+  result := FileRead(FHandle, Buffer^, length);
   serialcheck(result);
 {$ELSE}
-VAR
+var
   Overlapped: TOverlapped;
-  x, y, Err: dword;
+  x, y, Err: DWord;
 begin
-  result := 0;
+  Result := 0;
   if PreTestFailing then   {HGJ}
-    exit;                  {HGJ}
-  LimitBandwidth(length, FMaxRecvBandwidth, FNextRecv);
-  FillChar(Overlapped, sizeOf(Overlapped), 0);
+    Exit;                  {HGJ}
+  LimitBandwidth(Length, FMaxRecvBandwidth, FNextRecv);
+  FillChar(Overlapped, Sizeof(Overlapped), 0);
   SetSynaError(sOK);
   y := 0;
-  if not readFile(FHandle, buffer^, length, dword(result), @Overlapped) then
+  if not ReadFile(FHandle, Buffer^, length, Dword(Result), @Overlapped) then
     y := GetLastError;
   if y = ERROR_IO_PENDING then
   begin
@@ -1150,7 +1150,7 @@ begin
       PurgeComm(FHandle, PURGE_RXABORT);
       SetSynaError(ErrTimeout);
     end;
-    GetOverlappedResult(FHandle, Overlapped, dword(result), false);
+    GetOverlappedResult(FHandle, Overlapped, Dword(Result), False);
   end
   else
     SetSynaError(y);
@@ -1159,90 +1159,90 @@ begin
     DecodeCommError(err);
 {$ENDIF}
   ExceptCheck;
-  DoStatus(HR_ReadCount, intToStr(result));
+  DoStatus(HR_ReadCount, IntToStr(Result));
 end;
 
-FUNCTION TBlockSerial.RecvBufferEx(buffer: pointer; length: integer; timeout: integer): integer;
-VAR
-  s: ansistring;
+function TBlockSerial.RecvBufferEx(buffer: pointer; length: integer; timeout: integer): integer;
+var
+  s: AnsiString;
   rl, l: integer;
-  ti: Longword;
+  ti: LongWord;
 begin
-  result := 0;
+  Result := 0;
   if PreTestFailing then   {HGJ}
-    exit;                  {HGJ}
+    Exit;                  {HGJ}
   SetSynaError(sOK);
   rl := 0;
   repeat
     ti := GetTick;
     s := RecvPacket(Timeout);
-    l := system.length(s);
-    if (rl + l) > length then
-      l := length - rl;
-    move(pointer(s)^, IncPoint(buffer, rl)^, l);
+    l := System.Length(s);
+    if (rl + l) > Length then
+      l := Length - rl;
+    Move(Pointer(s)^, IncPoint(Buffer, rl)^, l);
     rl := rl + l;
     if FLastError <> sOK then
-      break;
-    if rl >= length then
-      break;
+      Break;
+    if rl >= Length then
+      Break;
     if not FInterPacketTimeout then
     begin
       Timeout := Timeout - integer(TickDelta(ti, GetTick));
       if Timeout <= 0 then
       begin
         SetSynaError(ErrTimeout);
-        break;
+        Break;
       end;
     end;
-  until false;
-  Delete(s, 1, l);
+  until False;
+  delete(s, 1, l);
   FBuffer := s;
-  result := rl;
+  Result := rl;
 end;
 
-FUNCTION TBlockSerial.RecvBufferStr(length: integer; Timeout: integer): ansistring;
-VAR
+function TBlockSerial.RecvBufferStr(Length: Integer; Timeout: Integer): AnsiString;
+var
   x: integer;
 begin
-  result := '';
+  Result := '';
   if PreTestFailing then   {HGJ}
-    exit;                  {HGJ}
+    Exit;                  {HGJ}
   SetSynaError(sOK);
-  if length > 0 then
+  if Length > 0 then
   begin
-    setLength(result, length);
-    x := RecvBufferEx(PAnsiChar(result), length , Timeout);
+    Setlength(Result, Length);
+    x := RecvBufferEx(PAnsiChar(Result), Length , Timeout);
     if FLastError = sOK then
-      setLength(result, x)
+      SetLength(Result, x)
     else
-      result := '';
+      Result := '';
   end;
 end;
 
-FUNCTION TBlockSerial.RecvPacket(Timeout: integer): ansistring;
-VAR
+function TBlockSerial.RecvPacket(Timeout: Integer): AnsiString;
+var
   x: integer;
 begin
-  result := '';
+  Result := '';
   if PreTestFailing then   {HGJ}
-    exit;                  {HGJ}
+    Exit;                  {HGJ}
   SetSynaError(sOK);
   if FBuffer <> '' then
   begin
-    result := FBuffer;
+    Result := FBuffer;
     FBuffer := '';
   end
   else
   begin
     //not drain CPU on large downloads...
-    sleep(0);
+    Sleep(0);
     x := WaitingData;
     if x > 0 then
     begin
-      setLength(result, x);
-      x := RecvBuffer(pointer(result), x);
+      SetLength(Result, x);
+      x := RecvBuffer(Pointer(Result), x);
       if x >= 0 then
-        setLength(result, x);
+        SetLength(Result, x);
     end
     else
     begin
@@ -1253,10 +1253,10 @@ begin
           SetSynaError(ErrTimeout);
         if x > 0 then
         begin
-          setLength(result, x);
-          x := RecvBuffer(pointer(result), x);
+          SetLength(Result, x);
+          x := RecvBuffer(Pointer(Result), x);
           if x >= 0 then
-            setLength(result, x);
+            SetLength(Result, x);
         end;
       end
       else
@@ -1267,39 +1267,39 @@ begin
 end;
 
 
-FUNCTION TBlockSerial.RecvByte(timeout: integer): byte;
+function TBlockSerial.RecvByte(timeout: integer): byte;
 begin
-  result := 0;
+  Result := 0;
   if PreTestFailing then   {HGJ}
-    exit;                  {HGJ}
+    Exit;                  {HGJ}
   SetSynaError(sOK);
   if FBuffer = '' then
     FBuffer := RecvPacket(Timeout);
   if (FLastError = sOK) and (FBuffer <> '') then
   begin
-    result := ord(FBuffer[1]);
-    system.Delete(FBuffer, 1, 1);
+    Result := Ord(FBuffer[1]);
+    System.Delete(FBuffer, 1, 1);
   end;
   ExceptCheck;
 end;
 
-FUNCTION TBlockSerial.RecvTerminated(Timeout: integer; CONST Terminator: ansistring): ansistring;
-VAR
-  x: integer;
-  s: ansistring;
-  l: integer;
-  CorCRLF: boolean;
+function TBlockSerial.RecvTerminated(Timeout: Integer; const Terminator: AnsiString): AnsiString;
+var
+  x: Integer;
+  s: AnsiString;
+  l: Integer;
+  CorCRLF: Boolean;
   t: ansistring;
   tl: integer;
-  ti: Longword;
+  ti: LongWord;
 begin
-  result := '';
+  Result := '';
   if PreTestFailing then   {HGJ}
-    exit;                  {HGJ}
+    Exit;                  {HGJ}
   SetSynaError(sOK);
-  l := system.length(Terminator);
+  l := system.Length(Terminator);
   if l = 0 then
-    exit;
+    Exit;
   tl := l;
   CorCRLF := FConvertLineEnd and (Terminator = CRLF);
   s := '';
@@ -1309,90 +1309,90 @@ begin
     //get rest of FBuffer or incomming new data...
     s := s + RecvPacket(Timeout);
     if FLastError <> sOK then
-      break;
+      Break;
     x := 0;
-    if length(s) > 0 then
+    if Length(s) > 0 then
       if CorCRLF then
       begin
         if FLastCR and (s[1] = LF) then
           Delete(s, 1, 1);
         if FLastLF and (s[1] = CR) then
           Delete(s, 1, 1);
-        FLastCR := false;
-        FLastLF := false;
+        FLastCR := False;
+        FLastLF := False;
         t := '';
         x := PosCRLF(s, t);
-        tl := system.length(t);
+        tl := system.Length(t);
         if t = CR then
-          FLastCR := true;
+          FLastCR := True;
         if t = LF then
-          FLastLF := true;
+          FLastLF := True;
       end
       else
       begin
         x := pos(Terminator, s);
         tl := l;
       end;
-    if (FMaxLineLength <> 0) and (system.length(s) > FMaxLineLength) then
+    if (FMaxLineLength <> 0) and (system.Length(s) > FMaxLineLength) then
     begin
       SetSynaError(ErrMaxBuffer);
-      break;
+      Break;
     end;
     if x > 0 then
-      break;
+      Break;
     if not FInterPacketTimeout then
     begin
       Timeout := Timeout - integer(TickDelta(ti, GetTick));
       if Timeout <= 0 then
       begin
         SetSynaError(ErrTimeout);
-        break;
+        Break;
       end;
     end;
-  until false;
+  until False;
   if x > 0 then
   begin
-    result := copy(s, 1, x - 1);
-    system.Delete(s, 1, x + tl - 1);
+    Result := Copy(s, 1, x - 1);
+    System.Delete(s, 1, x + tl - 1);
   end;
   FBuffer := s;
   ExceptCheck;
 end;
 
 
-FUNCTION TBlockSerial.RecvString(Timeout: integer): ansistring;
-VAR
-  s: ansistring;
+function TBlockSerial.RecvString(Timeout: Integer): AnsiString;
+var
+  s: AnsiString;
 begin
-  result := '';
+  Result := '';
   s := RecvTerminated(Timeout, #13 + #10);
   if FLastError = sOK then
-    result := s;
+    Result := s;
 end;
 
-FUNCTION TBlockSerial.RecvInteger(Timeout: integer): integer;
-VAR
-  s: ansistring;
+function TBlockSerial.RecvInteger(Timeout: Integer): Integer;
+var
+  s: AnsiString;
 begin
-  result := 0;
+  Result := 0;
   s := RecvBufferStr(4, Timeout);
   if FLastError = 0 then
-    result := (ord(s[1]) + ord(s[2]) * 256) + (ord(s[3]) + ord(s[4]) * 256) * 65536;
+    Result := (ord(s[1]) + ord(s[2]) * 256) + (ord(s[3]) + ord(s[4]) * 256) * 65536;
 end;
 
-FUNCTION TBlockSerial.RecvBlock(Timeout: integer): ansistring;
-VAR
+function TBlockSerial.RecvBlock(Timeout: Integer): AnsiString;
+var
   x: integer;
 begin
-  result := '';
+  Result := '';
   x := RecvInteger(Timeout);
   if FLastError = 0 then
-    result := RecvBufferStr(x, Timeout);
+    Result := RecvBufferStr(x, Timeout);
 end;
 
-PROCEDURE TBlockSerial.RecvStreamRaw(CONST Stream: TStream; Timeout: integer);
-VAR
-  s: ansistring;
+procedure TBlockSerial.RecvStreamRaw(const Stream: TStream; Timeout: Integer);
+var
+  s: AnsiString;
 begin
   repeat
     s := RecvPacket(Timeout);
@@ -1401,30 +1401,30 @@ begin
   until FLastError <> 0;
 end;
 
-PROCEDURE TBlockSerial.RecvStreamSize(CONST Stream: TStream; Timeout: integer; size: integer);
-VAR
-  s: ansistring;
+procedure TBlockSerial.RecvStreamSize(const Stream: TStream; Timeout: Integer; Size: Integer);
+var
+  s: AnsiString;
   n: integer;
 begin
-  for n := 1 to (size div cSerialChunk) do
+  for n := 1 to (Size div cSerialChunk) do
   begin
     s := RecvBufferStr(cSerialChunk, Timeout);
     if FLastError <> 0 then
-      exit;
-    Stream.write(PAnsiChar(s)^, cSerialChunk);
+      Exit;
+    Stream.Write(PAnsichar(s)^, cSerialChunk);
   end;
-  n := size mod cSerialChunk;
+  n := Size mod cSerialChunk;
   if n > 0 then
   begin
     s := RecvBufferStr(n, Timeout);
     if FLastError <> 0 then
-      exit;
-    Stream.write(PAnsiChar(s)^, n);
+      Exit;
+    Stream.Write(PAnsichar(s)^, n);
   end;
 end;
 
-PROCEDURE TBlockSerial.RecvStreamIndy(CONST Stream: TStream; Timeout: integer);
-VAR
+procedure TBlockSerial.RecvStreamIndy(const Stream: TStream; Timeout: Integer);
+var
   x: integer;
 begin
   x := RecvInteger(Timeout);
@@ -1433,8 +1433,8 @@ begin
     RecvStreamSize(Stream, Timeout, x);
 end;
 
-PROCEDURE TBlockSerial.RecvStream(CONST Stream: TStream; Timeout: integer);
-VAR
+procedure TBlockSerial.RecvStream(const Stream: TStream; Timeout: Integer);
+var
   x: integer;
 begin
   x := RecvInteger(Timeout);
@@ -1443,7 +1443,7 @@ begin
 end;
 
 {$IFNDEF MSWINDOWS}
-FUNCTION TBlockSerial.WaitingData: integer;
+function TBlockSerial.WaitingData: integer;
 begin
 {$IFNDEF FPC}
   serialcheck(ioctl(FHandle, FIONREAD, @result));
@@ -1451,48 +1451,48 @@ begin
   serialcheck(fpIoctl(FHandle, FIONREAD, @result));
 {$ENDIF}
   if FLastError <> 0 then
-    result := 0;
+    Result := 0;
   ExceptCheck;
 end;
 {$ELSE}
-FUNCTION TBlockSerial.WaitingData: integer;
-VAR
+function TBlockSerial.WaitingData: integer;
+var
   stat: TComStat;
-  err: dword;
+  err: DWORD;
 begin
   if ClearCommError(FHandle, err, @stat) then
   begin
     SetSynaError(sOK);
-    result := stat.cbInQue;
+    Result := stat.cbInQue;
   end
   else
   begin
     SerialCheck(sErr);
-    result := 0;
+    Result := 0;
   end;
   ExceptCheck;
 end;
 {$ENDIF}
 
-FUNCTION TBlockSerial.WaitingDataEx: integer;
+function TBlockSerial.WaitingDataEx: integer;
 begin
 	if FBuffer <> '' then
-  	result := length(FBuffer)
+  	Result := Length(FBuffer)
   else
-  	result := Waitingdata;
+  	Result := Waitingdata;
 end;
 
 {$IFNDEF MSWINDOWS}
-FUNCTION TBlockSerial.SendingData: integer;
+function TBlockSerial.SendingData: integer;
 begin
   SetSynaError(sOK);
-  result := 0;
+  Result := 0;
 end;
 {$ELSE}
-FUNCTION TBlockSerial.SendingData: integer;
-VAR
+function TBlockSerial.SendingData: integer;
+var
   stat: TComStat;
-  err: dword;
+  err: DWORD;
 begin
   SetSynaError(sOK);
   if not ClearCommError(FHandle, err, @stat) then
@@ -1503,10 +1503,10 @@ end;
 {$ENDIF}
 
 {$IFNDEF MSWINDOWS}
-PROCEDURE TBlockSerial.DcbToTermios(CONST dcb: TDCB; VAR term: termios);
-VAR
+procedure TBlockSerial.DcbToTermios(const dcb: TDCB; var term: termios);
+var
   n: integer;
-  x: Cardinal;
+  x: cardinal;
 begin
   //others
   cfmakeraw(term);
@@ -1567,10 +1567,10 @@ begin
   cfsetispeed(term, x);
 end;
 
-PROCEDURE TBlockSerial.TermiosToDcb(CONST term: termios; VAR dcb: TDCB);
-VAR
+procedure TBlockSerial.TermiosToDcb(const term: termios; var dcb: TDCB);
+var
   n: integer;
-  x: Cardinal;
+  x: cardinal;
 begin
   //set baudrate;
   dcb.baudrate := 0;
@@ -1626,14 +1626,14 @@ end;
 {$ENDIF}
 
 {$IFNDEF MSWINDOWS}
-PROCEDURE TBlockSerial.SetCommState;
+procedure TBlockSerial.SetCommState;
 begin
   DcbToTermios(dcb, termiosstruc);
   SerialCheck(tcsetattr(FHandle, TCSANOW, termiosstruc));
   ExceptCheck;
 end;
 {$ELSE}
-PROCEDURE TBlockSerial.SetCommState;
+procedure TBlockSerial.SetCommState;
 begin
   SetSynaError(sOK);
   if not windows.SetCommState(Fhandle, dcb) then
@@ -1643,14 +1643,14 @@ end;
 {$ENDIF}
 
 {$IFNDEF MSWINDOWS}
-PROCEDURE TBlockSerial.GetCommState;
+procedure TBlockSerial.GetCommState;
 begin
   SerialCheck(tcgetattr(FHandle, termiosstruc));
   ExceptCheck;
   TermiostoDCB(termiosstruc, dcb);
 end;
 {$ELSE}
-PROCEDURE TBlockSerial.GetCommState;
+procedure TBlockSerial.GetCommState;
 begin
   SetSynaError(sOK);
   if not windows.GetCommState(Fhandle, dcb) then
@@ -1659,7 +1659,7 @@ begin
 end;
 {$ENDIF}
 
-PROCEDURE TBlockSerial.SetSizeRecvBuffer(size: integer);
+procedure TBlockSerial.SetSizeRecvBuffer(size: integer);
 begin
 {$IFDEF MSWINDOWS}
   SetupComm(Fhandle, size, 0);
@@ -1671,21 +1671,21 @@ begin
   FRecvBuffer := size;
 end;
 
-FUNCTION TBlockSerial.GetDSR: boolean;
+function TBlockSerial.GetDSR: Boolean;
 begin
   ModemStatus;
 {$IFNDEF MSWINDOWS}
-  result := (FModemWord and TIOCM_DSR) > 0;
+  Result := (FModemWord and TIOCM_DSR) > 0;
 {$ELSE}
-  result := (FModemWord and MS_DSR_ON) > 0;
+  Result := (FModemWord and MS_DSR_ON) > 0;
 {$ENDIF}
 end;
 
-PROCEDURE TBlockSerial.SetDTRF(value: boolean);
+procedure TBlockSerial.SetDTRF(Value: Boolean);
 begin
 {$IFNDEF MSWINDOWS}
   ModemStatus;
-  if value then
+  if Value then
     FModemWord := FModemWord or TIOCM_DTR
   else
     FModemWord := FModemWord and not TIOCM_DTR;
@@ -1695,28 +1695,28 @@ begin
   fpioctl(FHandle, TIOCMSET, @FModemWord);
   {$ENDIF}
 {$ELSE}
-  if value then
+  if Value then
     EscapeCommFunction(FHandle, SETDTR)
   else
     EscapeCommFunction(FHandle, CLRDTR);
 {$ENDIF}
 end;
 
-FUNCTION TBlockSerial.GetCTS: boolean;
+function TBlockSerial.GetCTS: Boolean;
 begin
   ModemStatus;
 {$IFNDEF MSWINDOWS}
-  result := (FModemWord and TIOCM_CTS) > 0;
+  Result := (FModemWord and TIOCM_CTS) > 0;
 {$ELSE}
-  result := (FModemWord and MS_CTS_ON) > 0;
+  Result := (FModemWord and MS_CTS_ON) > 0;
 {$ENDIF}
 end;
 
-PROCEDURE TBlockSerial.SetRTSF(value: boolean);
+procedure TBlockSerial.SetRTSF(Value: Boolean);
 begin
 {$IFNDEF MSWINDOWS}
   ModemStatus;
-  if value then
+  if Value then
     FModemWord := FModemWord or TIOCM_RTS
   else
     FModemWord := FModemWord and not TIOCM_RTS;
@@ -1726,47 +1726,47 @@ begin
   fpioctl(FHandle, TIOCMSET, @FModemWord);
   {$ENDIF}
 {$ELSE}
-  if value then
+  if Value then
     EscapeCommFunction(FHandle, SETRTS)
   else
     EscapeCommFunction(FHandle, CLRRTS);
 {$ENDIF}
 end;
 
-FUNCTION TBlockSerial.GetCarrier: boolean;
+function TBlockSerial.GetCarrier: Boolean;
 begin
   ModemStatus;
 {$IFNDEF MSWINDOWS}
-  result := (FModemWord and TIOCM_CAR) > 0;
+  Result := (FModemWord and TIOCM_CAR) > 0;
 {$ELSE}
-  result := (FModemWord and MS_RLSD_ON) > 0;
+  Result := (FModemWord and MS_RLSD_ON) > 0;
 {$ENDIF}
 end;
 
-FUNCTION TBlockSerial.GetRing: boolean;
+function TBlockSerial.GetRing: Boolean;
 begin
   ModemStatus;
 {$IFNDEF MSWINDOWS}
-  result := (FModemWord and TIOCM_RNG) > 0;
+  Result := (FModemWord and TIOCM_RNG) > 0;
 {$ELSE}
-  result := (FModemWord and MS_RING_ON) > 0;
+  Result := (FModemWord and MS_RING_ON) > 0;
 {$ENDIF}
 end;
 
 {$IFDEF MSWINDOWS}
-FUNCTION TBlockSerial.CanEvent(Event: dword; Timeout: integer): boolean;
-VAR
-  ex: dword;
-  y: integer;
+function TBlockSerial.CanEvent(Event: dword; Timeout: integer): boolean;
+var
+  ex: DWord;
+  y: Integer;
   Overlapped: TOverlapped;
 begin
-  FillChar(Overlapped, sizeOf(Overlapped), 0);
-  Overlapped.hEvent := CreateEvent(nil, true, false, nil);
+  FillChar(Overlapped, Sizeof(Overlapped), 0);
+  Overlapped.hEvent := CreateEvent(nil, True, False, nil);
   try
     SetCommMask(FHandle, Event);
     SetSynaError(sOK);
     if (Event = EV_RXCHAR) and (Waitingdata > 0) then
-      result := true
+      Result := True
     else
     begin
       y := 0;
@@ -1777,9 +1777,9 @@ begin
         //timedout
         WaitForSingleObject(Overlapped.hEvent, Timeout);
         SetCommMask(FHandle, 0);
-        GetOverlappedResult(FHandle, Overlapped, dword(y), true);
+        GetOverlappedResult(FHandle, Overlapped, DWord(y), True);
       end;
-      result := (ex and Event) = Event;
+      Result := (ex and Event) = Event;
     end;
   finally
     SetCommMask(FHandle, 0);
@@ -1789,115 +1789,115 @@ end;
 {$ENDIF}
 
 {$IFNDEF MSWINDOWS}
-FUNCTION TBlockSerial.CanRead(Timeout: integer): boolean;
-VAR
+function TBlockSerial.CanRead(Timeout: integer): boolean;
+var
   FDSet: TFDSet;
-  timeval: PTimeVal;
+  TimeVal: PTimeVal;
   TimeV: TTimeVal;
-  x: integer;
+  x: Integer;
 begin
   TimeV.tv_usec := (Timeout mod 1000) * 1000;
   TimeV.tv_sec := Timeout div 1000;
-  timeval := @TimeV;
+  TimeVal := @TimeV;
   if Timeout = -1 then
-    timeval := nil;
+    TimeVal := nil;
   {$IFNDEF FPC}
   FD_ZERO(FDSet);
   FD_SET(FHandle, FDSet);
-  x := Select(FHandle + 1, @FDSet, nil, nil, timeval);
+  x := Select(FHandle + 1, @FDSet, nil, nil, TimeVal);
   {$ELSE}
   fpFD_ZERO(FDSet);
   fpFD_SET(FHandle, FDSet);
-  x := fpSelect(FHandle + 1, @FDSet, nil, nil, timeval);
+  x := fpSelect(FHandle + 1, @FDSet, nil, nil, TimeVal);
   {$ENDIF}
   SerialCheck(x);
   if FLastError <> sOK then
     x := 0;
-  result := x > 0;
+  Result := x > 0;
   ExceptCheck;
-  if result then
+  if Result then
     DoStatus(HR_CanRead, '');
 end;
 {$ELSE}
-FUNCTION TBlockSerial.CanRead(Timeout: integer): boolean;
+function TBlockSerial.CanRead(Timeout: integer): boolean;
 begin
-  result := WaitingData > 0;
-  if not result then
-    result := CanEvent(EV_RXCHAR, Timeout) or (WaitingData > 0);
+  Result := WaitingData > 0;
+  if not Result then
+    Result := CanEvent(EV_RXCHAR, Timeout) or (WaitingData > 0);
     //check WaitingData again due some broken virtual ports
-  if result then
+  if Result then
     DoStatus(HR_CanRead, '');
 end;
 {$ENDIF}
 
 {$IFNDEF MSWINDOWS}
-FUNCTION TBlockSerial.CanWrite(Timeout: integer): boolean;
-VAR
+function TBlockSerial.CanWrite(Timeout: integer): boolean;
+var
   FDSet: TFDSet;
-  timeval: PTimeVal;
+  TimeVal: PTimeVal;
   TimeV: TTimeVal;
-  x: integer;
+  x: Integer;
 begin
   TimeV.tv_usec := (Timeout mod 1000) * 1000;
   TimeV.tv_sec := Timeout div 1000;
-  timeval := @TimeV;
+  TimeVal := @TimeV;
   if Timeout = -1 then
-    timeval := nil;
+    TimeVal := nil;
   {$IFNDEF FPC}
   FD_ZERO(FDSet);
   FD_SET(FHandle, FDSet);
-  x := Select(FHandle + 1, nil, @FDSet, nil, timeval);
+  x := Select(FHandle + 1, nil, @FDSet, nil, TimeVal);
   {$ELSE}
   fpFD_ZERO(FDSet);
   fpFD_SET(FHandle, FDSet);
-  x := fpSelect(FHandle + 1, nil, @FDSet, nil, timeval);
+  x := fpSelect(FHandle + 1, nil, @FDSet, nil, TimeVal);
   {$ENDIF}
   SerialCheck(x);
   if FLastError <> sOK then
     x := 0;
-  result := x > 0;
+  Result := x > 0;
   ExceptCheck;
-  if result then
+  if Result then
     DoStatus(HR_CanWrite, '');
 end;
 {$ELSE}
-FUNCTION TBlockSerial.CanWrite(Timeout: integer): boolean;
-VAR
-  t: Longword;
+function TBlockSerial.CanWrite(Timeout: integer): boolean;
+var
+  t: LongWord;
 begin
-  result := SendingData = 0;
-  if not result then
-	  result := CanEvent(EV_TXEMPTY, Timeout);
-  if result and (Win32Platform <> VER_PLATFORM_WIN32_NT) then
+  Result := SendingData = 0;
+  if not Result then
+	  Result := CanEvent(EV_TXEMPTY, Timeout);
+  if Result and (Win32Platform <> VER_PLATFORM_WIN32_NT) then
   begin
     t := GetTick;
     while not ReadTxEmpty(FPortAddr) do
     begin
       if TickDelta(t, GetTick) > 255 then
-        break;
-      sleep(0);
+        Break;
+      Sleep(0);
     end;
   end;
-  if result then
+  if Result then
     DoStatus(HR_CanWrite, '');
 end;
 {$ENDIF}
 
-FUNCTION TBlockSerial.CanReadEx(Timeout: integer): boolean;
+function TBlockSerial.CanReadEx(Timeout: integer): boolean;
 begin
 	if Fbuffer <> '' then
-  	result := true
+  	Result := True
   else
-  	result := CanRead(Timeout);
+  	Result := CanRead(Timeout);
 end;
 
-PROCEDURE TBlockSerial.EnableRTSToggle(value: boolean);
+procedure TBlockSerial.EnableRTSToggle(Value: boolean);
 begin
   SetSynaError(sOK);
 {$IFNDEF MSWINDOWS}
-  FRTSToggle := value;
-  if value then
-    RTS:=false;
+  FRTSToggle := Value;
+  if Value then
+    RTS:=False;
 {$ELSE}
   if Win32Platform = VER_PLATFORM_WIN32_NT then
   begin
@@ -1910,14 +1910,14 @@ begin
   end
   else
   begin
-    FRTSToggle := value;
-    if value then
-      RTS:=false;
+    FRTSToggle := Value;
+    if Value then
+      RTS:=False;
   end;
 {$ENDIF}
 end;
 
-PROCEDURE TBlockSerial.flush;
+procedure TBlockSerial.Flush;
 begin
 {$IFNDEF MSWINDOWS}
   SerialCheck(tcdrain(FHandle));
@@ -1930,7 +1930,7 @@ begin
 end;
 
 {$IFNDEF MSWINDOWS}
-PROCEDURE TBlockSerial.Purge;
+procedure TBlockSerial.Purge;
 begin
   {$IFNDEF FPC}
   SerialCheck(ioctl(FHandle, TCFLSH, TCIOFLUSH));
@@ -1938,15 +1938,15 @@ begin
     {$IFDEF DARWIN}
     SerialCheck(fpioctl(FHandle, TCIOflush, TCIOFLUSH));
     {$ELSE}
-    SerialCheck(fpioctl(FHandle, TCFLSH, pointer(ptrint(TCIOFLUSH))));
+    SerialCheck(fpioctl(FHandle, TCFLSH, Pointer(PtrInt(TCIOFLUSH))));
     {$ENDIF}
   {$ENDIF}
   FBuffer := '';
   ExceptCheck;
 end;
 {$ELSE}
-PROCEDURE TBlockSerial.Purge;
-VAR
+procedure TBlockSerial.Purge;
+var
   x: integer;
 begin
   SetSynaError(sOK);
@@ -1958,31 +1958,31 @@ begin
 end;
 {$ENDIF}
 
-FUNCTION TBlockSerial.ModemStatus: integer;
+function TBlockSerial.ModemStatus: integer;
 begin
-  result := 0;
+  Result := 0;
 {$IFNDEF MSWINDOWS}
   {$IFNDEF FPC}
-  SerialCheck(ioctl(FHandle, TIOCMGET, @result));
+  SerialCheck(ioctl(FHandle, TIOCMGET, @Result));
   {$ELSE}
-  SerialCheck(fpioctl(FHandle, TIOCMGET, @result));
+  SerialCheck(fpioctl(FHandle, TIOCMGET, @Result));
   {$ENDIF}
 {$ELSE}
   SetSynaError(sOK);
-  if not GetCommModemStatus(FHandle, dword(result)) then
+  if not GetCommModemStatus(FHandle, dword(Result)) then
     SerialCheck(sErr);
 {$ENDIF}
   ExceptCheck;
-  FModemWord := result;
+  FModemWord := Result;
 end;
 
-PROCEDURE TBlockSerial.SetBreak(Duration: integer);
+procedure TBlockSerial.SetBreak(Duration: integer);
 begin
 {$IFNDEF MSWINDOWS}
   SerialCheck(tcsendbreak(FHandle, Duration));
 {$ELSE}
   SetCommBreak(FHandle);
-  sleep(Duration);
+  Sleep(Duration);
   SetSynaError(sOK);
   if not ClearCommBreak(FHandle) then
     SerialCheck(sErr);
@@ -1990,58 +1990,58 @@ begin
 end;
 
 {$IFDEF MSWINDOWS}
-PROCEDURE TBlockSerial.DecodeCommError(Error: dword);
+procedure TBlockSerial.DecodeCommError(Error: DWord);
 begin
-  if (Error and dword(CE_FRAME)) > 1 then
+  if (Error and DWord(CE_FRAME)) > 1 then
     FLastError := ErrFrame;
-  if (Error and dword(CE_OVERRUN)) > 1 then
+  if (Error and DWord(CE_OVERRUN)) > 1 then
     FLastError := ErrOverrun;
-  if (Error and dword(CE_RXOVER)) > 1 then
+  if (Error and DWord(CE_RXOVER)) > 1 then
     FLastError := ErrRxOver;
-  if (Error and dword(CE_RXPARITY)) > 1 then
+  if (Error and DWord(CE_RXPARITY)) > 1 then
     FLastError := ErrRxParity;
-  if (Error and dword(CE_TXFULL)) > 1 then
+  if (Error and DWord(CE_TXFULL)) > 1 then
     FLastError := ErrTxFull;
 end;
 {$ENDIF}
 
 //HGJ
-FUNCTION TBlockSerial.PreTestFailing: boolean;
+function TBlockSerial.PreTestFailing: Boolean;
 begin
   if not FInstanceActive then
   begin
     RaiseSynaError(ErrPortNotOpen);
     result:= true;
-    exit;
+    Exit;
   end;
-  result := not TestCtrlLine;
+  Result := not TestCtrlLine;
   if result then
     RaiseSynaError(ErrNoDeviceAnswer)
 end;
 
-FUNCTION TBlockSerial.TestCtrlLine: boolean;
+function TBlockSerial.TestCtrlLine: Boolean;
 begin
   result := ((not FTestDSR) or DSR) and ((not FTestCTS) or CTS);
 end;
 
-FUNCTION TBlockSerial.ATCommand(value: ansistring): ansistring;
-VAR
-  s: ansistring;
-  ConvSave: boolean;
+function TBlockSerial.ATCommand(value: AnsiString): AnsiString;
+var
+  s: AnsiString;
+  ConvSave: Boolean;
 begin
   result := '';
-  FAtResult := false;
+  FAtResult := False;
   ConvSave := FConvertLineEnd;
   try
-    FConvertLineEnd := true;
+    FConvertLineEnd := True;
     SendString(value + #$0D);
     repeat
       s := RecvString(FAtTimeout);
-      if s <> value then
+      if s <> Value then
         result := result + s + CRLF;
       if s = 'OK' then
       begin
-        FAtResult := true;
+        FAtResult := True;
         break;
       end;
       if s = 'ERROR' then
@@ -2053,20 +2053,20 @@ begin
 end;
 
 
-FUNCTION TBlockSerial.ATConnect(value: ansistring): ansistring;
-VAR
-  s: ansistring;
-  ConvSave: boolean;
+function TBlockSerial.ATConnect(value: AnsiString): AnsiString;
+var
+  s: AnsiString;
+  ConvSave: Boolean;
 begin
   result := '';
-  FAtResult := false;
+  FAtResult := False;
   ConvSave := FConvertLineEnd;
   try
-    FConvertLineEnd := true;
+    FConvertLineEnd := True;
     SendString(value + #$0D);
     repeat
       s := RecvString(90 * FAtTimeout);
-      if s <> value then
+      if s <> Value then
         result := result + s + CRLF;
       if s = 'NO CARRIER' then
         break;
@@ -2076,9 +2076,9 @@ begin
         break;
       if s = 'NO DIALTONE' then
         break;
-      if pos('CONNECT', s) = 1 then
+      if Pos('CONNECT', s) = 1 then
       begin
-        FAtResult := true;
+        FAtResult := True;
         break;
       end;
     until FLastError <> sOK;
@@ -2087,7 +2087,7 @@ begin
   end;
 end;
 
-FUNCTION TBlockSerial.SerialCheck(SerialResult: integer): integer;
+function TBlockSerial.SerialCheck(SerialResult: integer): integer;
 begin
   if SerialResult = integer(INVALID_HANDLE_VALUE) then
 {$IFDEF MSWINDOWS}
@@ -2105,8 +2105,8 @@ begin
   FLastErrorDesc := GetErrorDesc(FLastError);
 end;
 
-PROCEDURE TBlockSerial.ExceptCheck;
-VAR
+procedure TBlockSerial.ExceptCheck;
+var
   e: ESynaSerError;
   s: string;
 begin
@@ -2115,53 +2115,53 @@ begin
     s := GetErrorDesc(FLastError);
     e := ESynaSerError.CreateFmt('Communication error %d: %s', [FLastError, s]);
     e.ErrorCode := FLastError;
-    e.errorMessage := s;
+    e.ErrorMessage := s;
     raise e;
   end;
 end;
 
-PROCEDURE TBlockSerial.SetSynaError(ErrNumber: integer);
+procedure TBlockSerial.SetSynaError(ErrNumber: integer);
 begin
   FLastError := ErrNumber;
   FLastErrorDesc := GetErrorDesc(FLastError);
 end;
 
-PROCEDURE TBlockSerial.RaiseSynaError(ErrNumber: integer);
+procedure TBlockSerial.RaiseSynaError(ErrNumber: integer);
 begin
   SetSynaError(ErrNumber);
   ExceptCheck;
 end;
 
-PROCEDURE TBlockSerial.DoStatus(Reason: THookSerialReason; CONST value: string);
+procedure TBlockSerial.DoStatus(Reason: THookSerialReason; const Value: string);
 begin
   if assigned(OnStatus) then
-    OnStatus(self, Reason, value);
+    OnStatus(Self, Reason, Value);
 end;
 
 {======================================================================}
 
-class FUNCTION TBlockSerial.GetErrorDesc(ErrorCode: integer): string;
+class function TBlockSerial.GetErrorDesc(ErrorCode: integer): string;
 begin
-  result:= '';
+  Result:= '';
   case ErrorCode of
-    sOK:               result := 'OK';
-    ErrAlreadyOwned:   result := 'Port owned by other process';{HGJ}
-    ErrAlreadyInUse:   result := 'Instance already in use';    {HGJ}
-    ErrWrongParameter: result := 'Wrong parameter at call';     {HGJ}
-    ErrPortNotOpen:    result := 'Instance not yet connected'; {HGJ}
-    ErrNoDeviceAnswer: result := 'No device answer detected';  {HGJ}
-    ErrMaxBuffer:      result := 'Maximal buffer length exceeded';
-    ErrTimeout:        result := 'Timeout during operation';
-    ErrNotRead:        result := 'Reading of data failed';
-    ErrFrame:          result := 'Receive framing error';
-    ErrOverrun:        result := 'Receive Overrun Error';
-    ErrRxOver:         result := 'Receive Queue overflow';
-    ErrRxParity:       result := 'Receive Parity Error';
-    ErrTxFull:         result := 'Tranceive Queue is full';
+    sOK:               Result := 'OK';
+    ErrAlreadyOwned:   Result := 'Port owned by other process';{HGJ}
+    ErrAlreadyInUse:   Result := 'Instance already in use';    {HGJ}
+    ErrWrongParameter: Result := 'Wrong parameter at call';     {HGJ}
+    ErrPortNotOpen:    Result := 'Instance not yet connected'; {HGJ}
+    ErrNoDeviceAnswer: Result := 'No device answer detected';  {HGJ}
+    ErrMaxBuffer:      Result := 'Maximal buffer length exceeded';
+    ErrTimeout:        Result := 'Timeout during operation';
+    ErrNotRead:        Result := 'Reading of data failed';
+    ErrFrame:          Result := 'Receive framing error';
+    ErrOverrun:        Result := 'Receive Overrun Error';
+    ErrRxOver:         Result := 'Receive Queue overflow';
+    ErrRxParity:       Result := 'Receive Parity Error';
+    ErrTxFull:         Result := 'Tranceive Queue is full';
   end;
-  if result = '' then
+  if Result = '' then
   begin
-    result := SysErrorMessage(ErrorCode);
+    Result := SysErrorMessage(ErrorCode);
   end;
 end;
 
@@ -2177,28 +2177,28 @@ end;
 
 {$IFDEF UNIX}
 
-FUNCTION TBlockSerial.LockfileName: string;
-VAR
+function TBlockSerial.LockfileName: String;
+var
   s: string;
 begin
   s := SeparateRight(FDevice, '/dev/');
   result := LockfileDirectory + '/LCK..' + s;
 end;
 
-PROCEDURE TBlockSerial.CreateLockfile(PidNr: integer);
-VAR
-  f: textFile;
+procedure TBlockSerial.CreateLockfile(PidNr: integer);
+var
+  f: TextFile;
   s: string;
 begin
   // Create content for file
-  s := intToStr(PidNr);
+  s := IntToStr(PidNr);
   while length(s) < 10 do
     s := ' ' + s;
   // Create file
   try
     AssignFile(f, LockfileName);
     try
-      rewrite(f);
+      Rewrite(f);
       writeln(f, s);
     finally
       CloseFile(f);
@@ -2206,7 +2206,7 @@ begin
     // Allow all users to enjoy the benefits of cpom
     s := 'chmod a+rw ' + LockfileName;
 {$IFNDEF FPC}
-    FileSetReadOnly( LockfileName, false ) ;
+    FileSetReadOnly( LockfileName, False ) ;
  // Libc.system(pchar(s));
 {$ELSE}
     fpSystem(s);
@@ -2218,38 +2218,38 @@ begin
   end;
 end;
 
-FUNCTION TBlockSerial.ReadLockfile: integer;
+function TBlockSerial.ReadLockfile: integer;
 {Returns PID from Lockfile. Lockfile must exist.}
-VAR
-  f: textFile;
+var
+  f: TextFile;
   s: string;
 begin
   AssignFile(f, LockfileName);
-  reset(f);
+  Reset(f);
   try
     readln(f, s);
   finally
     CloseFile(f);
   end;
-  result := strToIntDef(s, -1)
+  Result := StrToIntDef(s, -1)
 end;
 
-FUNCTION TBlockSerial.cpomComportAccessible: boolean;
-VAR
+function TBlockSerial.cpomComportAccessible: boolean;
+var
   MyPid: integer;
-  fileName: string;
+  Filename: string;
 begin
-  fileName := LockfileName;
+  Filename := LockfileName;
   {$IFNDEF FPC}
   MyPid := Libc.getpid;
   {$ELSE}
-  MyPid := fpGetPID;
+  MyPid := fpGetPid;
   {$ENDIF}
   // Make sure, the Lock Files Directory exists. We need it.
   if not DirectoryExists(LockfileDirectory) then
     CreateDir(LockfileDirectory);
   // Check the Lockfile
-  if not fileExists (fileName) then
+  if not FileExists (Filename) then
   begin // comport is not locked. Lock it for us.
     CreateLockfile(MyPid);
     result := true;
@@ -2260,7 +2260,7 @@ begin
   {$IFNDEF FPC}
   if Libc.getsid(ReadLockfile) = -1 then
   begin //  Lockfile was left from former desaster
-    DeleteFile(fileName); // error recovery
+    DeleteFile(Filename); // error recovery
     CreateLockfile(MyPid);
     result := true;
     exit;
@@ -2269,7 +2269,7 @@ begin
   result := false // Sorry, port is owned by living PID and locked
 end;
 
-PROCEDURE TBlockSerial.cpomReleaseComport;
+procedure TBlockSerial.cpomReleaseComport;
 begin
   DeleteFile(LockfileName);
 end;
@@ -2278,15 +2278,15 @@ end;
 {----------------------------------------------------------------}
 
 {$IFDEF MSWINDOWS}
-FUNCTION GetSerialPortNames: string;
-VAR
+function GetSerialPortNames: string;
+var
   reg: TRegistry;
   l, v: TStringList;
   n: integer;
 begin
-  l := TStringList.create;
-  v := TStringList.create;
-  reg := TRegistry.create;
+  l := TStringList.Create;
+  v := TStringList.Create;
+  reg := TRegistry.Create;
   try
 {$IFNDEF VER100}
 {$IFNDEF VER120}
@@ -2296,42 +2296,42 @@ begin
     reg.RootKey := HKEY_LOCAL_MACHINE;
     reg.OpenKey('\HARDWARE\DEVICEMAP\SERIALCOMM', false);
     reg.GetValueNames(l);
-    for n := 0 to l.count - 1 do
-      v.add(reg.readString(l[n]));
-    result := v.CommaText;
+    for n := 0 to l.Count - 1 do
+      v.Add(reg.ReadString(l[n]));
+    Result := v.CommaText;
   finally
-    reg.free;
-    l.free;
-    v.free;
+    reg.Free;
+    l.Free;
+    v.Free;
   end;
 end;
 {$ENDIF}
 {$IFNDEF MSWINDOWS}
-FUNCTION GetSerialPortNames: string;
-VAR
-  index: integer;
-  data: string;
-  TmpPorts: string;
+function GetSerialPortNames: string;
+var
+  Index: Integer;
+  Data: string;
+  TmpPorts: String;
   sr : TSearchRec;
 begin
   try
     TmpPorts := '';
-    if FindFirst('/dev/ttyS*', $ffffffff, sr) = 0 then
+    if FindFirst('/dev/ttyS*', $FFFFFFFF, sr) = 0 then
     begin
       repeat
-        if (sr.Attr and $ffffffff) = Sr.Attr then
+        if (sr.Attr and $FFFFFFFF) = Sr.Attr then
         begin
-          data := sr.name;
+          data := sr.Name;
           index := length(data);
           while (index > 1) and (data[index] <> '/') do
             index := index - 1;
           TmpPorts := TmpPorts + ' ' + copy(data, 1, index + 1);
         end;
-      until findNext(sr) <> 0;
+      until FindNext(sr) <> 0;
     end;
     FindClose(sr);
   finally
-    result:=TmpPorts;
+    Result:=TmpPorts;
   end;
 end;
 {$ENDIF}

@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 004.000.002 |
+| Project : Ararat Synapse                                       | 004.000.002 |
 |==============================================================================|
-| content: PING Sender                                                         |
+| Content: PING sender                                                         |
 |==============================================================================|
 | Copyright (c)1999-2010, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,40 +20,40 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2000-2010.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(ICMP PING implementation.)
-Allows create PING and TRACEROUTE. or you can diagnose your network.
+Allows create PING and TRACEROUTE. Or you can diagnose your network.
 
-This UNIT using IpHlpApi (on WinXP or higher) if available. Otherwise it trying
- to use raw sockets.
+This unit using IpHlpApi (on WinXP or higher) if available. Otherwise it trying
+ to use RAW sockets.
 
-Warning: for use of raw sockets you must have some special rights on some
+Warning: For use of RAW sockets you must have some special rights on some
  systems. So, it working allways when you have administator/root rights.
  Otherwise you can have problems!
 
-Note: This UNIT is not portable to .NET!
-  use native .NET Classes for Ping instead.
+Note: This unit is NOT portable to .NET!
+  Use native .NET classes for Ping instead.
 }
 
 {$IFDEF FPC}
@@ -64,7 +64,7 @@ Note: This UNIT is not portable to .NET!
 {$H+}
 
 {$IFDEF CIL}
-  Sorry, this UNIT is not for .NET!
+  Sorry, this unit is not for .NET!
 {$ENDIF}
 //old Delphi does not have MSWINDOWS define.
 {$IFDEF WIN32}
@@ -78,19 +78,19 @@ Note: This UNIT is not portable to .NET!
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT pingsend;
+unit pingsend;
 
-INTERFACE
+interface
 
-USES
-  sysutils,
+uses
+  SysUtils,
   synsock, blcksock, synautil, synafpc, synaip
 {$IFDEF MSWINDOWS}
   , windows
 {$ENDIF}
   ;
 
-CONST
+const
   ICMP_ECHO = 8;
   ICMP_ECHOREPLY = 0;
   ICMP_UNREACH = 3;
@@ -101,7 +101,7 @@ CONST
   ICMP6_UNREACH = 1;
   ICMP6_TIME_EXCEEDED = 3;
 
-TYPE
+type
   {:List of possible ICMP reply packet types.}
   TICMPError = (
     IE_NoError,
@@ -118,89 +118,89 @@ TYPE
   TPINGSend = class(TSynaClient)
   private
     FSock: TICMPBlockSocket;
-    FBuffer: ansistring;
-    FSeq: integer;
-    FId: integer;
-    FPacketSize: integer;
-    FPingTime: integer;
-    FIcmpEcho: byte;
-    FIcmpEchoReply: byte;
-    FIcmpUnreach: byte;
+    FBuffer: Ansistring;
+    FSeq: Integer;
+    FId: Integer;
+    FPacketSize: Integer;
+    FPingTime: Integer;
+    FIcmpEcho: Byte;
+    FIcmpEchoReply: Byte;
+    FIcmpUnreach: Byte;
     FReplyFrom: string;
     FReplyType: byte;
     FReplyCode: byte;
     FReplyError: TICMPError;
     FReplyErrorDesc: string;
-    FTTL: byte;
+    FTTL: Byte;
     Fsin: TVarSin;
-    FUNCTION Checksum(value: ansistring): word;
-    FUNCTION Checksum6(value: ansistring): word;
-    FUNCTION ReadPacket: boolean;
-    PROCEDURE TranslateError;
-    PROCEDURE TranslateErrorIpHlp(value: integer);
-    FUNCTION InternalPing(CONST Host: string): boolean;
-    FUNCTION InternalPingIpHlp(CONST Host: string): boolean;
-    FUNCTION IsHostIP6(CONST Host: string): boolean;
-    PROCEDURE GenErrorDesc;
+    function Checksum(Value: AnsiString): Word;
+    function Checksum6(Value: AnsiString): Word;
+    function ReadPacket: Boolean;
+    procedure TranslateError;
+    procedure TranslateErrorIpHlp(value: integer);
+    function InternalPing(const Host: string): Boolean;
+    function InternalPingIpHlp(const Host: string): Boolean;
+    function IsHostIP6(const Host: string): Boolean;
+    procedure GenErrorDesc;
   public
     {:Send ICMP ping to host and count @link(pingtime). If ping OK, result is
      @true.}
-    FUNCTION Ping(CONST Host: string): boolean;
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
-  Published
+    function Ping(const Host: string): Boolean;
+    constructor Create;
+    destructor Destroy; override;
+  published
     {:Size of PING packet. Default size is 32 bytes.}
-    PROPERTY PacketSize: integer read FPacketSize write FPacketSize;
+    property PacketSize: Integer read FPacketSize Write FPacketSize;
 
     {:Time between request and reply.}
-    PROPERTY PingTime: integer read FPingTime;
+    property PingTime: Integer read FPingTime;
 
     {:From this address is sended reply for your PING request. It maybe not your
      requested destination, when some error occured!}
-    PROPERTY ReplyFrom: string read FReplyFrom;
+    property ReplyFrom: string read FReplyFrom;
 
     {:ICMP type of PING reply. Each protocol using another values! For IPv4 and
      IPv6 are used different values!}
-    PROPERTY ReplyType: byte read FReplyType;
+    property ReplyType: byte read FReplyType;
 
     {:ICMP code of PING reply. Each protocol using another values! For IPv4 and
-     IPv6 are used different values! for protocol independent value look to
+     IPv6 are used different values! For protocol independent value look to
      @link(ReplyError)}
-    PROPERTY ReplyCode: byte read FReplyCode;
+    property ReplyCode: byte read FReplyCode;
 
     {:Return type of returned ICMP message. This value is independent on used
      protocol!}
-    PROPERTY ReplyError: TICMPError read FReplyError;
+    property ReplyError: TICMPError read FReplyError;
 
     {:Return human readable description of returned packet type.}
-    PROPERTY ReplyErrorDesc: string read FReplyErrorDesc;
+    property ReplyErrorDesc: string read FReplyErrorDesc;
 
     {:Socket object used for TCP/IP operation. Good for seting OnStatus hook, etc.}
-    PROPERTY Sock: TICMPBlockSocket read FSock;
+    property Sock: TICMPBlockSocket read FSock;
 
     {:TTL value for ICMP query}
-    PROPERTY TTL: byte read FTTL write FTTL;
+    property TTL: byte read FTTL write FTTL;
   end;
 
 {:A very useful function and example of its use would be found in the TPINGSend
- object. use it to ping to any host. if successful, returns the ping time in
- Milliseconds.  Returns -1 if an error occurred.}
-FUNCTION PingHost(CONST Host: string): integer;
+ object. Use it to ping to any host. If successful, returns the ping time in
+ milliseconds.  Returns -1 if an error occurred.}
+function PingHost(const Host: string): Integer;
 
 {:A very useful function and example of its use would be found in the TPINGSend
- object. use it to TraceRoute to any host.}
-FUNCTION TraceRouteHost(CONST Host: string): string;
+ object. Use it to TraceRoute to any host.}
+function TraceRouteHost(const Host: string): string;
 
-IMPLEMENTATION
+implementation
 
-TYPE
+type
   {:Record for ICMP ECHO packet header.}
   TIcmpEchoHeader = packed record
-    i_type: byte;
-    i_code: byte;
-    i_checkSum: word;
-    i_Id: word;
-    i_seq: word;
+    i_type: Byte;
+    i_code: Byte;
+    i_checkSum: Word;
+    i_Id: Word;
+    i_seq: Word;
     TimeStamp: integer;
   end;
 
@@ -209,22 +209,22 @@ TYPE
   TICMP6Packet = packed record
     in_source: TInAddr6;
     in_dest: TInAddr6;
-    length: integer;
-    free0: byte;
-    free1: byte;
-    free2: byte;
-    proto: byte;
+    Length: integer;
+    free0: Byte;
+    free1: Byte;
+    free2: Byte;
+    proto: Byte;
   end;
 
 {$IFDEF MSWINDOWS}
-CONST
+const
   DLLIcmpName = 'iphlpapi.dll';
-TYPE
+type
   TIP_OPTION_INFORMATION = record
-    TTL: byte;
-    TOS: byte;
-    Flags: byte;
-    OptionsSize: byte;
+    TTL: Byte;
+    TOS: Byte;
+    Flags: Byte;
+    OptionsSize: Byte;
     OptionsData: PAnsiChar;
   end;
   PIP_OPTION_INFORMATION = ^TIP_OPTION_INFORMATION;
@@ -233,10 +233,10 @@ TYPE
     Address: TInAddr;
     Status: integer;
     RoundTripTime: integer;
-    DataSize: word;
-    Reserved: word;
-    data: pointer;
-    options: TIP_OPTION_INFORMATION;
+    DataSize: Word;
+    Reserved: Word;
+    Data: pointer;
+    Options: TIP_OPTION_INFORMATION;
   end;
   PICMP_ECHO_REPLY = ^TICMP_ECHO_REPLY;
 
@@ -247,19 +247,19 @@ TYPE
   end;
   PICMPV6_ECHO_REPLY = ^TICMPV6_ECHO_REPLY;
 
-  TIcmpCreateFile = FUNCTION: integer; stdcall;
-  TIcmpCloseHandle = FUNCTION(handle: integer): boolean; stdcall;
-  TIcmpSendEcho2 = FUNCTION(handle: integer; Event: pointer; ApcRoutine: pointer;
+  TIcmpCreateFile = function: integer; stdcall;
+  TIcmpCloseHandle = function(handle: integer): boolean; stdcall;
+  TIcmpSendEcho2 = function(handle: integer; Event: pointer; ApcRoutine: pointer;
     ApcContext: pointer; DestinationAddress: TInAddr; RequestData: pointer;
     RequestSize: integer; RequestOptions: PIP_OPTION_INFORMATION;
-    ReplyBuffer: pointer; ReplySize: integer; Timeout: integer): integer; stdcall;
-  TIcmp6CreateFile = FUNCTION: integer; stdcall;
-  TIcmp6SendEcho2 = FUNCTION(handle: integer; Event: pointer; ApcRoutine: pointer;
+    ReplyBuffer: pointer; ReplySize: integer; Timeout: Integer): integer; stdcall;
+  TIcmp6CreateFile = function: integer; stdcall;
+  TIcmp6SendEcho2 = function(handle: integer; Event: pointer; ApcRoutine: pointer;
     ApcContext: pointer; SourceAddress: PSockAddrIn6; DestinationAddress: PSockAddrIn6;
     RequestData: pointer; RequestSize: integer; RequestOptions: PIP_OPTION_INFORMATION;
-    ReplyBuffer: pointer; ReplySize: integer; Timeout: integer): integer; stdcall;
+    ReplyBuffer: pointer; ReplySize: integer; Timeout: Integer): integer; stdcall;
 
-VAR
+var
   IcmpDllHandle: TLibHandle = 0;
   IcmpHelper4: boolean = false;
   IcmpHelper6: boolean = false;
@@ -271,31 +271,31 @@ VAR
 {$ENDIF}
 {==============================================================================}
 
-CONSTRUCTOR TPINGSend.create;
+constructor TPINGSend.Create;
 begin
-  inherited create;
-  FSock := TICMPBlockSocket.create;
+  inherited Create;
+  FSock := TICMPBlockSocket.Create;
   FSock.Owner := self;
   FTimeout := 5000;
   FPacketSize := 32;
   FSeq := 0;
-  randomize;
+  Randomize;
   FTTL := 128;
 end;
 
-DESTRUCTOR TPINGSend.destroy;
+destructor TPINGSend.Destroy;
 begin
-  FSock.free;
-  inherited destroy;
+  FSock.Free;
+  inherited Destroy;
 end;
 
-FUNCTION TPINGSend.ReadPacket: boolean;
+function TPINGSend.ReadPacket: Boolean;
 begin
   FBuffer := FSock.RecvPacket(Ftimeout);
-  result := FSock.LastError = 0;
+  Result := FSock.LastError = 0;
 end;
 
-PROCEDURE TPINGSend.GenErrorDesc;
+procedure TPINGSend.GenErrorDesc;
 begin
   case FReplyError of
     IE_NoError:
@@ -317,8 +317,8 @@ begin
   end;
 end;
 
-FUNCTION TPINGSend.IsHostIP6(CONST Host: string): boolean;
-VAR
+function TPINGSend.IsHostIP6(const Host: string): Boolean;
+var
   f: integer;
 begin
   f := AF_UNSPEC;
@@ -332,8 +332,8 @@ begin
   result := Fsin.sin_family = AF_INET6;
 end;
 
-FUNCTION TPINGSend.Ping(CONST Host: string): boolean;
-VAR
+function TPINGSend.Ping(const Host: string): Boolean;
+var
   b: boolean;
 begin
   FPingTime := -1;
@@ -342,7 +342,7 @@ begin
   FReplyCode := 0;
   FReplyError := IE_Other;
   GenErrorDesc;
-  FBuffer := StringOfChar(#55, sizeOf(TICMPEchoHeader) + FPacketSize);
+  FBuffer := StringOfChar(#55, SizeOf(TICMPEchoHeader) + FPacketSize);
 {$IFDEF MSWINDOWS}
   b := IsHostIP6(host);
   if not(b) and IcmpHelper4 then
@@ -357,21 +357,21 @@ begin
 {$ENDIF}
 end;
 
-FUNCTION TPINGSend.InternalPing(CONST Host: string): boolean;
-VAR
+function TPINGSend.InternalPing(const Host: string): Boolean;
+var
   IPHeadPtr: ^TIPHeader;
-  IpHdrLen: integer;
+  IpHdrLen: Integer;
   IcmpEchoHeaderPtr: ^TICMPEchoHeader;
-  t: boolean;
-  x: Cardinal;
+  t: Boolean;
+  x: cardinal;
   IcmpReqHead: string;
 begin
-  result := false;
+  Result := False;
   FSock.TTL := FTTL;
   FSock.Bind(FIPInterface, cAnyPort);
   FSock.Connect(Host, '0');
   if FSock.LastError <> 0 then
-    exit;
+    Exit;
   FSock.SizeRecvBuffer := 60 * 1024;
   if FSock.IP6used then
   begin
@@ -385,16 +385,16 @@ begin
     FIcmpEchoReply := ICMP_ECHOREPLY;
     FIcmpUnreach := ICMP_UNREACH;
   end;
-  IcmpEchoHeaderPtr := pointer(FBuffer);
+  IcmpEchoHeaderPtr := Pointer(FBuffer);
   with IcmpEchoHeaderPtr^ do
   begin
     i_type := FIcmpEcho;
     i_code := 0;
     i_CheckSum := 0;
-    FId := system.random(32767);
+    FId := System.Random(32767);
     i_Id := FId;
     TimeStamp := GetTick;
-    inc(FSeq);
+    Inc(FSeq);
     i_Seq := FSeq;
     if fSock.IP6used then
       i_CheckSum := CheckSum6(FBuffer)
@@ -403,7 +403,7 @@ begin
   end;
   FSock.SendString(FBuffer);
   // remember first 8 bytes of ICMP packet
-  IcmpReqHead := copy(FBuffer, 1, 8);
+  IcmpReqHead := Copy(FBuffer, 1, 8);
   x := GetTick;
   repeat
     t := ReadPacket;
@@ -412,17 +412,17 @@ begin
     if fSock.IP6used then
     begin
 {$IFNDEF MSWINDOWS}
-      IcmpEchoHeaderPtr := pointer(FBuffer);
+      IcmpEchoHeaderPtr := Pointer(FBuffer);
 {$ELSE}
 //WinXP SP1 with networking update doing this think by another way ;-O
 //      FBuffer := StringOfChar(#0, 4) + FBuffer;
-      IcmpEchoHeaderPtr := pointer(FBuffer);
+      IcmpEchoHeaderPtr := Pointer(FBuffer);
 //      IcmpEchoHeaderPtr^.i_type := FIcmpEchoReply;
 {$ENDIF}
     end
     else
     begin
-      IPHeadPtr := pointer(FBuffer);
+      IPHeadPtr := Pointer(FBuffer);
       IpHdrLen := (IPHeadPtr^.VerLen and $0F) * 4;
       IcmpEchoHeaderPtr := @FBuffer[IpHdrLen + 1];
     end;
@@ -430,13 +430,13 @@ begin
     if TickDelta(x, GetTick) > FTimeout then
     begin
       t := false;
-      break;
+      Break;
     end;
   //it discard sometimes possible 'echoes' of previosly sended packet
   //or other unwanted ICMP packets...
   until (IcmpEchoHeaderPtr^.i_type <> FIcmpEcho)
     and ((IcmpEchoHeaderPtr^.i_id = FId)
-    or (pos(IcmpReqHead, FBuffer) > 0));
+    or (Pos(IcmpReqHead, FBuffer) > 0));
   if t then
     begin
       FPingTime := TickDelta(x, GetTick);
@@ -444,65 +444,65 @@ begin
       FReplyType := IcmpEchoHeaderPtr^.i_type;
       FReplyCode := IcmpEchoHeaderPtr^.i_code;
       TranslateError;
-      result := true;
+      Result := True;
     end;
 end;
 
-FUNCTION TPINGSend.Checksum(value: ansistring): word;
-VAR
+function TPINGSend.Checksum(Value: AnsiString): Word;
+var
   CkSum: integer;
-  Num, Remain: integer;
-  n, i: integer;
+  Num, Remain: Integer;
+  n, i: Integer;
 begin
-  Num := length(value) div 2;
-  Remain := length(value) mod 2;
+  Num := Length(Value) div 2;
+  Remain := Length(Value) mod 2;
   CkSum := 0;
   i := 1;
   for n := 0 to Num - 1 do
   begin
-    CkSum := CkSum + Synsock.HtoNs(DecodeInt(value, i));
+    CkSum := CkSum + Synsock.HtoNs(DecodeInt(Value, i));
     inc(i, 2);
   end;
   if Remain <> 0 then
-    CkSum := CkSum + ord(value[length(value)]);
+    CkSum := CkSum + Ord(Value[Length(Value)]);
   CkSum := (CkSum shr 16) + (CkSum and $FFFF);
   CkSum := CkSum + (CkSum shr 16);
-  result := word(not CkSum);
+  Result := Word(not CkSum);
 end;
 
-FUNCTION TPINGSend.Checksum6(value: ansistring): word;
-CONST
+function TPINGSend.Checksum6(Value: AnsiString): Word;
+const
   IOC_OUT = $40000000;
   IOC_IN = $80000000;
   IOC_INOUT = (IOC_IN or IOC_OUT);
   IOC_WS2 = $08000000;
   SIO_ROUTING_INTERFACE_QUERY = 20 or IOC_WS2 or IOC_INOUT;
-VAR
+var
   ICMP6Ptr: ^TICMP6Packet;
-  s: ansistring;
+  s: AnsiString;
   b: integer;
   ip6: TSockAddrIn6;
   x: integer;
 begin
-  result := 0;
+  Result := 0;
 {$IFDEF MSWINDOWS}
-  s := StringOfChar(#0, sizeOf(TICMP6Packet)) + value;
-  ICMP6Ptr := pointer(s);
+  s := StringOfChar(#0, SizeOf(TICMP6Packet)) + Value;
+  ICMP6Ptr := Pointer(s);
   x := synsock.WSAIoctl(FSock.Socket, SIO_ROUTING_INTERFACE_QUERY,
-    @FSock.RemoteSin, sizeOf(FSock.RemoteSin),
-    @ip6, sizeOf(ip6), @b, nil, nil);
+    @FSock.RemoteSin, SizeOf(FSock.RemoteSin),
+    @ip6, SizeOf(ip6), @b, nil, nil);
   if x <> -1 then
     ICMP6Ptr^.in_dest := ip6.sin6_addr
   else
     ICMP6Ptr^.in_dest := FSock.LocalSin.sin6_addr;
   ICMP6Ptr^.in_source := FSock.RemoteSin.sin6_addr;
-  ICMP6Ptr^.length := synsock.htonl(length(value));
+  ICMP6Ptr^.Length := synsock.htonl(Length(Value));
   ICMP6Ptr^.proto := IPPROTO_ICMPV6;
-  result := Checksum(s);
+  Result := Checksum(s);
 {$ENDIF}
 end;
 
-PROCEDURE TPINGSend.TranslateError;
+procedure TPINGSend.TranslateError;
 begin
   if fSock.IP6used then
   begin
@@ -555,7 +555,7 @@ begin
   GenErrorDesc;
 end;
 
-PROCEDURE TPINGSend.TranslateErrorIpHlp(value: integer);
+procedure TPINGSend.TranslateErrorIpHlp(value: integer);
 begin
   case value of
     11000, 0:
@@ -576,19 +576,19 @@ begin
   GenErrorDesc;
 end;
 
-FUNCTION TPINGSend.InternalPingIpHlp(CONST Host: string): boolean;
+function TPINGSend.InternalPingIpHlp(const Host: string): Boolean;
 {$IFDEF MSWINDOWS}
-VAR
+var
   PingIp6: boolean;
   PingHandle: integer;
   r: integer;
   ipo: TIP_OPTION_INFORMATION;
-  RBuff: ansistring;
+  RBuff: Ansistring;
   ip4reply: PICMP_ECHO_REPLY;
   ip6reply: PICMPV6_ECHO_REPLY;
   ip6: TSockAddrIn6;
 begin
-  result := false;
+  Result := False;
   PingIp6 := Fsin.sin_family = AF_INET6;
   if pingIp6 then
     PingHandle := Icmp6CreateFile
@@ -602,12 +602,12 @@ begin
       ipo.Flags := 0;
       ipo.OptionsSize := 0;
       ipo.OptionsData := nil;
-      setLength(RBuff, 4096);
+      setlength(RBuff, 4096);
       if pingIp6 then
       begin
-        FillChar(ip6, sizeOf(ip6), 0);
+        FillChar(ip6, sizeof(ip6), 0);
         r := Icmp6SendEcho2(PingHandle, nil, nil, nil, @ip6, @Fsin,
-          PAnsiChar(FBuffer), length(FBuffer), @ipo, PAnsiChar(RBuff), length(RBuff), FTimeout);
+          PAnsichar(FBuffer), length(FBuffer), @ipo, pAnsichar(RBuff), length(RBuff), FTimeout);
         if r > 0 then
         begin
           RBuff := #0 + #0 + RBuff;
@@ -616,20 +616,20 @@ begin
           ip6reply^.Address.sin6_family := AF_INET6;
           FReplyFrom := GetSinIp(TVarSin(ip6reply^.Address));
           TranslateErrorIpHlp(ip6reply^.Status);
-          result := true;
+          Result := True;
         end;
       end
       else
       begin
         r := IcmpSendEcho2(PingHandle, nil, nil, nil, Fsin.sin_addr,
-          PAnsiChar(FBuffer), length(FBuffer), @ipo, PAnsiChar(RBuff), length(RBuff), FTimeout);
+          PAnsichar(FBuffer), length(FBuffer), @ipo, pAnsichar(RBuff), length(RBuff), FTimeout);
         if r > 0 then
         begin
           ip4reply := PICMP_ECHO_REPLY(pointer(RBuff));
           FPingTime := ip4reply^.RoundTripTime;
           FReplyFrom := IpToStr(swapbytes(ip4reply^.Address.S_addr));
           TranslateErrorIpHlp(ip4reply^.Status);
-          result := true;
+          Result := True;
         end;
       end
     finally
@@ -645,53 +645,53 @@ end;
 
 {==============================================================================}
 
-FUNCTION PingHost(CONST Host: string): integer;
+function PingHost(const Host: string): Integer;
 begin
-  with TPINGSend.create do
+  with TPINGSend.Create do
   try
-    result := -1;
+    Result := -1;
     if Ping(Host) then
       if ReplyError = IE_NoError then
-        result := PingTime;
+        Result := PingTime;
   finally
-    free;
+    Free;
   end;
 end;
 
-FUNCTION TraceRouteHost(CONST Host: string): string;
-VAR
+function TraceRouteHost(const Host: string): string;
+var
   Ping: TPingSend;
   ttl : byte;
 begin
-  result := '';
-  Ping := TPINGSend.create;
+  Result := '';
+  Ping := TPINGSend.Create;
   try
     ttl := 1;
     repeat
       ping.TTL := ttl;
       inc(ttl);
       if ttl > 30 then
-        break;
+        Break;
       if not ping.Ping(Host) then
       begin
-        result := result + cAnyHost+ ' Timeout' + CRLF;
+        Result := Result + cAnyHost+ ' Timeout' + CRLF;
         continue;
       end;
       if (ping.ReplyError <> IE_NoError)
         and (ping.ReplyError <> IE_TTLExceed) then
       begin
-        result := result + Ping.ReplyFrom + ' ' + Ping.ReplyErrorDesc + CRLF;
+        Result := Result + Ping.ReplyFrom + ' ' + Ping.ReplyErrorDesc + CRLF;
         break;
       end;
-      result := result + Ping.ReplyFrom + ' ' + intToStr(Ping.PingTime) + CRLF;
+      Result := Result + Ping.ReplyFrom + ' ' + IntToStr(Ping.PingTime) + CRLF;
     until ping.ReplyError = IE_NoError;
   finally
-    Ping.free;
+    Ping.Free;
   end;
 end;
 
 {$IFDEF MSWINDOWS}
-INITIALIZATION
+initialization
 begin
   IcmpHelper4 := false;
   IcmpHelper6 := false;
@@ -711,7 +711,7 @@ begin
   end;
 end;
 
-FINALIZATION
+finalization
 begin
   FreeLibrary(IcmpDllHandle);
 end;

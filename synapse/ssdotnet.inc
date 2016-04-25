@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.000.002 |
+| Project : Ararat Synapse                                       | 001.000.002 |
 |==============================================================================|
-| content: Socket Independent Platform Layer - .NET definition include         |
+| Content: Socket Independent Platform Layer - .NET definition include         |
 |==============================================================================|
 | Copyright (c)2004, Lukas Gebauer                                             |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,77 +20,77 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2004.                     |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@exclude}
 
 {$IFDEF CIL}
 
-INTERFACE
+interface
 
-USES
-  SyncObjs, sysutils, Classes,
-  system.Net,
-  system.Net.Sockets;
+uses
+  SyncObjs, SysUtils, Classes,
+  System.Net,
+  System.Net.Sockets;
 
-CONST
+const
   DLLStackName = '';
   WinsockLevel = $0202;
 
-FUNCTION InitSocketInterface(stack: string): boolean;
-FUNCTION DestroySocketInterface: boolean;
+function InitSocketInterface(stack: string): Boolean;
+function DestroySocketInterface: Boolean;
 
-TYPE
-  u_char = char;
-  u_short = word;
-  u_int = integer;
-  u_long = longint;
+type
+  u_char = Char;
+  u_short = Word;
+  u_int = Integer;
+  u_long = Longint;
   pu_long = ^u_long;
   pu_short = ^u_short;
   PSockAddr = IPEndPoint;
-  dword = integer;
-  ULong = Cardinal;
-  TMemory = array of byte;
+  DWORD = integer;
+  ULong = cardinal;
+  TMemory = Array of byte;
   TLinger = LingerOption;
   TSocket = socket;
   TAddrFamily = AddressFamily;
 
-CONST
+const
   WSADESCRIPTION_LEN     =   256;
   WSASYS_STATUS_LEN      =   128;
-TYPE
+type
   PWSAData = ^TWSAData;
   TWSAData = packed record
-    wVersion: word;
-    wHighVersion: word;
-    szDescription: array[0..WSADESCRIPTION_LEN] of char;
-    szSystemStatus: array[0..WSASYS_STATUS_LEN] of char;
-    iMaxSockets: word;
-    iMaxUdpDg: word;
+    wVersion: Word;
+    wHighVersion: Word;
+    szDescription: array[0..WSADESCRIPTION_LEN] of Char;
+    szSystemStatus: array[0..WSASYS_STATUS_LEN] of Char;
+    iMaxSockets: Word;
+    iMaxUdpDg: Word;
 //    lpVendorInfo: PChar;
   end;
 
-CONST
+const
   MSG_NOSIGNAL = 0;
   INVALID_SOCKET = nil;
   AF_UNSPEC = AddressFamily.Unspecified;
@@ -109,14 +109,14 @@ CONST
   IPPROTO_IGMP = ProtocolType.Igmp;
   IPPROTO_TCP = ProtocolType.Tcp;
   IPPROTO_UDP = ProtocolType.Udp;
-  IPPROTO_RAW = ProtocolType.raw;
+  IPPROTO_RAW = ProtocolType.Raw;
   IPPROTO_IPV6 = ProtocolType.IPV6;
 //
   IPPROTO_ICMPV6 = ProtocolType.Icmp; //??
 
   SOCK_STREAM     = SocketType.Stream;
   SOCK_DGRAM      = SocketType.Dgram;
-  SOCK_RAW        = SocketType.raw;
+  SOCK_RAW        = SocketType.Raw;
   SOCK_RDM        = SocketType.Rdm;
   SOCK_SEQPACKET  = SocketType.Seqpacket;
 
@@ -142,7 +142,7 @@ CONST
   IPV6_JOIN_GROUP        = 12; // add an IP group membership
   IPV6_LEAVE_GROUP       = 13; // drop an IP group membership
 
-  SO_DEBUG        = SocketOptionName.debug;          { turn on debugging info recording }
+  SO_DEBUG        = SocketOptionName.Debug;          { turn on debugging info recording }
   SO_ACCEPTCONN   = SocketOptionName.AcceptConnection;          { socket has had listen() }
   SO_REUSEADDR    = SocketOptionName.ReuseAddress;          { allow local address reuse }
   SO_KEEPALIVE    = SocketOptionName.KeepAlive;          { keep connections alive }
@@ -160,7 +160,7 @@ CONST
   SO_SNDTIMEO     = SocketOptionName.SendTimeout;          { send timeout }
   SO_RCVTIMEO     = SocketOptionName.ReceiveTimeout;          { receive timeout }
   SO_ERROR        = SocketOptionName.Error;          { get error status and clear }
-  SO_TYPE         = SocketOptionName.TYPE;          { get socket type }
+  SO_TYPE         = SocketOptionName.Type;          { get socket type }
 
 { WinSock 2 extension -- new options }
 //  SO_GROUP_ID       = $2001; { ID of a socket group}
@@ -256,7 +256,7 @@ CONST
   retrieved via WSAGetLastError() and must therefore follow
   the rules for avoiding clashes with error numbers from
   specific implementations or language run-time systems.
-  for this reason the codes are based at WSABASEERR+1001.
+  For this reason the codes are based at WSABASEERR+1001.
   Note also that [WSA]NO_ADDRESS is defined only for
   compatibility purposes. }
 
@@ -315,41 +315,41 @@ CONST
   EREMOTE            =  WSAEREMOTE;
 
 
-TYPE
+type
   TVarSin = IPEndpoint;
 
 {  function IN6_IS_ADDR_UNSPECIFIED(const a: PInAddr6): boolean;
-  FUNCTION IN6_IS_ADDR_LOOPBACK(CONST a: PInAddr6): boolean;
-  FUNCTION IN6_IS_ADDR_LINKLOCAL(CONST a: PInAddr6): boolean;
-  FUNCTION IN6_IS_ADDR_SITELOCAL(CONST a: PInAddr6): boolean;
-  FUNCTION IN6_IS_ADDR_MULTICAST(CONST a: PInAddr6): boolean;
-  FUNCTION IN6_ADDR_EQUAL(CONST a: PInAddr6; CONST b: PInAddr6):boolean;
-  PROCEDURE SET_IN6_IF_ADDR_ANY (CONST a: PInAddr6);
-  PROCEDURE SET_LOOPBACK_ADDR6 (CONST a: PInAddr6);
-VAR
+  function IN6_IS_ADDR_LOOPBACK(const a: PInAddr6): boolean;
+  function IN6_IS_ADDR_LINKLOCAL(const a: PInAddr6): boolean;
+  function IN6_IS_ADDR_SITELOCAL(const a: PInAddr6): boolean;
+  function IN6_IS_ADDR_MULTICAST(const a: PInAddr6): boolean;
+  function IN6_ADDR_EQUAL(const a: PInAddr6; const b: PInAddr6):boolean;
+  procedure SET_IN6_IF_ADDR_ANY (const a: PInAddr6);
+  procedure SET_LOOPBACK_ADDR6 (const a: PInAddr6);
+var
   in6addr_any, in6addr_loopback : TInAddr6;
 }
 
 {procedure FD_CLR(Socket: TSocket; var FDSet: TFDSet);
-FUNCTION FD_ISSET(Socket: TSocket; VAR FDSet: TFDSet): boolean;
-PROCEDURE FD_SET(Socket: TSocket; VAR FDSet: TFDSet);
-PROCEDURE FD_ZERO(VAR FDSet: TFDSet);
+function FD_ISSET(Socket: TSocket; var FDSet: TFDSet): Boolean;
+procedure FD_SET(Socket: TSocket; var FDSet: TFDSet);
+procedure FD_ZERO(var FDSet: TFDSet);
 }
 {=============================================================================}
 
-  FUNCTION WSAStartup(wVersionRequired: word; VAR WSData: TWSAData): integer;
-  FUNCTION WSACleanup: integer;
-  FUNCTION WSAGetLastError: integer;
-  FUNCTION WSAGetLastErrorDesc: string;
-  FUNCTION GetHostName: string;
-  FUNCTION Shutdown(s: TSocket; how: integer): integer;
+  function WSAStartup(wVersionRequired: Word; var WSData: TWSAData): Integer;
+  function WSACleanup: Integer;
+  function WSAGetLastError: Integer;
+  function WSAGetLastErrorDesc: String;
+  function GetHostName: string;
+  function Shutdown(s: TSocket; how: Integer): Integer;
 //  function SetSockOpt(s: TSocket; level, optname: Integer; optval: PChar;
 //    optlen: Integer): Integer;
-  FUNCTION SetSockOpt(s: TSocket; level, optname: integer; optval: TMemory;
-    optlen: integer): integer;
-  FUNCTION SetSockOptObj(s: TSocket; level, optname: integer; optval: TObject): integer;
-  FUNCTION GetSockOpt(s: TSocket; level, optname: integer; optval: TMemory;
-    VAR optlen: integer): integer;
+  function SetSockOpt(s: TSocket; level, optname: Integer; optval: TMemory;
+    optlen: Integer): Integer;
+  function SetSockOptObj(s: TSocket; level, optname: Integer; optval: TObject): Integer;
+  function GetSockOpt(s: TSocket; level, optname: Integer; optval: TMemory;
+    var optlen: Integer): Integer;
 //  function SendTo(s: TSocket; const Buf; len, flags: Integer; addrto: PSockAddr;
 //    tolen: Integer): Integer;
 ///  function SendTo(s: TSocket; const Buf; len, flags: Integer; addrto: TVarSin): Integer;
@@ -358,28 +358,28 @@ PROCEDURE FD_ZERO(VAR FDSet: TFDSet);
 //  function  RecvFrom(s: TSocket; var Buf; len, flags: Integer; from: PSockAddr;
 //    var fromlen: Integer): Integer;
 ///  function  RecvFrom(s: TSocket; var Buf; len, flags: Integer; from: TVarSin): Integer;
-FUNCTION Send(s: TSocket; Buf: TMemory; len, flags: integer): integer;
-FUNCTION Recv(s: TSocket; Buf: TMemory; len, flags: integer): integer;
-FUNCTION SendTo(s: TSocket; Buf: TMemory; len, flags: integer; addrto: TVarSin): integer;
-FUNCTION RecvFrom(s: TSocket; Buf: TMemory; len, flags: integer; VAR from: TVarSin): integer;
-  FUNCTION  ntohs(netshort: u_short): u_short;
-  FUNCTION  ntohl(netlong: u_long): u_long;
-  FUNCTION  Listen(s: TSocket; backlog: integer): integer;
-  FUNCTION  IoctlSocket(s: TSocket; cmd: dword; VAR arg: integer): integer;
-  FUNCTION  htons(hostshort: u_short): u_short;
-  FUNCTION  htonl(hostlong: u_long): u_long;
+function Send(s: TSocket; Buf: TMemory; len, flags: Integer): Integer;
+function Recv(s: TSocket; Buf: TMemory; len, flags: Integer): Integer;
+function SendTo(s: TSocket; Buf: TMemory; len, flags: Integer; addrto: TVarSin): Integer;
+function RecvFrom(s: TSocket; Buf: TMemory; len, flags: Integer; var from: TVarSin): Integer;
+  function  ntohs(netshort: u_short): u_short;
+  function  ntohl(netlong: u_long): u_long;
+  function  Listen(s: TSocket; backlog: Integer): Integer;
+  function  IoctlSocket(s: TSocket; cmd: DWORD; var arg: integer): Integer;
+  function  htons(hostshort: u_short): u_short;
+  function  htonl(hostlong: u_long): u_long;
 //  function  GetSockName(s: TSocket; name: PSockAddr; var namelen: Integer): Integer;
-  FUNCTION  GetSockName(s: TSocket; VAR name: TVarSin): integer;
+  function  GetSockName(s: TSocket; var name: TVarSin): Integer;
 //  function  GetPeerName(s: TSocket; name: PSockAddr; var namelen: Integer): Integer;
-  FUNCTION  GetPeerName(s: TSocket; VAR name: TVarSin): integer;
+  function  GetPeerName(s: TSocket; var name: TVarSin): Integer;
 //  function  Connect(s: TSocket; name: PSockAddr; namelen: Integer): Integer;
-  FUNCTION  Connect(s: TSocket; CONST name: TVarSin): integer;
-  FUNCTION  CloseSocket(s: TSocket): integer;
+  function  Connect(s: TSocket; const name: TVarSin): Integer;
+  function  CloseSocket(s: TSocket): Integer;
 //  function  Bind(s: TSocket; addr: PSockAddr; namelen: Integer): Integer;
-  FUNCTION  Bind(s: TSocket; CONST addr: TVarSin): integer;
+  function  Bind(s: TSocket; const addr: TVarSin): Integer;
 //  function  Accept(s: TSocket; addr: PSockAddr; var addrlen: Integer): TSocket;
-  FUNCTION  accept(s: TSocket; VAR addr: TVarSin): TSocket;
-  FUNCTION  Socket(af, struc, Protocol: integer): TSocket;
+  function  Accept(s: TSocket; var addr: TVarSin): TSocket;
+  function  Socket(af, Struc, Protocol: Integer): TSocket;
 //  Select = function(nfds: Integer; readfds, writefds, exceptfds: PFDSet;
 //    timeout: PTimeVal): Longint;
 //    {$IFDEF LINUX}cdecl{$ELSE}stdcall{$ENDIF};
@@ -390,30 +390,30 @@ FUNCTION RecvFrom(s: TSocket; Buf: TMemory; len, flags: integer; VAR from: TVarS
 //    lpCompletionRoutine: pointer): u_int;
 //    stdcall;
 
-  FUNCTION GetPortService(value: string): integer;
+  function GetPortService(value: string): integer;
 
-FUNCTION IsNewApi(Family: TAddrFamily): boolean;
-FUNCTION SetVarSin(VAR sin: TVarSin; IP, Port: string; Family: TAddrFamily; SockProtocol, SockType: integer; PreferIP4: boolean): integer;
-FUNCTION GetSinIP(sin: TVarSin): string;
-FUNCTION GetSinPort(sin: TVarSin): integer;
-PROCEDURE ResolveNameToIP(name: string; Family: TAddrFamily; SockProtocol, SockType: integer; CONST IPList: TStrings);
-FUNCTION ResolveIPToName(IP: string; Family: TAddrFamily; SockProtocol, SockType: integer): string;
-FUNCTION ResolvePort(Port: string; Family: TAddrFamily; SockProtocol, SockType: integer): word;
+function IsNewApi(Family: TAddrFamily): Boolean;
+function SetVarSin(var Sin: TVarSin; IP, Port: string; Family: TAddrFamily; SockProtocol, SockType: integer; PreferIP4: Boolean): integer;
+function GetSinIP(Sin: TVarSin): string;
+function GetSinPort(Sin: TVarSin): Integer;
+procedure ResolveNameToIP(Name: string; Family: TAddrFamily; SockProtocol, SockType: integer; const IPList: TStrings);
+function ResolveIPToName(IP: string; Family: TAddrFamily; SockProtocol, SockType: integer): string;
+function ResolvePort(Port: string; Family: TAddrFamily; SockProtocol, SockType: integer): Word;
 
-VAR
+var
   SynSockCS: SyncObjs.TCriticalSection;
-  SockEnhancedApi: boolean;
-  SockWship6Api: boolean;
+  SockEnhancedApi: Boolean;
+  SockWship6Api: Boolean;
 
 {==============================================================================}
-IMPLEMENTATION
+implementation
 
 threadvar
   WSALastError: integer;
   WSALastErrorDesc: string;
 
-VAR
-  services: array [0..139, 0..1] of string =
+var
+  services: Array [0..139, 0..1] of string =
   (
     ('echo', '7'),
     ('discard', '9'),
@@ -559,71 +559,71 @@ VAR
 
 {function IN6_IS_ADDR_UNSPECIFIED(const a: PInAddr6): boolean;
 begin
-  result := ((a^.s_un_dw.s_dw1 = 0) and (a^.s_un_dw.s_dw2 = 0) and
+  Result := ((a^.s_un_dw.s_dw1 = 0) and (a^.s_un_dw.s_dw2 = 0) and
              (a^.s_un_dw.s_dw3 = 0) and (a^.s_un_dw.s_dw4 = 0));
 end;
 
-FUNCTION IN6_IS_ADDR_LOOPBACK(CONST a: PInAddr6): boolean;
+function IN6_IS_ADDR_LOOPBACK(const a: PInAddr6): boolean;
 begin
-  result := ((a^.s_un_dw.s_dw1 = 0) and (a^.s_un_dw.s_dw2 = 0) and
+  Result := ((a^.s_un_dw.s_dw1 = 0) and (a^.s_un_dw.s_dw2 = 0) and
              (a^.s_un_dw.s_dw3 = 0) and
              (a^.s_un_b.s_b13 = char(0)) and (a^.s_un_b.s_b14 = char(0)) and
              (a^.s_un_b.s_b15 = char(0)) and (a^.s_un_b.s_b16 = char(1)));
 end;
 
-FUNCTION IN6_IS_ADDR_LINKLOCAL(CONST a: PInAddr6): boolean;
+function IN6_IS_ADDR_LINKLOCAL(const a: PInAddr6): boolean;
 begin
-  result := ((a^.s_un_b.s_b1 = u_char($FE)) and (a^.s_un_b.s_b2 = u_char($80)));
+  Result := ((a^.s_un_b.s_b1 = u_char($FE)) and (a^.s_un_b.s_b2 = u_char($80)));
 end;
 
-FUNCTION IN6_IS_ADDR_SITELOCAL(CONST a: PInAddr6): boolean;
+function IN6_IS_ADDR_SITELOCAL(const a: PInAddr6): boolean;
 begin
-  result := ((a^.s_un_b.s_b1 = u_char($FE)) and (a^.s_un_b.s_b2 = u_char($C0)));
+  Result := ((a^.s_un_b.s_b1 = u_char($FE)) and (a^.s_un_b.s_b2 = u_char($C0)));
 end;
 
-FUNCTION IN6_IS_ADDR_MULTICAST(CONST a: PInAddr6): boolean;
+function IN6_IS_ADDR_MULTICAST(const a: PInAddr6): boolean;
 begin
-  result := (a^.s_un_b.s_b1 = char($ff));
+  Result := (a^.s_un_b.s_b1 = char($FF));
 end;
 
-FUNCTION IN6_ADDR_EQUAL(CONST a: PInAddr6; CONST b: PInAddr6): boolean;
+function IN6_ADDR_EQUAL(const a: PInAddr6; const b: PInAddr6): boolean;
 begin
-  result := (CompareMem( a, b, sizeOf(TInAddr6)));
+  Result := (CompareMem( a, b, sizeof(TInAddr6)));
 end;
 
-PROCEDURE SET_IN6_IF_ADDR_ANY (CONST a: PInAddr6);
+procedure SET_IN6_IF_ADDR_ANY (const a: PInAddr6);
 begin
-  FillChar(a^, sizeOf(TInAddr6), 0);
+  FillChar(a^, sizeof(TInAddr6), 0);
 end;
 
-PROCEDURE SET_LOOPBACK_ADDR6 (CONST a: PInAddr6);
+procedure SET_LOOPBACK_ADDR6 (const a: PInAddr6);
 begin
-  FillChar(a^, sizeOf(TInAddr6), 0);
+  FillChar(a^, sizeof(TInAddr6), 0);
   a^.s_un_b.s_b16 := char(1);
 end;
 }
 
 {=============================================================================}
 
-PROCEDURE NullErr;
+procedure NullErr;
 begin
   WSALastError := 0;
   WSALastErrorDesc := '';
 end;
 
-PROCEDURE GetErrCode(E: system.Exception);
-VAR
-  SE: system.Net.Sockets.SocketException;
+procedure GetErrCode(E: System.Exception);
+var
+  SE: System.Net.Sockets.SocketException;
 begin
-  if E is system.Net.Sockets.SocketException then
+  if E is System.Net.Sockets.SocketException then
   begin
-    SE := E as system.Net.Sockets.SocketException;
+    SE := E as System.Net.Sockets.SocketException;
     WSALastError := SE.ErrorCode;
-    WSALastErrorDesc := SE.message;
+    WSALastErrorDesc := SE.Message;
   end
 end;
 
-FUNCTION WSAStartup(wVersionRequired: word; VAR WSData: TWSAData): integer;
+function WSAStartup(wVersionRequired: Word; var WSData: TWSAData): Integer;
 begin
   NullErr;
   with WSData do
@@ -635,191 +635,191 @@ begin
     iMaxSockets := 32768;
     iMaxUdpDg := 8192;
   end;
-  result := 0;
+  Result := 0;
 end;
 
-FUNCTION WSACleanup: integer;
+function WSACleanup: Integer;
 begin
   NullErr;
-  result := 0;
+  Result := 0;
 end;
 
-FUNCTION WSAGetLastError: integer;
+function WSAGetLastError: Integer;
 begin
-  result := WSALastError;
+  Result := WSALastError;
 end;
 
-FUNCTION WSAGetLastErrorDesc: string;
+function WSAGetLastErrorDesc: String;
 begin
-  result := WSALastErrorDesc;
+  Result := WSALastErrorDesc;
 end;
 
-FUNCTION GetHostName: string;
+function GetHostName: string;
 begin
-  result := system.Net.DNS.GetHostName;
+  Result := System.Net.DNS.GetHostName;
 end;
 
-FUNCTION Shutdown(s: TSocket; how: integer): integer;
+function Shutdown(s: TSocket; how: Integer): Integer;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
     s.ShutDown(SocketShutdown(how));
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
-FUNCTION SetSockOpt(s: TSocket; level, optname: integer; optval: Tmemory;
-  optlen: integer): integer;
+function SetSockOpt(s: TSocket; level, optname: Integer; optval: Tmemory;
+  optlen: Integer): Integer;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
     s.SetSocketOption(SocketOptionLevel(level), SocketOptionName(optname), optval);
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
-FUNCTION SetSockOptObj(s: TSocket; level, optname: integer; optval: TObject): integer;
+function SetSockOptObj(s: TSocket; level, optname: Integer; optval: TObject): Integer;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
     s.SetSocketOption(SocketOptionLevel(level), SocketOptionName(optname), optval);
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
-FUNCTION GetSockOpt(s: TSocket; level, optname: integer; optval: Tmemory;
-  VAR optlen: integer): integer;
+function GetSockOpt(s: TSocket; level, optname: Integer; optval: Tmemory;
+  var optlen: Integer): Integer;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
     s.GetSocketOption(SocketOptionLevel(level), SocketOptionName(optname), optval);
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
-FUNCTION SendTo(s: TSocket; Buf: TMemory; len, flags: integer; addrto: TVarSin): integer;
+function SendTo(s: TSocket; Buf: TMemory; len, flags: Integer; addrto: TVarSin): Integer;
 //function SendTo(s: TSocket; const Buf; len, flags: Integer; addrto: TVarSin): Integer;
 begin
   NullErr;
   try
     result := s.SendTo(Buf, len, SocketFlags(flags), addrto);
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
-FUNCTION Send(s: TSocket; Buf: TMemory; len, flags: integer): integer;
+function Send(s: TSocket; Buf: TMemory; len, flags: Integer): Integer;
 //function Send(s: TSocket; const Buf; len, flags: Integer): Integer;
 begin
   NullErr;
   try
     result := s.Send(Buf, len, SocketFlags(flags));
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
-FUNCTION Recv(s: TSocket; Buf: TMemory; len, flags: integer): integer;
+function Recv(s: TSocket; Buf: TMemory; len, flags: Integer): Integer;
 //function  Recv(s: TSocket; var Buf; len, flags: Integer): Integer;
 begin
   NullErr;
   try
     result := s.Receive(Buf, len, SocketFlags(flags));
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
 //function  RecvFrom(s: TSocket; var Buf; len, flags: Integer; from: PSockAddr;
 //  var fromlen: Integer): Integer;
-FUNCTION RecvFrom(s: TSocket; Buf: TMemory; len, flags: integer; VAR from: TVarSin): integer;
+function RecvFrom(s: TSocket; Buf: TMemory; len, flags: Integer; var from: TVarSin): Integer;
 //function  RecvFrom(s: TSocket; var Buf; len, flags: Integer; from: TVarSin): Integer;
-VAR
-  ep: EndPoint;
+var
+  EP: EndPoint;
 begin
   NullErr;
   try
-    ep := from;
-    result := s.ReceiveFrom(Buf, len, SocketFlags(flags), EndPoint(ep));
-    from := ep as IPEndPoint;
+    EP := from;
+    result := s.ReceiveFrom(Buf, len, SocketFlags(flags), EndPoint(EP));
+    from := EP as IPEndPoint;
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
-FUNCTION  ntohs(netshort: u_short): u_short;
+function  ntohs(netshort: u_short): u_short;
 begin
-  result := IPAddress.NetworkToHostOrder(NetShort);
+  Result := IPAddress.NetworkToHostOrder(NetShort);
 end;
 
-FUNCTION  ntohl(netlong: u_long): u_long;
+function  ntohl(netlong: u_long): u_long;
 begin
-  result := IPAddress.NetworkToHostOrder(NetLong);
+  Result := IPAddress.NetworkToHostOrder(NetLong);
 end;
 
-FUNCTION  Listen(s: TSocket; backlog: integer): integer;
+function  Listen(s: TSocket; backlog: Integer): Integer;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
     s.Listen(backlog);
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
-FUNCTION  IoctlSocket(s: TSocket; cmd: dword; VAR arg: integer): integer;
-VAR
+function  IoctlSocket(s: TSocket; cmd: DWORD; var arg: integer): Integer;
+var
   inv, outv: TMemory;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
-    if cmd = dword(FIONBIO) then
+    if cmd = DWORD(FIONBIO) then
       s.Blocking := arg = 0
     else
     begin
@@ -829,156 +829,156 @@ begin
       arg := BitConverter.ToInt32(outv, 0);
     end;
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
-FUNCTION  htons(hostshort: u_short): u_short;
+function  htons(hostshort: u_short): u_short;
 begin
-  result := IPAddress.HostToNetworkOrder(Hostshort);
+  Result := IPAddress.HostToNetworkOrder(Hostshort);
 end;
 
-FUNCTION  htonl(hostlong: u_long): u_long;
+function  htonl(hostlong: u_long): u_long;
 begin
-  result := IPAddress.HostToNetworkOrder(HostLong);
+  Result := IPAddress.HostToNetworkOrder(HostLong);
 end;
 
 //function  GetSockName(s: TSocket; name: PSockAddr; var namelen: Integer): Integer;
-FUNCTION  GetSockName(s: TSocket; VAR name: TVarSin): integer;
+function  GetSockName(s: TSocket; var name: TVarSin): Integer;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
-    name := s.localEndPoint as IPEndpoint;
+    Name := s.localEndPoint as IPEndpoint;
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
 //function  GetPeerName(s: TSocket; name: PSockAddr; var namelen: Integer): Integer;
-FUNCTION  GetPeerName(s: TSocket; VAR name: TVarSin): integer;
+function  GetPeerName(s: TSocket; var name: TVarSin): Integer;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
-    name := s.RemoteEndPoint as IPEndpoint;
+    Name := s.RemoteEndPoint as IPEndpoint;
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
 //function  Connect(s: TSocket; name: PSockAddr; namelen: Integer): Integer;
-FUNCTION Connect(s: TSocket; CONST name: TVarSin): integer;
+function Connect(s: TSocket; const name: TVarSin): Integer;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
     s.Connect(name);
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
-FUNCTION CloseSocket(s: TSocket): integer;
+function CloseSocket(s: TSocket): Integer;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
-    s.close;
+    s.Close;
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
 //function  Bind(s: TSocket; addr: PSockAddr; namelen: Integer): Integer;
-FUNCTION Bind(s: TSocket; CONST addr: TVarSin): integer;
+function Bind(s: TSocket; const addr: TVarSin): Integer;
 begin
-  result := 0;
+  Result := 0;
   NullErr;
   try
     s.Bind(addr);
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := integer(SOCKET_ERROR);
+      Result := integer(SOCKET_ERROR);
     end;
   end;
 end;
 
 //function  Accept(s: TSocket; addr: PSockAddr; var addrlen: Integer): TSocket;
-FUNCTION accept(s: TSocket; VAR addr: TVarSin): TSocket;
+function Accept(s: TSocket; var addr: TVarSin): TSocket;
 begin
   NullErr;
   try
-    result := s.accept();
+    result := s.Accept();
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := nil;
+      Result := nil;
     end;
   end;
 end;
 
-FUNCTION Socket(af, struc, Protocol: integer): TSocket;
+function Socket(af, Struc, Protocol: Integer): TSocket;
 begin
   NullErr;
   try
-    result := TSocket.create(AddressFamily(af), SocketType(struc), ProtocolType(Protocol));
+    result := TSocket.Create(AddressFamily(af), SocketType(Struc), ProtocolType(Protocol));
   except
-    on e: system.Net.Sockets.SocketException do
+    on e: System.Net.Sockets.SocketException do
     begin
       GetErrCode(e);
-      result := nil;
+      Result := nil;
     end;
   end;
 end;
 
 {=============================================================================}
-FUNCTION GetPortService(value: string): integer;
-VAR
+function GetPortService(value: string): integer;
+var
   n: integer;
 begin
-  result := 0;
-  value := lowercase(value);
-  for n := 0 to high(Services) do
+  Result := 0;
+  value := Lowercase(value);
+  for n := 0 to High(Services) do
     if services[n, 0] = value then
     begin
-      result := strToIntDef(services[n, 1], 0);
+      Result := strtointdef(services[n, 1], 0);
       break;
     end;
-  if result = 0 then
-    result := strToIntDef(value, 0);
+  if Result = 0 then
+    Result := StrToIntDef(value, 0);
 end;
 
 {=============================================================================}
-FUNCTION IsNewApi(Family: TAddrFamily): boolean;
+function IsNewApi(Family: TAddrFamily): Boolean;
 begin
-  result := true;
+  Result := true;
 end;
 
-FUNCTION SetVarSin(VAR sin: TVarSin; IP, Port: string; Family: TAddrFamily; SockProtocol, SockType: integer; PreferIP4: boolean): integer;
-VAR
+function SetVarSin(var Sin: TVarSin; IP, Port: string; Family: TAddrFamily; SockProtocol, SockType: integer; PreferIP4: Boolean): integer;
+var
   IPs: array of IPAddress;
   n: integer;
   ip4, ip6: string;
@@ -1018,82 +1018,82 @@ begin
     AF_INET6:
       sip := ip6;
   end;
-  sin := TVarSin.create(IPAddress.Parse(sip), GetPortService(Port));
+  sin := TVarSin.Create(IPAddress.Parse(sip), GetPortService(Port));
 end;
 
-FUNCTION GetSinIP(sin: TVarSin): string;
+function GetSinIP(Sin: TVarSin): string;
 begin
-  result := sin.Address.toString;
+  Result := Sin.Address.ToString;
 end;
 
-FUNCTION GetSinPort(sin: TVarSin): integer;
+function GetSinPort(Sin: TVarSin): Integer;
 begin
-  result := sin.Port;
+  Result := Sin.Port;
 end;
 
-PROCEDURE ResolveNameToIP(name: string; Family: TAddrFamily; SockProtocol, SockType: integer; CONST IPList: TStrings);
-VAR
+procedure ResolveNameToIP(Name: string; Family: TAddrFamily; SockProtocol, SockType: integer; const IPList: TStrings);
+var
   IPs :array of IPAddress;
   n: integer;
 begin
-  IPList.clear;
-  IPs := Dns.Resolve(name).AddressList;
+  IPList.Clear;
+  IPs := Dns.Resolve(Name).AddressList;
   for n := low(IPs) to high(IPs) do
   begin
     if not(((Family = AF_INET6) and (IPs[n].AddressFamily = AF_INET))
       or ((Family = AF_INET) and (IPs[n].AddressFamily = AF_INET6))) then
     begin
-      IPList.add(IPs[n].toString);
+      IPList.Add(IPs[n].toString);
     end;
   end;
 end;
 
-FUNCTION ResolvePort(Port: string; Family: TAddrFamily; SockProtocol, SockType: integer): word;
-VAR
+function ResolvePort(Port: string; Family: TAddrFamily; SockProtocol, SockType: integer): Word;
+var
   n: integer;
 begin
-  result := strToIntDef(port, 0);
-  if result = 0 then
+  Result := StrToIntDef(port, 0);
+  if Result = 0 then
   begin
-    port := lowercase(port);
-    for n := 0 to high(Services) do
+    port := Lowercase(port);
+    for n := 0 to High(Services) do
       if services[n, 0] = port then
       begin
-        result := strToIntDef(services[n, 1], 0);
+        Result := strtointdef(services[n, 1], 0);
         break;
       end;
   end;
 end;
 
-FUNCTION ResolveIPToName(IP: string; Family: TAddrFamily; SockProtocol, SockType: integer): string;
+function ResolveIPToName(IP: string; Family: TAddrFamily; SockProtocol, SockType: integer): string;
 begin
-  result := Dns.GetHostByAddress(IP).HostName;
+  Result := Dns.GetHostByAddress(IP).HostName;
 end;
 
 
 {=============================================================================}
-FUNCTION InitSocketInterface(stack: string): boolean;
+function InitSocketInterface(stack: string): Boolean;
 begin
-  result := true;
+  Result := True;
 end;
 
-FUNCTION DestroySocketInterface: boolean;
+function DestroySocketInterface: Boolean;
 begin
   NullErr;
-  result := true;
+  Result := True;
 end;
 
-INITIALIZATION
+initialization
 begin
-  SynSockCS := SyncObjs.TCriticalSection.create;
+  SynSockCS := SyncObjs.TCriticalSection.Create;
 //  SET_IN6_IF_ADDR_ANY (@in6addr_any);
 //  SET_LOOPBACK_ADDR6  (@in6addr_loopback);
 end;
 
-FINALIZATION
+finalization
 begin
   NullErr;
-  SynSockCS.free;
+  SynSockCS.Free;
 end;
 
 {$ENDIF}

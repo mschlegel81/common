@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.002.003 |
+| Project : Ararat Synapse                                       | 001.002.003 |
 |==============================================================================|
-| content: SysLog Client                                                       |
+| Content: SysLog client                                                       |
 |==============================================================================|
 | Copyright (c)1999-2010, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,32 +20,32 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2001-2010.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |    Christian Brosius                                                         |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(BSD SYSLOG protocol)
 
-used RFC: RFC-3164
+Used RFC: RFC-3164
 }
 
 {$IFDEF FPC}
@@ -54,15 +54,15 @@ used RFC: RFC-3164
 {$Q-}
 {$H+}
 
-UNIT slogsend;
+unit slogsend;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes,
+uses
+  SysUtils, Classes,
   blcksock, synautil;
 
-CONST
+const
   cSysLogProtocol = '514';
 
   FCL_Kernel = 0;
@@ -90,98 +90,98 @@ CONST
   FCL_Local6 = 22;
   FCL_Local7 = 23;
 
-TYPE
+type
   {:@abstract(Define possible priority of Syslog message)}
-  TSyslogSeverity = (Emergency, Alert, Critical, Error, Warning, Notice, info,
-    debug);
+  TSyslogSeverity = (Emergency, Alert, Critical, Error, Warning, Notice, Info,
+    Debug);
 
   {:@abstract(encoding or decoding of SYSLOG message)}
   TSyslogMessage = class(TObject)
   private
-    FFacility:byte;
+    FFacility:Byte;
     FSeverity:TSyslogSeverity;
     FDateTime:TDateTime;
-    FTag:string;
-    FMessage:string;
-    FLocalIP:string;
-    FUNCTION GetPacketBuf:string;
-    PROCEDURE SetPacketBuf(value:string);
+    FTag:String;
+    FMessage:String;
+    FLocalIP:String;
+    function GetPacketBuf:String;
+    procedure SetPacketBuf(Value:String);
   public
     {:Reset values to defaults}
-    PROCEDURE clear;
-  Published
+    procedure Clear;
+  published
     {:Define facilicity of Syslog message. For specify you may use predefined
-     FCL_* constants. default is "FCL_Local0".}
-    PROPERTY Facility:byte read FFacility write FFacility;
+     FCL_* constants. Default is "FCL_Local0".}
+    property Facility:Byte read FFacility write FFacility;
 
     {:Define possible priority of Syslog message. Default is "Debug".}
-    PROPERTY Severity:TSyslogSeverity read FSeverity write FSeverity;
+    property Severity:TSyslogSeverity read FSeverity write FSeverity;
 
     {:date and time of Syslog message}
-    PROPERTY DateTime:TDateTime read FDateTime write FDateTime;
+    property DateTime:TDateTime read FDateTime write FDateTime;
 
     {:This is used for identify process of this message. Default is filename
      of your executable file.}
-    PROPERTY Tag:string read FTag write FTag;
+    property Tag:String read FTag write FTag;
 
     {:Text of your message for log.}
-    PROPERTY LogMessage:string read FMessage write FMessage;
+    property LogMessage:String read FMessage write FMessage;
 
     {:IP address of message sender.}
-    PROPERTY LocalIP:string read FLocalIP write FLocalIP;
+    property LocalIP:String read FLocalIP write FLocalIP;
 
     {:This property holds encoded binary SYSLOG packet}
-    PROPERTY PacketBuf:string read GetPacketBuf write SetPacketBuf;
+    property PacketBuf:String read GetPacketBuf write SetPacketBuf;
   end;
 
   {:@abstract(This object implement BSD SysLog client)
 
-   Note: Are you missing properties for specify Server address and port? Look to
+   Note: Are you missing properties for specify server address and port? Look to
    parent @link(TSynaClient) too!}
   TSyslogSend = class(TSynaClient)
   private
     FSock: TUDPBlockSocket;
     FSysLogMessage: TSysLogMessage;
   public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
+    constructor Create;
+    destructor Destroy; override;
     {:Send Syslog UDP packet defined by @link(SysLogMessage).}
-    FUNCTION DoIt: boolean;
-  Published
+    function DoIt: Boolean;
+  published
     {:Syslog message for send}
-    PROPERTY SysLogMessage:TSysLogMessage read FSysLogMessage write FSysLogMessage;
+    property SysLogMessage:TSysLogMessage read FSysLogMessage write FSysLogMessage;
   end;
 
 {:Simply send packet to specified Syslog server.}
-FUNCTION ToSysLog(CONST SyslogServer: string; Facil: byte;
-  Sever: TSyslogSeverity; CONST content: string): boolean;
+function ToSysLog(const SyslogServer: string; Facil: Byte;
+  Sever: TSyslogSeverity; const Content: string): Boolean;
 
-IMPLEMENTATION
+implementation
 
-FUNCTION TSyslogMessage.GetPacketBuf:string;
+function TSyslogMessage.GetPacketBuf:String;
 begin
-  result := '<' + intToStr((FFacility * 8) + ord(FSeverity)) + '>';
-  result := result + CDateTime(FDateTime) + ' ';
-  result := result + FLocalIP + ' ';
-  result := result + FTag + ': ' + FMessage;
+  Result := '<' + IntToStr((FFacility * 8) + Ord(FSeverity)) + '>';
+  Result := Result + CDateTime(FDateTime) + ' ';
+  Result := Result + FLocalIP + ' ';
+  Result := Result + FTag + ': ' + FMessage;
 end;
 
-PROCEDURE TSyslogMessage.SetPacketBuf(value:string);
-VAR StrBuf:string;
-    IntBuf,pos:integer;
+procedure TSyslogMessage.SetPacketBuf(Value:String);
+var StrBuf:String;
+    IntBuf,Pos:Integer;
 begin
-  if length(value) < 1 then exit;
-  pos := 1;
-  if value[pos] <> '<' then exit;
-  inc(pos);
+  if Length(Value) < 1 then exit;
+  Pos := 1;
+  if Value[Pos] <> '<' then exit;
+  Inc(Pos);
   // Facility and Severity
   StrBuf := '';
-  while (value[pos] <> '>')do
+  while (Value[Pos] <> '>')do
   begin
-    StrBuf := StrBuf + value[pos];
-    inc(pos);
+    StrBuf := StrBuf + Value[Pos];
+    Inc(Pos);
   end;
-  IntBuf := strToInt(StrBuf);
+  IntBuf := StrToInt(StrBuf);
   FFacility := IntBuf div 8;
   case (IntBuf mod 8)of
     0:FSeverity := Emergency;
@@ -190,130 +190,130 @@ begin
     3:FSeverity := Error;
     4:FSeverity := Warning;
     5:FSeverity := Notice;
-    6:FSeverity := info;
-    7:FSeverity := debug;
+    6:FSeverity := Info;
+    7:FSeverity := Debug;
   end;
   // DateTime
-  inc(pos);
+  Inc(Pos);
   StrBuf := '';
     // Month
-  while (value[pos] <> ' ')do
+  while (Value[Pos] <> ' ')do
     begin
-      StrBuf := StrBuf + value[pos];
-      inc(pos);
+      StrBuf := StrBuf + Value[Pos];
+      Inc(Pos);
     end;
-    StrBuf := StrBuf + value[pos];
-    inc(pos);
+    StrBuf := StrBuf + Value[Pos];
+    Inc(Pos);
     // Day
-  while (value[pos] <> ' ')do
+  while (Value[Pos] <> ' ')do
     begin
-      StrBuf := StrBuf + value[pos];
-      inc(pos);
+      StrBuf := StrBuf + Value[Pos];
+      Inc(Pos);
     end;
-    StrBuf := StrBuf + value[pos];
-    inc(pos);
+    StrBuf := StrBuf + Value[Pos];
+    Inc(Pos);
     // Time
-  while (value[pos] <> ' ')do
+  while (Value[Pos] <> ' ')do
     begin
-      StrBuf := StrBuf + value[pos];
-      inc(pos);
+      StrBuf := StrBuf + Value[Pos];
+      Inc(Pos);
     end;
   FDateTime := DecodeRFCDateTime(StrBuf);
-  inc(pos);
+  Inc(Pos);
 
   // LocalIP
   StrBuf := '';
-  while (value[pos] <> ' ')do
+  while (Value[Pos] <> ' ')do
     begin
-      StrBuf := StrBuf + value[pos];
-      inc(pos);
+      StrBuf := StrBuf + Value[Pos];
+      Inc(Pos);
     end;
   FLocalIP := StrBuf;
-  inc(pos);
+  Inc(Pos);
   // Tag
   StrBuf := '';
-  while (value[pos] <> ':')do
+  while (Value[Pos] <> ':')do
     begin
-      StrBuf := StrBuf + value[pos];
-      inc(pos);
+      StrBuf := StrBuf + Value[Pos];
+      Inc(Pos);
     end;
   FTag := StrBuf;
   // LogMessage
-  inc(pos);
+  Inc(Pos);
   StrBuf := '';
-  while (pos <= length(value))do
+  while (Pos <= Length(Value))do
     begin
-      StrBuf := StrBuf + value[pos];
-      inc(pos);
+      StrBuf := StrBuf + Value[Pos];
+      Inc(Pos);
     end;
   FMessage := TrimSP(StrBuf);
 end;
 
-PROCEDURE TSysLogMessage.clear;
+procedure TSysLogMessage.Clear;
 begin
   FFacility := FCL_Local0;
-  FSeverity := debug;
-  FTag := extractFileName(paramStr(0));
+  FSeverity := Debug;
+  FTag := ExtractFileName(ParamStr(0));
   FMessage := '';
   FLocalIP  := '0.0.0.0';
 end;
 
 //------------------------------------------------------------------------------
 
-CONSTRUCTOR TSyslogSend.create;
+constructor TSyslogSend.Create;
 begin
-  inherited create;
-  FSock := TUDPBlockSocket.create;
+  inherited Create;
+  FSock := TUDPBlockSocket.Create;
   FSock.Owner := self;
-  FSysLogMessage := TSysLogMessage.create;
+  FSysLogMessage := TSysLogMessage.Create;
   FTargetPort := cSysLogProtocol;
 end;
 
-DESTRUCTOR TSyslogSend.destroy;
+destructor TSyslogSend.Destroy;
 begin
-  FSock.free;
-  FSysLogMessage.free;
-  inherited destroy;
+  FSock.Free;
+  FSysLogMessage.Free;
+  inherited Destroy;
 end;
 
-FUNCTION TSyslogSend.DoIt: boolean;
-VAR
+function TSyslogSend.DoIt: Boolean;
+var
   L: TStringList;
 begin
-  result := false;
-  L := TStringList.create;
+  Result := False;
+  L := TStringList.Create;
   try
     FSock.ResolveNameToIP(FSock.Localname, L);
-    if L.count < 1 then
+    if L.Count < 1 then
       FSysLogMessage.LocalIP := '0.0.0.0'
     else
       FSysLogMessage.LocalIP := L[0];
   finally
-    L.free;
+    L.Free;
   end;
-  FSysLogMessage.DateTime := now;
-  if length(FSysLogMessage.PacketBuf) <= 1024 then
+  FSysLogMessage.DateTime := Now;
+  if Length(FSysLogMessage.PacketBuf) <= 1024 then
   begin
     FSock.Connect(FTargetHost, FTargetPort);
     FSock.SendString(FSysLogMessage.PacketBuf);
-    result := FSock.LastError = 0;
+    Result := FSock.LastError = 0;
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION ToSysLog(CONST SyslogServer: string; Facil: byte;
-  Sever: TSyslogSeverity; CONST content: string): boolean;
+function ToSysLog(const SyslogServer: string; Facil: Byte;
+  Sever: TSyslogSeverity; const Content: string): Boolean;
 begin
-  with TSyslogSend.create do
+  with TSyslogSend.Create do
     try
       TargetHost :=SyslogServer;
       SysLogMessage.Facility := Facil;
       SysLogMessage.Severity := Sever;
-      SysLogMessage.LogMessage := content;
-      result := DoIt;
+      SysLogMessage.LogMessage := Content;
+      Result := DoIt;
     finally
-      free;
+      Free;
     end;
 end;
 

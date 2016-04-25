@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 004.000.000 |
+| Project : Ararat Synapse                                       | 004.000.000 |
 |==============================================================================|
-| content: SNMP Client                                                         |
+| Content: SNMP client                                                         |
 |==============================================================================|
 | Copyright (c)1999-2011, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,34 +20,34 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2000-2011.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |   Jean-Fabien Connault (cycocrew@worldnet.fr)                                |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(SNMP client)
 Supports SNMPv1 include traps, SNMPv2c and SNMPv3 include authorization
 and privacy encryption.
 
-used RFC: RFC-1157, RFC-1901, RFC-3412, RFC-3414, RFC-3416, RFC-3826
+Used RFC: RFC-1157, RFC-1901, RFC-3412, RFC-3414, RFC-3416, RFC-3826
 
 Supported Authorization hashes: MD5, SHA1
 Supported Privacy encryptions: DES, 3DES, AES
@@ -64,15 +64,15 @@ Supported Privacy encryptions: DES, 3DES, AES
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT snmpsend;
+unit snmpsend;
 
-INTERFACE
+interface
 
-USES
-  Classes, sysutils,
+uses
+  Classes, SysUtils,
   blcksock, synautil, asn1util, synaip, synacode, synacrypt;
 
-CONST
+const
   cSnmpProtocol = '161';
   cSnmpTrapProtocol = '162';
 
@@ -114,7 +114,7 @@ CONST
   ENotWritable = 17;
   EInconsistentName = 18;
 
-TYPE
+type
 
   {:@abstract(Possible values for SNMPv3 flags.)
    This flags specify level of authorization and encryption.}
@@ -137,25 +137,25 @@ TYPE
   {:@abstract(Data object with one record of MIB OID and corresponding values.)}
   TSNMPMib = class(TObject)
   protected
-    FOID: ansistring;
-    FValue: ansistring;
-    FValueType: integer;
-  Published
+    FOID: AnsiString;
+    FValue: AnsiString;
+    FValueType: Integer;
+  published
     {:OID number in string format.}
-    PROPERTY OID: ansistring read FOID write FOID;
+    property OID: AnsiString read FOID write FOID;
 
     {:Value of OID object in string format.}
-    PROPERTY value: ansistring read FValue write FValue;
+    property Value: AnsiString read FValue write FValue;
 
     {:Define type of Value. Supported values are defined in @link(asn1util).
-     for queries use ASN1_NULL, becouse you don't know type in response!}
-    PROPERTY ValueType: integer read FValueType write FValueType;
+     For queries use ASN1_NULL, becouse you don't know type in response!}
+    property ValueType: Integer read FValueType write FValueType;
   end;
 
   {:@abstract(It holding all information for SNMPv3 agent synchronization)
-   used internally.}
+   Used internally.}
   TV3Sync = record
-    EngineID: ansistring;
+    EngineID: AnsiString;
     EngineBoots: integer;
     EngineTime: integer;
     EngineStamp: Cardinal;
@@ -164,279 +164,279 @@ TYPE
   {:@abstract(Data object abstracts SNMP data packet)}
   TSNMPRec = class(TObject)
   protected
-    FVersion: integer;
-    FPDUType: integer;
-    FID: integer;
-    FErrorStatus: integer;
-    FErrorIndex: integer;
-    FCommunity: ansistring;
+    FVersion: Integer;
+    FPDUType: Integer;
+    FID: Integer;
+    FErrorStatus: Integer;
+    FErrorIndex: Integer;
+    FCommunity: AnsiString;
     FSNMPMibList: TList;
-    FMaxSize: integer;
+    FMaxSize: Integer;
     FFlags: TV3Flags;
-    FFlagReportable: boolean;
-    FContextEngineID: ansistring;
-    FContextName: ansistring;
+    FFlagReportable: Boolean;
+    FContextEngineID: AnsiString;
+    FContextName: AnsiString;
     FAuthMode: TV3Auth;
-    FAuthEngineID: ansistring;
+    FAuthEngineID: AnsiString;
     FAuthEngineBoots: integer;
     FAuthEngineTime: integer;
-    FAuthEngineTimeStamp: Cardinal;
-    FUserName: ansistring;
-    FPassword: ansistring;
-    FAuthKey: ansistring;
+    FAuthEngineTimeStamp: cardinal;
+    FUserName: AnsiString;
+    FPassword: AnsiString;
+    FAuthKey: AnsiString;
     FPrivMode: TV3Priv;
-    FPrivPassword: ansistring;
-    FPrivKey: ansistring;
-    FPrivSalt: ansistring;
+    FPrivPassword: AnsiString;
+    FPrivKey: AnsiString;
+    FPrivSalt: AnsiString;
     FPrivSaltCounter: integer;
-    FOldTrapEnterprise: ansistring;
-    FOldTrapHost: ansistring;
-    FOldTrapGen: integer;
-    FOldTrapSpec: integer;
-    FOldTrapTimeTicks: integer;
-    FUNCTION Pass2Key(CONST value: ansistring): ansistring;
-    FUNCTION EncryptPDU(CONST value: ansistring): ansistring;
-    FUNCTION DecryptPDU(CONST value: ansistring): ansistring;
+    FOldTrapEnterprise: AnsiString;
+    FOldTrapHost: AnsiString;
+    FOldTrapGen: Integer;
+    FOldTrapSpec: Integer;
+    FOldTrapTimeTicks: Integer;
+    function Pass2Key(const Value: AnsiString): AnsiString;
+    function EncryptPDU(const value: AnsiString): AnsiString;
+    function DecryptPDU(const value: AnsiString): AnsiString;
   public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
+    constructor Create;
+    destructor Destroy; override;
 
     {:Decode SNMP packet in buffer to object properties.}
-    FUNCTION DecodeBuf(buffer: ansistring): boolean;
+    function DecodeBuf(Buffer: AnsiString): Boolean;
 
     {:Encode obeject properties to SNMP packet.}
-    FUNCTION EncodeBuf: ansistring;
+    function EncodeBuf: AnsiString;
 
     {:Clears all object properties to default values.}
-    PROCEDURE clear;
+    procedure Clear;
 
     {:Add entry to @link(SNMPMibList). For queries use value as empty string,
      and ValueType as ASN1_NULL.}
-    PROCEDURE MIBAdd(CONST MIB, value: ansistring; ValueType: integer);
+    procedure MIBAdd(const MIB, Value: AnsiString; ValueType: Integer);
 
     {:Delete entry from @link(SNMPMibList).}
-    PROCEDURE MIBDelete(index: integer);
+    procedure MIBDelete(Index: Integer);
 
     {:Search @link(SNMPMibList) list for MIB and return correspond value.}
-    FUNCTION MIBGet(CONST MIB: ansistring): ansistring;
+    function MIBGet(const MIB: AnsiString): AnsiString;
 
     {:return number of entries in MIB array.}
-    FUNCTION MIBCount: integer;
+    function MIBCount: integer;
 
     {:Return MIB information from given row of MIB array.}
-    FUNCTION MIBByIndex(index: integer): TSNMPMib;
+    function MIBByIndex(Index: Integer): TSNMPMib;
 
     {:List of @link(TSNMPMib) objects.}
-    PROPERTY SNMPMibList: TList read FSNMPMibList;
-  Published
+    property SNMPMibList: TList read FSNMPMibList;
+  published
     {:Version of SNMP packet. Default value is 0 (SNMP ver. 1). You can use
      value 1 for SNMPv2c or value 3 for SNMPv3.}
-    PROPERTY Version: integer read FVersion write FVersion;
+    property Version: Integer read FVersion write FVersion;
 
     {:Community string for autorize access to SNMP server. (Case sensitive!)
-     Community string is not used in SNMPv3! use @link(Username) and
+     Community string is not used in SNMPv3! Use @link(Username) and
      @link(password) instead!}
-    PROPERTY Community: ansistring read FCommunity write FCommunity;
+    property Community: AnsiString read FCommunity write FCommunity;
 
     {:Define type of SNMP operation.}
-    PROPERTY PDUType: integer read FPDUType write FPDUType;
+    property PDUType: Integer read FPDUType write FPDUType;
 
     {:Contains ID number. Not need to use.}
-    PROPERTY id: integer read FID write FID;
+    property ID: Integer read FID write FID;
 
     {:When packet is reply, contains error code. Supported values are defined by
      E* constants.}
-    PROPERTY ErrorStatus: integer read FErrorStatus write FErrorStatus;
+    property ErrorStatus: Integer read FErrorStatus write FErrorStatus;
 
     {:Point to error position in reply packet. Not usefull for users. It only
      good for debugging!}
-    PROPERTY ErrorIndex: integer read FErrorIndex write FErrorIndex;
+    property ErrorIndex: Integer read FErrorIndex write FErrorIndex;
 
     {:special value for GetBulkRequest of SNMPv2 and v3.}
-    PROPERTY NonRepeaters: integer read FErrorStatus write FErrorStatus;
+    property NonRepeaters: Integer read FErrorStatus write FErrorStatus;
 
     {:special value for GetBulkRequest of SNMPv2 and v3.}
-    PROPERTY MaxRepetitions: integer read FErrorIndex write FErrorIndex;
+    property MaxRepetitions: Integer read FErrorIndex write FErrorIndex;
 
     {:Maximum message size in bytes for SNMPv3. For sending is default 1472 bytes.}
-    PROPERTY MaxSize: integer read FMaxSize write FMaxSize;
+    property MaxSize: Integer read FMaxSize write FMaxSize;
 
     {:Specify if message is authorised or encrypted. Used only in SNMPv3.}
-    PROPERTY Flags: TV3Flags read FFlags write FFlags;
+    property Flags: TV3Flags read FFlags write FFlags;
 
     {:For SNMPv3.... If is @true, SNMP agent must send reply (at least with some
      error).}
-    PROPERTY FlagReportable: boolean read FFlagReportable write FFlagReportable;
+    property FlagReportable: Boolean read FFlagReportable write FFlagReportable;
 
     {:For SNMPv3. If not specified, is used value from @link(AuthEngineID)}
-    PROPERTY ContextEngineID: ansistring read FContextEngineID write FContextEngineID;
+    property ContextEngineID: AnsiString read FContextEngineID write FContextEngineID;
 
     {:For SNMPv3.}
-    PROPERTY ContextName: ansistring read FContextName write FContextName;
+    property ContextName: AnsiString read FContextName write FContextName;
 
     {:For SNMPv3. Specify Authorization mode. (specify used hash for
      authorization)}
-    PROPERTY AuthMode: TV3Auth read FAuthMode write FAuthMode;
+    property AuthMode: TV3Auth read FAuthMode write FAuthMode;
 
     {:For SNMPv3. Specify Privacy mode.}
-    PROPERTY PrivMode: TV3Priv read FPrivMode write FPrivMode;
+    property PrivMode: TV3Priv read FPrivMode write FPrivMode;
 
     {:value used by SNMPv3 authorisation for synchronization with SNMP agent.}
-    PROPERTY AuthEngineID: ansistring read FAuthEngineID write FAuthEngineID;
+    property AuthEngineID: AnsiString read FAuthEngineID write FAuthEngineID;
 
     {:value used by SNMPv3 authorisation for synchronization with SNMP agent.}
-    PROPERTY AuthEngineBoots: integer read FAuthEngineBoots write FAuthEngineBoots;
+    property AuthEngineBoots: Integer read FAuthEngineBoots write FAuthEngineBoots;
 
     {:value used by SNMPv3 authorisation for synchronization with SNMP agent.}
-    PROPERTY AuthEngineTime: integer read FAuthEngineTime write FAuthEngineTime;
+    property AuthEngineTime: Integer read FAuthEngineTime write FAuthEngineTime;
 
     {:value used by SNMPv3 authorisation for synchronization with SNMP agent.}
-    PROPERTY AuthEngineTimeStamp: Cardinal read FAuthEngineTimeStamp write FAuthEngineTimeStamp;
+    property AuthEngineTimeStamp: Cardinal read FAuthEngineTimeStamp Write FAuthEngineTimeStamp;
 
     {:SNMPv3 authorization username}
-    PROPERTY UserName: ansistring read FUserName write FUserName;
+    property UserName: AnsiString read FUserName write FUserName;
 
     {:SNMPv3 authorization password}
-    PROPERTY Password: ansistring read FPassword write FPassword;
+    property Password: AnsiString read FPassword write FPassword;
 
     {:For SNMPv3. Computed Athorization key from @link(password).}
-    PROPERTY AuthKey: ansistring read FAuthKey write FAuthKey;
+    property AuthKey: AnsiString read FAuthKey write FAuthKey;
 
     {:SNMPv3 privacy password}
-    PROPERTY PrivPassword: ansistring read FPrivPassword write FPrivPassword;
+    property PrivPassword: AnsiString read FPrivPassword write FPrivPassword;
 
     {:For SNMPv3. Computed Privacy key from @link(PrivPassword).}
-    PROPERTY PrivKey: ansistring read FPrivKey write FPrivKey;
+    property PrivKey: AnsiString read FPrivKey write FPrivKey;
 
     {:MIB value to identify the object that sent the TRAPv1.}
-    PROPERTY OldTrapEnterprise: ansistring read FOldTrapEnterprise write FOldTrapEnterprise;
+    property OldTrapEnterprise: AnsiString read FOldTrapEnterprise write FOldTrapEnterprise;
 
     {:Address of TRAPv1 sender (IP address).}
-    PROPERTY OldTrapHost: ansistring read FOldTrapHost write FOldTrapHost;
+    property OldTrapHost: AnsiString read FOldTrapHost write FOldTrapHost;
 
     {:Generic TRAPv1 identification.}
-    PROPERTY OldTrapGen: integer read FOldTrapGen write FOldTrapGen;
+    property OldTrapGen: Integer read FOldTrapGen write FOldTrapGen;
 
     {:Specific TRAPv1 identification.}
-    PROPERTY OldTrapSpec: integer read FOldTrapSpec write FOldTrapSpec;
+    property OldTrapSpec: Integer read FOldTrapSpec write FOldTrapSpec;
 
     {:Number of 1/100th of seconds since last reboot or power up. (for TRAPv1)}
-    PROPERTY OldTrapTimeTicks: integer read FOldTrapTimeTicks write FOldTrapTimeTicks;
+    property OldTrapTimeTicks: Integer read FOldTrapTimeTicks write FOldTrapTimeTicks;
   end;
 
   {:@abstract(Implementation of SNMP protocol.)
 
-   Note: Are you missing properties for specify Server address and port? Look to
+   Note: Are you missing properties for specify server address and port? Look to
    parent @link(TSynaClient) too!}
   TSNMPSend = class(TSynaClient)
   protected
     FSock: TUDPBlockSocket;
-    FBuffer: ansistring;
-    FHostIP: ansistring;
+    FBuffer: AnsiString;
+    FHostIP: AnsiString;
     FQuery: TSNMPRec;
     FReply: TSNMPRec;
-    FUNCTION InternalSendSnmp(CONST value: TSNMPRec): boolean;
-    FUNCTION InternalRecvSnmp(CONST value: TSNMPRec): boolean;
-    FUNCTION InternalSendRequest(CONST QValue, RValue: TSNMPRec): boolean;
-    FUNCTION GetV3EngineID: ansistring;
-    FUNCTION GetV3Sync: TV3Sync;
+    function InternalSendSnmp(const Value: TSNMPRec): Boolean;
+    function InternalRecvSnmp(const Value: TSNMPRec): Boolean;
+    function InternalSendRequest(const QValue, RValue: TSNMPRec): Boolean;
+    function GetV3EngineID: AnsiString;
+    function GetV3Sync: TV3Sync;
   public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
+    constructor Create;
+    destructor Destroy; override;
 
     {:Connects to a Host and send there query. If in timeout SNMP server send
-     back query, result is @true. if is used SNMPv3, then it synchronize self
-     with SNMPv3 agent first. (it is needed for SNMPv3 auhorization!)}
-    FUNCTION SendRequest: boolean;
+     back query, result is @true. If is used SNMPv3, then it synchronize self
+     with SNMPv3 agent first. (It is needed for SNMPv3 auhorization!)}
+    function SendRequest: Boolean;
 
     {:Send SNMP packet only, but not waits for reply. Good for sending traps.}
-    FUNCTION SendTrap: boolean;
+    function SendTrap: Boolean;
 
     {:Receive SNMP packet only. Good for receiving traps.}
-    FUNCTION RecvTrap: boolean;
+    function RecvTrap: Boolean;
 
     {:Mapped to @link(SendRequest) internally. This function is only for
      backward compatibility.}
-    FUNCTION DoIt: boolean;
-  Published
+    function DoIt: Boolean;
+  published
     {:contains raw binary form of SNMP packet. Good for debugging.}
-    PROPERTY buffer: ansistring read FBuffer write FBuffer;
+    property Buffer: AnsiString read FBuffer write FBuffer;
 
     {:After SNMP operation hold IP address of remote side.}
-    PROPERTY HostIP: ansistring read FHostIP;
+    property HostIP: AnsiString read FHostIP;
 
     {:Data object contains SNMP query.}
-    PROPERTY Query: TSNMPRec read FQuery;
+    property Query: TSNMPRec read FQuery;
 
     {:Data object contains SNMP reply.}
-    PROPERTY Reply: TSNMPRec read FReply;
+    property Reply: TSNMPRec read FReply;
 
     {:Socket object used for TCP/IP operation. Good for seting OnStatus hook, etc.}
-    PROPERTY Sock: TUDPBlockSocket read FSock;
+    property Sock: TUDPBlockSocket read FSock;
   end;
 
 {:A very useful function and example of its use would be found in the TSNMPSend
- object. it implements basic get method of the SNMP protocol. the MIB value is
+ object. It implements basic GET method of the SNMP protocol. The MIB value is
  located in the "OID" variable, and is sent to the requested "SNMPHost" with
- the proper "Community" access Identifier. Upon a successful retrieval, "value"
- will contain the information requested. if the SNMP operation is successful,
+ the proper "Community" access identifier. Upon a successful retrieval, "Value"
+ will contain the information requested. If the SNMP operation is successful,
  the result returns @true.}
-FUNCTION SNMPGet(CONST OID, Community, SNMPHost: ansistring; VAR value: ansistring): boolean;
+function SNMPGet(const OID, Community, SNMPHost: AnsiString; var Value: AnsiString): Boolean;
 
 {:This is useful function and example of use TSNMPSend object. It implements
- the basic set method of the SNMP protocol. if the SNMP operation is successful,
- the result is @true. "value" is value of MIB Oid for "SNMPHost" with "Community"
- access Identifier. You must specify "ValueType" too.}
-FUNCTION SNMPSet(CONST OID, Community, SNMPHost, value: ansistring; ValueType: integer): boolean;
+ the basic SET method of the SNMP protocol. If the SNMP operation is successful,
+ the result is @true. "Value" is value of MIB Oid for "SNMPHost" with "Community"
+ access identifier. You must specify "ValueType" too.}
+function SNMPSet(const OID, Community, SNMPHost, Value: AnsiString; ValueType: Integer): Boolean;
 
 {:A very useful function and example of its use would be found in the TSNMPSend
- object. it implements basic GETNEXT method of the SNMP protocol. the MIB value
+ object. It implements basic GETNEXT method of the SNMP protocol. The MIB value
  is located in the "OID" variable, and is sent to the requested "SNMPHost" with
- the proper "Community" access Identifier. Upon a successful retrieval, "value"
- will contain the information requested. if the SNMP operation is successful,
+ the proper "Community" access identifier. Upon a successful retrieval, "Value"
+ will contain the information requested. If the SNMP operation is successful,
  the result returns @true.}
-FUNCTION SNMPGetNext(VAR OID: ansistring; CONST Community, SNMPHost: ansistring; VAR value: ansistring): boolean;
+function SNMPGetNext(var OID: AnsiString; const Community, SNMPHost: AnsiString; var Value: AnsiString): Boolean;
 
 {:A very useful function and example of its use would be found in the TSNMPSend
- object. it implements basic read of SNMP MIB tables. As BaseOID you must
+ object. It implements basic read of SNMP MIB tables. As BaseOID you must
  specify basic MIB OID of requested table (base IOD is OID without row and
  column specificator!)
- table is readed into stringlist, where each string is comma delimited string.
+ Table is readed into stringlist, where each string is comma delimited string.
 
- Warning: this FUNCTION is not have best performance. for better performance
- you must write your own FUNCTION. best performace you can get by knowledge
+ Warning: this function is not have best performance. For better performance
+ you must write your own function. best performace you can get by knowledge
  of structuture of table and by more then one MIB on one query. }
-FUNCTION SNMPGetTable(CONST BaseOID, Community, SNMPHost: ansistring; CONST value: TStrings): boolean;
+function SNMPGetTable(const BaseOID, Community, SNMPHost: AnsiString; const Value: TStrings): Boolean;
 
 {:A very useful function and example of its use would be found in the TSNMPSend
- object. it implements basic read of SNMP MIB table element. As BaseOID you must
+ object. It implements basic read of SNMP MIB table element. As BaseOID you must
  specify basic MIB OID of requested table (base IOD is OID without row and
  column specificator!)
  As next you must specify identificator of row and column for specify of needed
  field of table.}
-FUNCTION SNMPGetTableElement(CONST BaseOID, rowId, ColID, Community, SNMPHost: ansistring; VAR value: ansistring): boolean;
+function SNMPGetTableElement(const BaseOID, RowID, ColID, Community, SNMPHost: AnsiString; var Value: AnsiString): Boolean;
 
 {:A very useful function and example of its use would be found in the TSNMPSend
- object. it implements a TRAPv1 to send with all data in the parameters.}
-FUNCTION SendTrap(CONST dest, Source, Enterprise, Community: ansistring;
-  GENERIC, specific, Seconds: integer; CONST MIBName, MIBValue: ansistring;
-  MIBtype: integer): integer;
+ object. It implements a TRAPv1 to send with all data in the parameters.}
+function SendTrap(const Dest, Source, Enterprise, Community: AnsiString;
+  Generic, Specific, Seconds: Integer; const MIBName, MIBValue: AnsiString;
+  MIBtype: Integer): Integer;
 
 {:A very useful function and example of its use would be found in the TSNMPSend
- object. it receives a TRAPv1 and returns all the data that comes with it.}
-FUNCTION RecvTrap(VAR dest, Source, Enterprise, Community: ansistring;
-  VAR GENERIC, specific, Seconds: integer; CONST MIBName,
-  MIBValue: TStringList): integer;
+ object. It receives a TRAPv1 and returns all the data that comes with it.}
+function RecvTrap(var Dest, Source, Enterprise, Community: AnsiString;
+  var Generic, Specific, Seconds: Integer; const MIBName,
+  MIBValue: TStringList): Integer;
 
-IMPLEMENTATION
+implementation
 
 {==============================================================================}
 
-CONSTRUCTOR TSNMPRec.create;
+constructor TSNMPRec.Create;
 begin
-  inherited create;
-  FSNMPMibList := TList.create;
-  clear;
+  inherited Create;
+  FSNMPMibList := TList.Create;
+  Clear;
   FAuthMode := AuthMD5;
   FPassword := '';
   FPrivMode := PrivDES;
@@ -445,39 +445,39 @@ begin
   FMaxSize := 1472;
 end;
 
-DESTRUCTOR TSNMPRec.destroy;
-VAR
-  i: integer;
+destructor TSNMPRec.Destroy;
+var
+  i: Integer;
 begin
-  for i := 0 to FSNMPMibList.count - 1 do
-    TSNMPMib(FSNMPMibList[i]).free;
-  FSNMPMibList.clear;
-  FSNMPMibList.free;
-  inherited destroy;
+  for i := 0 to FSNMPMibList.Count - 1 do
+    TSNMPMib(FSNMPMibList[i]).Free;
+  FSNMPMibList.Clear;
+  FSNMPMibList.Free;
+  inherited Destroy;
 end;
 
-FUNCTION TSNMPRec.Pass2Key(CONST value: ansistring): ansistring;
-VAR
-  key: ansistring;
+function TSNMPRec.Pass2Key(const Value: AnsiString): AnsiString;
+var
+  key: AnsiString;
 begin
   case FAuthMode of
     AuthMD5:
       begin
-        key := MD5LongHash(value, 1048576);
-        result := MD5(key + FAuthEngineID + key);
+        key := MD5LongHash(Value, 1048576);
+        Result := MD5(key + FAuthEngineID + key);
       end;
     AuthSHA1:
       begin
-        key := SHA1LongHash(value, 1048576);
-        result := SHA1(key + FAuthEngineID + key);
+        key := SHA1LongHash(Value, 1048576);
+        Result := SHA1(key + FAuthEngineID + key);
       end;
   else
-    result := '';
+    Result := '';
   end;
 end;
 
-FUNCTION TSNMPRec.DecryptPDU(CONST value: ansistring): ansistring;
-VAR
+function TSNMPRec.DecryptPDU(const value: AnsiString): AnsiString;
+var
   des: TSynaDes;
   des3: TSyna3Des;
   aes: TSynaAes;
@@ -485,7 +485,7 @@ VAR
 begin
   FPrivKey := '';
   if FFlags <> AuthPriv then
-    result := value
+    Result := value
   else
   begin
     case FPrivMode of
@@ -493,13 +493,13 @@ begin
         begin
           FPrivKey := Pass2Key(FPrivPassword);
           FPrivKey := FPrivKey + Pass2Key(FPrivKey);
-          des3 := TSyna3Des.create(PadString(FPrivKey, 24, #0));
+          des3 := TSyna3Des.Create(PadString(FPrivKey, 24, #0));
           try
             s := PadString(FPrivKey, 32, #0);
-            Delete(s, 1, 24);
+            delete(s, 1, 24);
             des3.SetIV(xorstring(s, FPrivSalt));
             s := des3.DecryptCBC(value);
-            result := s;
+            Result := s;
           finally
             des3.free;
           end;
@@ -507,12 +507,12 @@ begin
       PrivAES:
         begin
           FPrivKey := Pass2Key(FPrivPassword);
-          aes := TSynaAes.create(PadString(FPrivKey, 16, #0));
+          aes := TSynaAes.Create(PadString(FPrivKey, 16, #0));
           try
             s := CodeLongInt(FAuthEngineBoots) + CodeLongInt(FAuthEngineTime) + FPrivSalt;
             aes.SetIV(s);
             s := aes.DecryptCFBblock(value);
-            result := s;
+            Result := s;
           finally
             aes.free;
           end;
@@ -520,13 +520,13 @@ begin
     else //PrivDES as default
       begin
         FPrivKey := Pass2Key(FPrivPassword);
-        des := TSynaDes.create(PadString(FPrivKey, 8, #0));
+        des := TSynaDes.Create(PadString(FPrivKey, 8, #0));
         try
           s := PadString(FPrivKey, 16, #0);
-          Delete(s, 1, 8);
+          delete(s, 1, 8);
           des.SetIV(xorstring(s, FPrivSalt));
           s := des.DecryptCBC(value);
-          result := s;
+          Result := s;
         finally
           des.free;
         end;
@@ -535,37 +535,37 @@ begin
   end;
 end;
 
-FUNCTION TSNMPRec.DecodeBuf(buffer: ansistring): boolean;
-VAR
-  pos: integer;
-  EndPos: integer;
-  SM, sv: ansistring;
-  Svt: integer;
-  s: ansistring;
+function TSNMPRec.DecodeBuf(Buffer: AnsiString): Boolean;
+var
+  Pos: Integer;
+  EndPos: Integer;
+  sm, sv: AnsiString;
+  Svt: Integer;
+  s: AnsiString;
   Spos: integer;
-  x: byte;
+  x: Byte;
 begin
-  clear;
-  result := false;
-  if length(buffer) < 2 then
-    exit;
-  if (ord(buffer[1]) and $20) = 0 then
-    exit;
-  pos := 2;
-  EndPos := ASNDecLen(pos, buffer);
-  if length(buffer) < (EndPos + 2) then
-    exit;
-  self.FVersion := strToIntDef(ASNItem(pos, buffer, Svt), 0);
+  Clear;
+  Result := False;
+  if Length(Buffer) < 2 then
+    Exit;
+  if (Ord(Buffer[1]) and $20) = 0 then
+    Exit;
+  Pos := 2;
+  EndPos := ASNDecLen(Pos, Buffer);
+  if Length(Buffer) < (EndPos + 2) then
+    Exit;
+  Self.FVersion := StrToIntDef(ASNItem(Pos, Buffer, Svt), 0);
 
   if FVersion = 3 then
   begin
-    ASNItem(pos, buffer, Svt);  //header data seq
-    ASNItem(pos, buffer, Svt);  //ID
-    FMaxSize := strToIntDef(ASNItem(pos, buffer, Svt), 0);
-    s := ASNItem(pos, buffer, Svt);
+    ASNItem(Pos, Buffer, Svt);  //header data seq
+    ASNItem(Pos, Buffer, Svt);  //ID
+    FMaxSize := StrToIntDef(ASNItem(Pos, Buffer, Svt), 0);
+    s := ASNItem(Pos, Buffer, Svt);
     x := 0;
     if s <> '' then
-      x := ord(s[1]);
+      x := Ord(s[1]);
     FFlagReportable := (x and 4) > 0;
     x := x and 3;
     case x of
@@ -577,16 +577,16 @@ begin
       FFlags := NoAuthNoPriv;
     end;
 
-    x := strToIntDef(ASNItem(pos, buffer, Svt), 0);
-    s := ASNItem(pos, buffer, Svt); //SecurityParameters
+    x := StrToIntDef(ASNItem(Pos, Buffer, Svt), 0);
+    s := ASNItem(Pos, Buffer, Svt); //SecurityParameters
     //if SecurityModel is USM, then try to decode SecurityParameters
     if (x = 3) and (s <> '') then
     begin
       spos := 1;
       ASNItem(SPos, s, Svt);
       FAuthEngineID := ASNItem(SPos, s, Svt);
-      FAuthEngineBoots := strToIntDef(ASNItem(SPos, s, Svt), 0);
-      FAuthEngineTime := strToIntDef(ASNItem(SPos, s, Svt), 0);
+      FAuthEngineBoots := StrToIntDef(ASNItem(SPos, s, Svt), 0);
+      FAuthEngineTime := StrToIntDef(ASNItem(SPos, s, Svt), 0);
       FAuthEngineTimeStamp := GetTick;
       FUserName := ASNItem(SPos, s, Svt);
       FAuthKey := ASNItem(SPos, s, Svt);
@@ -595,58 +595,58 @@ begin
     //scopedPDU
     if FFlags = AuthPriv then
     begin
-      x := pos;
-      s := ASNItem(pos, buffer, Svt);
+      x := Pos;
+      s := ASNItem(Pos, Buffer, Svt);
       if Svt <> ASN1_OCTSTR then
         exit;
       s := DecryptPDU(s);
       //replace encoded content by decoded version and continue
-      buffer := copy(buffer, 1, x - 1);
-      buffer := buffer + s;
-      pos := x;
-      if length(buffer) < EndPos then
+      Buffer := copy(Buffer, 1, x - 1);
+      Buffer := Buffer + s;
+      Pos := x;
+      if length(Buffer) < EndPos then
         EndPos := length(buffer);
     end;
-    ASNItem(pos, buffer, Svt); //skip sequence mark
-    FContextEngineID := ASNItem(pos, buffer, Svt);
-    FContextName := ASNItem(pos, buffer, Svt);
+    ASNItem(Pos, Buffer, Svt); //skip sequence mark
+    FContextEngineID := ASNItem(Pos, Buffer, Svt);
+    FContextName := ASNItem(Pos, Buffer, Svt);
   end
   else
   begin
     //old packet
-    self.FCommunity := ASNItem(pos, buffer, Svt);
+    Self.FCommunity := ASNItem(Pos, Buffer, Svt);
   end;
 
-  ASNItem(pos, buffer, Svt);
-  self.FPDUType := Svt;
-  if self.FPDUType = PDUTrap then
+  ASNItem(Pos, Buffer, Svt);
+  Self.FPDUType := Svt;
+  if Self.FPDUType = PDUTrap then
   begin
-    FOldTrapEnterprise := ASNItem(pos, buffer, Svt);
-    FOldTrapHost := ASNItem(pos, buffer, Svt);
-    FOldTrapGen := strToIntDef(ASNItem(pos, buffer, Svt), 0);
-    FOldTrapSpec := strToIntDef(ASNItem(pos, buffer, Svt), 0);
-    FOldTrapTimeTicks := strToIntDef(ASNItem(pos, buffer, Svt), 0);
+    FOldTrapEnterprise := ASNItem(Pos, Buffer, Svt);
+    FOldTrapHost := ASNItem(Pos, Buffer, Svt);
+    FOldTrapGen := StrToIntDef(ASNItem(Pos, Buffer, Svt), 0);
+    FOldTrapSpec := StrToIntDef(ASNItem(Pos, Buffer, Svt), 0);
+    FOldTrapTimeTicks := StrToIntDef(ASNItem(Pos, Buffer, Svt), 0);
   end
   else
   begin
-    self.FID := strToIntDef(ASNItem(pos, buffer, Svt), 0);
-    self.FErrorStatus := strToIntDef(ASNItem(pos, buffer, Svt), 0);
-    self.FErrorIndex := strToIntDef(ASNItem(pos, buffer, Svt), 0);
+    Self.FID := StrToIntDef(ASNItem(Pos, Buffer, Svt), 0);
+    Self.FErrorStatus := StrToIntDef(ASNItem(Pos, Buffer, Svt), 0);
+    Self.FErrorIndex := StrToIntDef(ASNItem(Pos, Buffer, Svt), 0);
   end;
-  ASNItem(pos, buffer, Svt);
-  while pos < EndPos do
+  ASNItem(Pos, Buffer, Svt);
+  while Pos < EndPos do
   begin
-    ASNItem(pos, buffer, Svt);
-    SM := ASNItem(pos, buffer, Svt);
-    sv := ASNItem(pos, buffer, Svt);
-    if SM <> '' then
-      self.MIBAdd(SM, sv, Svt);
+    ASNItem(Pos, Buffer, Svt);
+    Sm := ASNItem(Pos, Buffer, Svt);
+    Sv := ASNItem(Pos, Buffer, Svt);
+    if sm <> '' then
+      Self.MIBAdd(sm, sv, Svt);
   end;
-  result := true;
+  Result := True;
 end;
 
-FUNCTION TSNMPRec.EncryptPDU(CONST value: ansistring): ansistring;
-VAR
+function TSNMPRec.EncryptPDU(const value: AnsiString): AnsiString;
+var
   des: TSynaDes;
   des3: TSyna3Des;
   aes: TSynaAes;
@@ -655,7 +655,7 @@ VAR
 begin
   FPrivKey := '';
   if FFlags <> AuthPriv then
-    result := value
+    Result := Value
   else
   begin
     case FPrivMode of
@@ -663,10 +663,10 @@ begin
         begin
           FPrivKey := Pass2Key(FPrivPassword);
           FPrivKey := FPrivKey + Pass2Key(FPrivKey);
-          des3 := TSyna3Des.create(PadString(FPrivKey, 24, #0));
+          des3 := TSyna3Des.Create(PadString(FPrivKey, 24, #0));
           try
             s := PadString(FPrivKey, 32, #0);
-            Delete(s, 1, 24);
+            delete(s, 1, 24);
             FPrivSalt := CodeLongInt(FAuthEngineBoots) + CodeLongInt(FPrivSaltCounter);
             inc(FPrivSaltCounter);
             s := xorstring(s, FPrivSalt);
@@ -675,8 +675,8 @@ begin
             x := 8 - x;
             if x = 8 then
               x := 0;
-            s := des3.EncryptCBC(value + StringOfChar(#0, x));
-            result := ASNObject(s, ASN1_OCTSTR);
+            s := des3.EncryptCBC(value + Stringofchar(#0, x));
+            Result := ASNObject(s, ASN1_OCTSTR);
           finally
             des3.free;
           end;
@@ -684,14 +684,14 @@ begin
       PrivAES:
         begin
           FPrivKey := Pass2Key(FPrivPassword);
-          aes := TSynaAes.create(PadString(FPrivKey, 16, #0));
+          aes := TSynaAes.Create(PadString(FPrivKey, 16, #0));
           try
             FPrivSalt := CodeLongInt(0) + CodeLongInt(FPrivSaltCounter);
             inc(FPrivSaltCounter);
             s := CodeLongInt(FAuthEngineBoots) + CodeLongInt(FAuthEngineTime) + FPrivSalt;
             aes.SetIV(s);
             s := aes.EncryptCFBblock(value);
-            result := ASNObject(s, ASN1_OCTSTR);
+            Result := ASNObject(s, ASN1_OCTSTR);
           finally
             aes.free;
           end;
@@ -699,10 +699,10 @@ begin
     else //PrivDES as default
       begin
         FPrivKey := Pass2Key(FPrivPassword);
-        des := TSynaDes.create(PadString(FPrivKey, 8, #0));
+        des := TSynaDes.Create(PadString(FPrivKey, 8, #0));
         try
           s := PadString(FPrivKey, 16, #0);
-          Delete(s, 1, 8);
+          delete(s, 1, 8);
           FPrivSalt := CodeLongInt(FAuthEngineBoots) + CodeLongInt(FPrivSaltCounter);
           inc(FPrivSaltCounter);
           s := xorstring(s, FPrivSalt);
@@ -711,8 +711,8 @@ begin
           x := 8 - x;
           if x = 8 then
             x := 0;
-          s := des.EncryptCBC(value + StringOfChar(#0, x));
-          result := ASNObject(s, ASN1_OCTSTR);
+          s := des.EncryptCBC(value + Stringofchar(#0, x));
+          Result := ASNObject(s, ASN1_OCTSTR);
         finally
           des.free;
         end;
@@ -721,43 +721,43 @@ begin
   end;
 end;
 
-FUNCTION TSNMPRec.EncodeBuf: ansistring;
-VAR
-  s: ansistring;
+function TSNMPRec.EncodeBuf: AnsiString;
+var
+  s: AnsiString;
   SNMPMib: TSNMPMib;
-  n: integer;
-  pdu, head, auth, authbeg: ansistring;
-  x: byte;
+  n: Integer;
+  pdu, head, auth, authbeg: AnsiString;
+  x: Byte;
 begin
   pdu := '';
-  for n := 0 to FSNMPMibList.count - 1 do
+  for n := 0 to FSNMPMibList.Count - 1 do
   begin
     SNMPMib := TSNMPMib(FSNMPMibList[n]);
     case SNMPMib.ValueType of
       ASN1_INT:
         s := ASNObject(MibToID(SNMPMib.OID), ASN1_OBJID) +
-          ASNObject(ASNEncInt(strToIntDef(SNMPMib.value, 0)), SNMPMib.ValueType);
+          ASNObject(ASNEncInt(StrToIntDef(SNMPMib.Value, 0)), SNMPMib.ValueType);
       ASN1_COUNTER, ASN1_GAUGE, ASN1_TIMETICKS:
         s := ASNObject(MibToID(SNMPMib.OID), ASN1_OBJID) +
-          ASNObject(ASNEncUInt(strToIntDef(SNMPMib.value, 0)), SNMPMib.ValueType);
+          ASNObject(ASNEncUInt(StrToIntDef(SNMPMib.Value, 0)), SNMPMib.ValueType);
       ASN1_OBJID:
         s := ASNObject(MibToID(SNMPMib.OID), ASN1_OBJID) +
-          ASNObject(MibToID(SNMPMib.value), SNMPMib.ValueType);
+          ASNObject(MibToID(SNMPMib.Value), SNMPMib.ValueType);
       ASN1_IPADDR:
         s := ASNObject(MibToID(SNMPMib.OID), ASN1_OBJID) +
-          ASNObject(IPToID(SNMPMib.value), SNMPMib.ValueType);
+          ASNObject(IPToID(SNMPMib.Value), SNMPMib.ValueType);
       ASN1_NULL:
         s := ASNObject(MibToID(SNMPMib.OID), ASN1_OBJID) +
           ASNObject('', ASN1_NULL);
     else
       s := ASNObject(MibToID(SNMPMib.OID), ASN1_OBJID) +
-        ASNObject(SNMPMib.value, SNMPMib.ValueType);
+        ASNObject(SNMPMib.Value, SNMPMib.ValueType);
     end;
     pdu := pdu + ASNObject(s, ASN1_SEQ);
   end;
   pdu := ASNObject(pdu, ASN1_SEQ);
 
-  if self.FPDUType = PDUTrap then
+  if Self.FPDUType = PDUTrap then
     pdu := ASNObject(MibToID(FOldTrapEnterprise), ASN1_OBJID) +
       ASNObject(IPToID(FOldTrapHost), ASN1_IPADDR) +
       ASNObject(ASNEncInt(FOldTrapGen), ASN1_INT) +
@@ -765,11 +765,11 @@ begin
       ASNObject(ASNEncUInt(FOldTrapTimeTicks), ASN1_TIMETICKS) +
       pdu
   else
-    pdu := ASNObject(ASNEncInt(self.FID), ASN1_INT) +
-      ASNObject(ASNEncInt(self.FErrorStatus), ASN1_INT) +
-      ASNObject(ASNEncInt(self.FErrorIndex), ASN1_INT) +
+    pdu := ASNObject(ASNEncInt(Self.FID), ASN1_INT) +
+      ASNObject(ASNEncInt(Self.FErrorStatus), ASN1_INT) +
+      ASNObject(ASNEncInt(Self.FErrorIndex), ASN1_INT) +
       pdu;
-  pdu := ASNObject(pdu, self.FPDUType);
+  pdu := ASNObject(pdu, Self.FPDUType);
 
   if FVersion = 3 then
   begin
@@ -794,7 +794,7 @@ begin
     end;
     if FFlagReportable then
       x := x or 4;
-    head := ASNObject(ASNEncInt(self.FVersion), ASN1_INT);
+    head := ASNObject(ASNEncInt(Self.FVersion), ASN1_INT);
     s := ASNObject(ASNEncInt(FID), ASN1_INT)
       + ASNObject(ASNEncInt(FMaxSize), ASN1_INT)
       + ASNObject(AnsiChar(x), ASN1_OCTSTR)
@@ -829,13 +829,13 @@ begin
               begin
                 s := HMAC_MD5(s, Pass2Key(FPassword) + StringOfChar(#0, 48));
                 //strip to HMAC-MD5-96
-                Delete(s, 13, 4);
+                delete(s, 13, 4);
               end;
             AuthSHA1:
               begin
                 s := HMAC_SHA1(s, Pass2Key(FPassword) + StringOfChar(#0, 44));
                 //strip to HMAC-SHA-96
-                Delete(s, 13, 8);
+                delete(s, 13, 8);
               end;
           else
             s := '';
@@ -849,20 +849,20 @@ begin
     auth := ASNObject(auth, ASN1_SEQ);
 
     head := head + ASNObject(auth, ASN1_OCTSTR);
-    result := ASNObject(head + pdu, ASN1_SEQ);
+    Result := ASNObject(head + pdu, ASN1_SEQ);
   end
   else
   begin
-    head := ASNObject(ASNEncInt(self.FVersion), ASN1_INT) +
-      ASNObject(self.FCommunity, ASN1_OCTSTR);
-    result := ASNObject(head + pdu, ASN1_SEQ);
+    head := ASNObject(ASNEncInt(Self.FVersion), ASN1_INT) +
+      ASNObject(Self.FCommunity, ASN1_OCTSTR);
+    Result := ASNObject(head + pdu, ASN1_SEQ);
   end;
   inc(self.FID);
 end;
 
-PROCEDURE TSNMPRec.clear;
-VAR
-  i: integer;
+procedure TSNMPRec.Clear;
+var
+  i: Integer;
 begin
   FVersion := SNMP_V1;
   FCommunity := 'public';
@@ -870,9 +870,9 @@ begin
   FPDUType := 0;
   FErrorStatus := 0;
   FErrorIndex := 0;
-  for i := 0 to FSNMPMibList.count - 1 do
-    TSNMPMib(FSNMPMibList[i]).free;
-  FSNMPMibList.clear;
+  for i := 0 to FSNMPMibList.Count - 1 do
+    TSNMPMib(FSNMPMibList[i]).Free;
+  FSNMPMibList.Clear;
   FOldTrapEnterprise := '';
   FOldTrapHost := '';
   FOldTrapGen := 0;
@@ -889,103 +889,103 @@ begin
   FAuthKey := '';
   FPrivKey := '';
   FPrivSalt := '';
-  FPrivSaltCounter := random(MAXINT);
+  FPrivSaltCounter := random(maxint);
 end;
 
-PROCEDURE TSNMPRec.MIBAdd(CONST MIB, value: ansistring; ValueType: integer);
-VAR
+procedure TSNMPRec.MIBAdd(const MIB, Value: AnsiString; ValueType: Integer);
+var
   SNMPMib: TSNMPMib;
 begin
-  SNMPMib := TSNMPMib.create;
+  SNMPMib := TSNMPMib.Create;
   SNMPMib.OID := MIB;
-  SNMPMib.value := value;
+  SNMPMib.Value := Value;
   SNMPMib.ValueType := ValueType;
-  FSNMPMibList.add(SNMPMib);
+  FSNMPMibList.Add(SNMPMib);
 end;
 
-PROCEDURE TSNMPRec.MIBDelete(index: integer);
+procedure TSNMPRec.MIBDelete(Index: Integer);
 begin
-  if (index >= 0) and (index < MIBCount) then
+  if (Index >= 0) and (Index < MIBCount) then
   begin
-    TSNMPMib(FSNMPMibList[index]).free;
-    FSNMPMibList.Delete(index);
+    TSNMPMib(FSNMPMibList[Index]).Free;
+    FSNMPMibList.Delete(Index);
   end;
 end;
 
-FUNCTION TSNMPRec.MIBCount: integer;
+function TSNMPRec.MIBCount: integer;
 begin
-  result := FSNMPMibList.count;
+  Result := FSNMPMibList.Count;
 end;
 
-FUNCTION TSNMPRec.MIBByIndex(index: integer): TSNMPMib;
+function TSNMPRec.MIBByIndex(Index: Integer): TSNMPMib;
 begin
-  result := nil;
-  if (index >= 0) and (index < MIBCount) then
-    result := TSNMPMib(FSNMPMibList[index]);
+  Result := nil;
+  if (Index >= 0) and (Index < MIBCount) then
+    Result := TSNMPMib(FSNMPMibList[Index]);
 end;
 
-FUNCTION TSNMPRec.MIBGet(CONST MIB: ansistring): ansistring;
-VAR
-  i: integer;
+function TSNMPRec.MIBGet(const MIB: AnsiString): AnsiString;
+var
+  i: Integer;
 begin
-  result := '';
+  Result := '';
   for i := 0 to MIBCount - 1 do
   begin
     if ((TSNMPMib(FSNMPMibList[i])).OID = MIB) then
     begin
-      result := (TSNMPMib(FSNMPMibList[i])).value;
-      break;
+      Result := (TSNMPMib(FSNMPMibList[i])).Value;
+      Break;
     end;
   end;
 end;
 
 {==============================================================================}
 
-CONSTRUCTOR TSNMPSend.create;
+constructor TSNMPSend.Create;
 begin
-  inherited create;
-  FQuery := TSNMPRec.create;
-  FReply := TSNMPRec.create;
-  FQuery.clear;
-  FReply.clear;
-  FSock := TUDPBlockSocket.create;
+  inherited Create;
+  FQuery := TSNMPRec.Create;
+  FReply := TSNMPRec.Create;
+  FQuery.Clear;
+  FReply.Clear;
+  FSock := TUDPBlockSocket.Create;
   FSock.Owner := self;
   FTimeout := 5000;
   FTargetPort := cSnmpProtocol;
   FHostIP := '';
 end;
 
-DESTRUCTOR TSNMPSend.destroy;
+destructor TSNMPSend.Destroy;
 begin
-  FSock.free;
-  FReply.free;
-  FQuery.free;
-  inherited destroy;
+  FSock.Free;
+  FReply.Free;
+  FQuery.Free;
+  inherited Destroy;
 end;
 
-FUNCTION TSNMPSend.InternalSendSnmp(CONST value: TSNMPRec): boolean;
+function TSNMPSend.InternalSendSnmp(const Value: TSNMPRec): Boolean;
 begin
-  FBuffer := value.EncodeBuf;
+  FBuffer := Value.EncodeBuf;
   FSock.SendString(FBuffer);
-  result := FSock.LastError = 0;
+  Result := FSock.LastError = 0;
 end;
 
-FUNCTION TSNMPSend.InternalRecvSnmp(CONST value: TSNMPRec): boolean;
+function TSNMPSend.InternalRecvSnmp(const Value: TSNMPRec): Boolean;
 begin
-  result := false;
-  FReply.clear;
+  Result := False;
+  FReply.Clear;
   FHostIP := cAnyHost;
   FBuffer := FSock.RecvPacket(FTimeout);
   if FSock.LastError = 0 then
   begin
     FHostIP := FSock.GetRemoteSinIP;
-    result := value.DecodeBuf(FBuffer);
+    Result := Value.DecodeBuf(FBuffer);
   end;
 end;
 
-FUNCTION TSNMPSend.InternalSendRequest(CONST QValue, RValue: TSNMPRec): boolean;
+function TSNMPSend.InternalSendRequest(const QValue, RValue: TSNMPRec): Boolean;
 begin
-  result := false;
+  Result := False;
   RValue.AuthMode := QValue.AuthMode;
   RValue.Password := QValue.Password;
   RValue.PrivMode := QValue.PrivMode;
@@ -993,14 +993,14 @@ begin
   FSock.Bind(FIPInterface, cAnyPort);
   FSock.Connect(FTargetHost, FTargetPort);
   if InternalSendSnmp(QValue) then
-    result := InternalRecvSnmp(RValue);
+    Result := InternalRecvSnmp(RValue);
 end;
 
-FUNCTION TSNMPSend.SendRequest: boolean;
-VAR
+function TSNMPSend.SendRequest: Boolean;
+var
   sync: TV3Sync;
 begin
-  result := false;
+  Result := False;
   if FQuery.FVersion = 3 then
   begin
     sync := GetV3Sync;
@@ -1009,62 +1009,62 @@ begin
     FQuery.AuthEngineTimeStamp := Sync.EngineStamp;
     FQuery.AuthEngineID := Sync.EngineID;
   end;
-  result := InternalSendRequest(FQuery, FReply);
+  Result := InternalSendRequest(FQuery, FReply);
 end;
 
-FUNCTION TSNMPSend.SendTrap: boolean;
+function TSNMPSend.SendTrap: Boolean;
 begin
   FSock.Bind(FIPInterface, cAnyPort);
   FSock.Connect(FTargetHost, FTargetPort);
-  result := InternalSendSnmp(FQuery);
+  Result := InternalSendSnmp(FQuery);
 end;
 
-FUNCTION TSNMPSend.RecvTrap: boolean;
+function TSNMPSend.RecvTrap: Boolean;
 begin
   FSock.Bind(FIPInterface, FTargetPort);
-  result := InternalRecvSnmp(FReply);
+  Result := InternalRecvSnmp(FReply);
 end;
 
-FUNCTION TSNMPSend.DoIt: boolean;
+function TSNMPSend.DoIt: Boolean;
 begin
-  result := SendRequest;
+  Result := SendRequest;
 end;
 
-FUNCTION TSNMPSend.GetV3EngineID: ansistring;
-VAR
+function TSNMPSend.GetV3EngineID: AnsiString;
+var
   DisQuery: TSNMPRec;
 begin
-  result := '';
-  DisQuery := TSNMPRec.create;
+  Result := '';
+  DisQuery := TSNMPRec.Create;
   try
     DisQuery.Version := 3;
     DisQuery.UserName := '';
-    DisQuery.FlagReportable := true;
+    DisQuery.FlagReportable := True;
     DisQuery.PDUType := PDUGetRequest;
     if InternalSendRequest(DisQuery, FReply) then
-      result := FReply.FAuthEngineID;
+      Result := FReply.FAuthEngineID;
   finally
-    DisQuery.free;
+    DisQuery.Free;
   end;
 end;
 
-FUNCTION TSNMPSend.GetV3Sync: TV3Sync;
-VAR
+function TSNMPSend.GetV3Sync: TV3Sync;
+var
   SyncQuery: TSNMPRec;
 begin
-  result.EngineID := GetV3EngineID;
-  result.EngineBoots := FReply.AuthEngineBoots;
-  result.EngineTime := FReply.AuthEngineTime;
-  result.EngineStamp := FReply.AuthEngineTimeStamp;
-  if result.EngineTime = 0 then
+  Result.EngineID := GetV3EngineID;
+  Result.EngineBoots := FReply.AuthEngineBoots;
+  Result.EngineTime := FReply.AuthEngineTime;
+  Result.EngineStamp := FReply.AuthEngineTimeStamp;
+  if Result.EngineTime = 0 then
   begin
     //still not have sync...
-    SyncQuery := TSNMPRec.create;
+    SyncQuery := TSNMPRec.Create;
     try
       SyncQuery.Version := 3;
       SyncQuery.UserName := FQuery.UserName;
       SyncQuery.Password := FQuery.Password;
-      SyncQuery.FlagReportable := true;
+      SyncQuery.FlagReportable := True;
       SyncQuery.Flags := FQuery.Flags;
       SyncQuery.AuthMode := FQuery.AuthMode;
       SyncQuery.PrivMode := FQuery.PrivMode;
@@ -1073,190 +1073,190 @@ begin
       SyncQuery.AuthEngineID := FReply.FAuthEngineID;
       if InternalSendRequest(SyncQuery, FReply) then
       begin
-        result.EngineBoots := FReply.AuthEngineBoots;
-        result.EngineTime := FReply.AuthEngineTime;
-        result.EngineStamp := FReply.AuthEngineTimeStamp;
+        Result.EngineBoots := FReply.AuthEngineBoots;
+        Result.EngineTime := FReply.AuthEngineTime;
+        Result.EngineStamp := FReply.AuthEngineTimeStamp;
       end;
     finally
-      SyncQuery.free;
+      SyncQuery.Free;
     end;
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION SNMPGet(CONST OID, Community, SNMPHost: ansistring; VAR value: ansistring): boolean;
-VAR
+function SNMPGet(const OID, Community, SNMPHost: AnsiString; var Value: AnsiString): Boolean;
+var
   SNMPSend: TSNMPSend;
 begin
-  SNMPSend := TSNMPSend.create;
+  SNMPSend := TSNMPSend.Create;
   try
-    SNMPSend.Query.clear;
+    SNMPSend.Query.Clear;
     SNMPSend.Query.Community := Community;
     SNMPSend.Query.PDUType := PDUGetRequest;
     SNMPSend.Query.MIBAdd(OID, '', ASN1_NULL);
     SNMPSend.TargetHost := SNMPHost;
-    result := SNMPSend.SendRequest;
-    value := '';
-    if result then
-      value := SNMPSend.Reply.MIBGet(OID);
+    Result := SNMPSend.SendRequest;
+    Value := '';
+    if Result then
+      Value := SNMPSend.Reply.MIBGet(OID);
   finally
-    SNMPSend.free;
+    SNMPSend.Free;
   end;
 end;
 
-FUNCTION SNMPSet(CONST OID, Community, SNMPHost, value: ansistring; ValueType: integer): boolean;
-VAR
+function SNMPSet(const OID, Community, SNMPHost, Value: AnsiString; ValueType: Integer): Boolean;
+var
   SNMPSend: TSNMPSend;
 begin
-  SNMPSend := TSNMPSend.create;
+  SNMPSend := TSNMPSend.Create;
   try
-    SNMPSend.Query.clear;
+    SNMPSend.Query.Clear;
     SNMPSend.Query.Community := Community;
     SNMPSend.Query.PDUType := PDUSetRequest;
-    SNMPSend.Query.MIBAdd(OID, value, ValueType);
+    SNMPSend.Query.MIBAdd(OID, Value, ValueType);
     SNMPSend.TargetHost := SNMPHost;
-    result := SNMPSend.Sendrequest = true;
+    Result := SNMPSend.Sendrequest = True;
   finally
-    SNMPSend.free;
+    SNMPSend.Free;
   end;
 end;
 
-FUNCTION InternalGetNext(CONST SNMPSend: TSNMPSend; VAR OID: ansistring;
-  CONST Community: ansistring; VAR value: ansistring): boolean;
+function InternalGetNext(const SNMPSend: TSNMPSend; var OID: AnsiString;
+  const Community: AnsiString; var Value: AnsiString): Boolean;
 begin
-  SNMPSend.Query.clear;
-  SNMPSend.Query.id := SNMPSend.Query.id + 1;
+  SNMPSend.Query.Clear;
+  SNMPSend.Query.ID := SNMPSend.Query.ID + 1;
   SNMPSend.Query.Community := Community;
   SNMPSend.Query.PDUType := PDUGetNextRequest;
   SNMPSend.Query.MIBAdd(OID, '', ASN1_NULL);
-  result := SNMPSend.Sendrequest;
-  value := '';
-  if result then
-    if SNMPSend.Reply.SNMPMibList.count > 0 then
+  Result := SNMPSend.Sendrequest;
+  Value := '';
+  if Result then
+    if SNMPSend.Reply.SNMPMibList.Count > 0 then
     begin
       OID := TSNMPMib(SNMPSend.Reply.SNMPMibList[0]).OID;
-      value := TSNMPMib(SNMPSend.Reply.SNMPMibList[0]).value;
+      Value := TSNMPMib(SNMPSend.Reply.SNMPMibList[0]).Value;
     end;
 end;
 
-FUNCTION SNMPGetNext(VAR OID: ansistring; CONST Community, SNMPHost: ansistring; VAR value: ansistring): boolean;
-VAR
+function SNMPGetNext(var OID: AnsiString; const Community, SNMPHost: AnsiString; var Value: AnsiString): Boolean;
+var
   SNMPSend: TSNMPSend;
 begin
-  SNMPSend := TSNMPSend.create;
+  SNMPSend := TSNMPSend.Create;
   try
     SNMPSend.TargetHost := SNMPHost;
-    result := InternalGetNext(SNMPSend, OID, Community, value);
+    Result := InternalGetNext(SNMPSend, OID, Community, Value);
   finally
-    SNMPSend.free;
+    SNMPSend.Free;
   end;
 end;
 
-FUNCTION SNMPGetTable(CONST BaseOID, Community, SNMPHost: ansistring; CONST value: TStrings): boolean;
-VAR
-  OID: ansistring;
-  s: ansistring;
-  col,row: string;
+function SNMPGetTable(const BaseOID, Community, SNMPHost: AnsiString; const Value: TStrings): Boolean;
+var
+  OID: AnsiString;
+  s: AnsiString;
+  col,row: String;
   x: integer;
   SNMPSend: TSNMPSend;
   RowList: TStringList;
 begin
-  value.clear;
-  SNMPSend := TSNMPSend.create;
-  RowList := TStringList.create;
+  Value.Clear;
+  SNMPSend := TSNMPSend.Create;
+  RowList := TStringList.Create;
   try
     SNMPSend.TargetHost := SNMPHost;
     OID := BaseOID;
     repeat
-      result := InternalGetNext(SNMPSend, OID, Community, s);
-      if pos(BaseOID, OID) <> 1 then
+      Result := InternalGetNext(SNMPSend, OID, Community, s);
+      if Pos(BaseOID, OID) <> 1 then
           break;
       row := separateright(oid, baseoid + '.');
       col := fetch(row, '.');
 
       if IsBinaryString(s) then
         s := StrToHex(s);
-      x := RowList.indexOf(row);
+      x := RowList.indexOf(Row);
       if x < 0 then
       begin
-        x := RowList.add(row);
-        value.add('');
+        x := RowList.add(Row);
+        Value.Add('');
       end;
-      if (value[x] <> '') then
-        value[x] := value[x] + ',';
-      value[x] := value[x] + AnsiQuotedStr(s, '"');
+      if (Value[x] <> '') then
+        Value[x] := Value[x] + ',';
+      Value[x] := Value[x] + AnsiQuotedStr(s, '"');
     until not result;
   finally
-    SNMPSend.free;
-    RowList.free;
+    SNMPSend.Free;
+    RowList.Free;
   end;
 end;
 
-FUNCTION SNMPGetTableElement(CONST BaseOID, rowId, ColID, Community, SNMPHost: ansistring; VAR value: ansistring): boolean;
-VAR
-  s: ansistring;
+function SNMPGetTableElement(const BaseOID, RowID, ColID, Community, SNMPHost: AnsiString; var Value: AnsiString): Boolean;
+var
+  s: AnsiString;
 begin
-  s := BaseOID + '.' + ColID + '.' + rowId;
-  result := SnmpGet(s, Community, SNMPHost, value);
+  s := BaseOID + '.' + ColID + '.' + RowID;
+  Result := SnmpGet(s, Community, SNMPHost, Value);
 end;
 
-FUNCTION SendTrap(CONST dest, Source, Enterprise, Community: ansistring;
-  GENERIC, specific, Seconds: integer; CONST MIBName, MIBValue: ansistring;
-  MIBtype: integer): integer;
-VAR
+function SendTrap(const Dest, Source, Enterprise, Community: AnsiString;
+  Generic, Specific, Seconds: Integer; const MIBName, MIBValue: AnsiString;
+  MIBtype: Integer): Integer;
+var
   SNMPSend: TSNMPSend;
 begin
-  SNMPSend := TSNMPSend.create;
+  SNMPSend := TSNMPSend.Create;
   try
-    SNMPSend.TargetHost := dest;
+    SNMPSend.TargetHost := Dest;
     SNMPSend.TargetPort := cSnmpTrapProtocol;
     SNMPSend.Query.Community := Community;
     SNMPSend.Query.Version := SNMP_V1;
     SNMPSend.Query.PDUType := PDUTrap;
     SNMPSend.Query.OldTrapHost := Source;
     SNMPSend.Query.OldTrapEnterprise := Enterprise;
-    SNMPSend.Query.OldTrapGen := GENERIC;
-    SNMPSend.Query.OldTrapSpec := specific;
+    SNMPSend.Query.OldTrapGen := Generic;
+    SNMPSend.Query.OldTrapSpec := Specific;
     SNMPSend.Query.OldTrapTimeTicks := Seconds;
     SNMPSend.Query.MIBAdd(MIBName, MIBValue, MIBType);
-    result := ord(SNMPSend.SendTrap);
+    Result := Ord(SNMPSend.SendTrap);
   finally
-    SNMPSend.free;
+    SNMPSend.Free;
   end;
 end;
 
-FUNCTION RecvTrap(VAR dest, Source, Enterprise, Community: ansistring;
-  VAR GENERIC, specific, Seconds: integer;
-  CONST MIBName, MIBValue: TStringList): integer;
-VAR
+function RecvTrap(var Dest, Source, Enterprise, Community: AnsiString;
+  var Generic, Specific, Seconds: Integer;
+  const MIBName, MIBValue: TStringList): Integer;
+var
   SNMPSend: TSNMPSend;
-  i: integer;
+  i: Integer;
 begin
-  SNMPSend := TSNMPSend.create;
+  SNMPSend := TSNMPSend.Create;
   try
-    result := 0;
+    Result := 0;
     SNMPSend.TargetPort := cSnmpTrapProtocol;
     if SNMPSend.RecvTrap then
     begin
-      result := 1;
-      dest := SNMPSend.HostIP;
+      Result := 1;
+      Dest := SNMPSend.HostIP;
       Community := SNMPSend.Reply.Community;
       Source := SNMPSend.Reply.OldTrapHost;
       Enterprise := SNMPSend.Reply.OldTrapEnterprise;
-      GENERIC := SNMPSend.Reply.OldTrapGen;
-      specific := SNMPSend.Reply.OldTrapSpec;
+      Generic := SNMPSend.Reply.OldTrapGen;
+      Specific := SNMPSend.Reply.OldTrapSpec;
       Seconds := SNMPSend.Reply.OldTrapTimeTicks;
-      MIBName.clear;
-      MIBValue.clear;
-      for i := 0 to SNMPSend.Reply.SNMPMibList.count - 1 do
+      MIBName.Clear;
+      MIBValue.Clear;
+      for i := 0 to SNMPSend.Reply.SNMPMibList.Count - 1 do
       begin
-        MIBName.add(TSNMPMib(SNMPSend.Reply.SNMPMibList[i]).OID);
-        MIBValue.add(TSNMPMib(SNMPSend.Reply.SNMPMibList[i]).value);
+        MIBName.Add(TSNMPMib(SNMPSend.Reply.SNMPMibList[i]).OID);
+        MIBValue.Add(TSNMPMib(SNMPSend.Reply.SNMPMibList[i]).Value);
       end;
     end;
   finally
-    SNMPSend.free;
+    SNMPSend.Free;
   end;
 end;
 

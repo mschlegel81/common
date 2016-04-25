@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 003.000.003 |
+| Project : Ararat Synapse                                       | 003.000.003 |
 |==============================================================================|
-| content: SNTP Client                                                         |
+| Content: SNTP client                                                         |
 |==============================================================================|
 | Copyright (c)1999-2010, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,32 +20,32 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2000-2010.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |   Patrick Chevalley                                                          |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract( NTP and SNTP client)
 
-used RFC: RFC-1305, RFC-2030
+Used RFC: RFC-1305, RFC-2030
 }
 
 {$IFDEF FPC}
@@ -54,43 +54,43 @@ used RFC: RFC-1305, RFC-2030
 {$Q-}
 {$H+}
 
-UNIT sntpsend;
+unit sntpsend;
 
-INTERFACE
+interface
 
-USES
-  sysutils,
+uses
+  SysUtils,
   synsock, blcksock, synautil;
 
-CONST
+const
   cNtpProtocol = '123';
 
-TYPE
+type
 
   {:@abstract(Record containing the NTP packet.)}
   TNtp = packed record
-    mode: byte;
-    stratum: byte;
-    poll: byte;
-    Precision: byte;
-    RootDelay: longint;
-    RootDisperson: longint;
-    RefID: longint;
-    Ref1: longint;
-    Ref2: longint;
-    Org1: longint;
-    Org2: longint;
-    Rcv1: longint;
-    Rcv2: longint;
-    Xmit1: longint;
-    Xmit2: longint;
+    mode: Byte;
+    stratum: Byte;
+    poll: Byte;
+    Precision: Byte;
+    RootDelay: Longint;
+    RootDisperson: Longint;
+    RefID: Longint;
+    Ref1: Longint;
+    Ref2: Longint;
+    Org1: Longint;
+    Org2: Longint;
+    Rcv1: Longint;
+    Rcv2: Longint;
+    Xmit1: Longint;
+    Xmit2: Longint;
   end;
 
   {:@abstract(Implementation of NTP and SNTP client protocol),
-   include time synchronisation. it can send NTP or SNTP time queries, or it
+   include time synchronisation. It can send NTP or SNTP time queries, or it
    can receive NTP broadcasts too.
-
-   Note: Are you missing properties for specify Server address and port? Look to
+   
+   Note: Are you missing properties for specify server address and port? Look to
    parent @link(TSynaClient) too!}
   TSNTPSend = class(TSynaClient)
   private
@@ -99,149 +99,149 @@ TYPE
     FNTPOffset: double;
     FNTPDelay: double;
     FMaxSyncDiff: double;
-    FSyncTime: boolean;
+    FSyncTime: Boolean;
     FSock: TUDPBlockSocket;
-    FBuffer: ansistring;
+    FBuffer: AnsiString;
     FLi, FVn, Fmode : byte;
-    FUNCTION StrToNTP(CONST value: ansistring): TNtp;
-    FUNCTION NTPtoStr(CONST value: Tntp): ansistring;
-    PROCEDURE ClearNTP(VAR value: Tntp);
+    function StrToNTP(const Value: AnsiString): TNtp;
+    function NTPtoStr(const Value: Tntp): AnsiString;
+    procedure ClearNTP(var Value: Tntp);
   public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
+    constructor Create;
+    destructor Destroy; override;
 
     {:Decode 128 bit timestamp used in NTP packet to TDateTime type.}
-    FUNCTION DecodeTs(Nsec, Nfrac: longint): TDateTime;
+    function DecodeTs(Nsec, Nfrac: Longint): TDateTime;
 
     {:Decode TDateTime type to 128 bit timestamp used in NTP packet.}
-    PROCEDURE EncodeTs(dt: TDateTime; VAR Nsec, Nfrac: longint);
+    procedure EncodeTs(dt: TDateTime; var Nsec, Nfrac: Longint);
 
     {:Send request to @link(TSynaClient.TargetHost) and wait for reply. If all
-     is ok, then result is @true and @link(NTPReply) and @link(NTPTime) are
+     is OK, then result is @true and @link(NTPReply) and @link(NTPTime) are
      valid.}
-    FUNCTION GetSNTP: boolean;
+    function GetSNTP: Boolean;
 
     {:Send request to @link(TSynaClient.TargetHost) and wait for reply. If all
-     is ok, then result is @true and @link(NTPReply) and @link(NTPTime) are
-     valid. result time is after all needed corrections.}
-    FUNCTION GetNTP: boolean;
+     is OK, then result is @true and @link(NTPReply) and @link(NTPTime) are
+     valid. Result time is after all needed corrections.}
+    function GetNTP: Boolean;
 
     {:Wait for broadcast NTP packet. If all OK, result is @true and
      @link(NTPReply) and @link(NTPTime) are valid.}
-    FUNCTION GetBroadcastNTP: boolean;
+    function GetBroadcastNTP: Boolean;
 
     {:Holds last received NTP packet.}
-    PROPERTY NTPReply: TNtp read FNTPReply;
-  Published
+    property NTPReply: TNtp read FNTPReply;
+  published
     {:Date and time of remote NTP or SNTP server. (UTC time!!!)}
-    PROPERTY NTPTime: TDateTime read FNTPTime;
+    property NTPTime: TDateTime read FNTPTime;
 
     {:Offset between your computer and remote NTP or SNTP server.}
-    PROPERTY NTPOffset: double read FNTPOffset;
+    property NTPOffset: Double read FNTPOffset;
 
     {:Delay between your computer and remote NTP or SNTP server.}
-    PROPERTY NTPDelay: double read FNTPDelay;
+    property NTPDelay: Double read FNTPDelay;
 
     {:Define allowed maximum difference between your time and remote time for
-     synchronising time. if difference is bigger, your system time is not
+     synchronising time. If difference is bigger, your system time is not
      changed!}
-    PROPERTY MaxSyncDiff: double read FMaxSyncDiff write FMaxSyncDiff;
+    property MaxSyncDiff: double read FMaxSyncDiff write FMaxSyncDiff;
 
     {:If @true, after successfull getting time is local computer clock
      synchronised to given time.
-     for synchronising time you must have proper rights! (Usually Administrator)}
-    PROPERTY SyncTime: boolean read FSyncTime write FSyncTime;
+     For synchronising time you must have proper rights! (Usually Administrator)}
+    property SyncTime: Boolean read FSyncTime write FSyncTime;
 
     {:Socket object used for TCP/IP operation. Good for seting OnStatus hook, etc.}
-    PROPERTY Sock: TUDPBlockSocket read FSock;
+    property Sock: TUDPBlockSocket read FSock;
   end;
 
-IMPLEMENTATION
+implementation
 
-CONSTRUCTOR TSNTPSend.create;
+constructor TSNTPSend.Create;
 begin
-  inherited create;
-  FSock := TUDPBlockSocket.create;
+  inherited Create;
+  FSock := TUDPBlockSocket.Create;
   FSock.Owner := self;
   FTimeout := 5000;
   FTargetPort := cNtpProtocol;
   FMaxSyncDiff := 3600;
-  FSyncTime := false;
+  FSyncTime := False;
 end;
 
-DESTRUCTOR TSNTPSend.destroy;
+destructor TSNTPSend.Destroy;
 begin
-  FSock.free;
-  inherited destroy;
+  FSock.Free;
+  inherited Destroy;
 end;
 
-FUNCTION TSNTPSend.StrToNTP(CONST value: ansistring): TNtp;
+function TSNTPSend.StrToNTP(const Value: AnsiString): TNtp;
 begin
-  if length(FBuffer) >= sizeOf(result) then
+  if length(FBuffer) >= SizeOf(Result) then
   begin
-    result.mode := ord(value[1]);
-    result.stratum := ord(value[2]);
-    result.poll := ord(value[3]);
-    result.Precision := ord(value[4]);
-    result.RootDelay := DecodeLongInt(value, 5);
-    result.RootDisperson := DecodeLongInt(value, 9);
-    result.RefID := DecodeLongInt(value, 13);
-    result.Ref1 := DecodeLongInt(value, 17);
-    result.Ref2 := DecodeLongInt(value, 21);
-    result.Org1 := DecodeLongInt(value, 25);
-    result.Org2 := DecodeLongInt(value, 29);
-    result.Rcv1 := DecodeLongInt(value, 33);
-    result.Rcv2 := DecodeLongInt(value, 37);
-    result.Xmit1 := DecodeLongInt(value, 41);
-    result.Xmit2 := DecodeLongInt(value, 45);
+    Result.mode := ord(Value[1]);
+    Result.stratum := ord(Value[2]);
+    Result.poll := ord(Value[3]);
+    Result.Precision := ord(Value[4]);
+    Result.RootDelay := DecodeLongInt(value, 5);
+    Result.RootDisperson := DecodeLongInt(value, 9);
+    Result.RefID := DecodeLongInt(value, 13);
+    Result.Ref1 := DecodeLongInt(value, 17);
+    Result.Ref2 := DecodeLongInt(value, 21);
+    Result.Org1 := DecodeLongInt(value, 25);
+    Result.Org2 := DecodeLongInt(value, 29);
+    Result.Rcv1 := DecodeLongInt(value, 33);
+    Result.Rcv2 := DecodeLongInt(value, 37);
+    Result.Xmit1 := DecodeLongInt(value, 41);
+    Result.Xmit2 := DecodeLongInt(value, 45);
   end;
 
 end;
 
-FUNCTION TSNTPSend.NTPtoStr(CONST value: Tntp): ansistring;
+function TSNTPSend.NTPtoStr(const Value: Tntp): AnsiString;
 begin
-  setLength(result, 4);
-  result[1] := AnsiChar(value.mode);
-  result[2] := AnsiChar(value.stratum);
-  result[3] := AnsiChar(value.poll);
-  result[4] := AnsiChar(value.precision);
-  result := result + CodeLongInt(value.RootDelay);
-  result := result + CodeLongInt(value.RootDisperson);
-  result := result + CodeLongInt(value.RefID);
-  result := result + CodeLongInt(value.Ref1);
-  result := result + CodeLongInt(value.Ref2);
-  result := result + CodeLongInt(value.Org1);
-  result := result + CodeLongInt(value.Org2);
-  result := result + CodeLongInt(value.Rcv1);
-  result := result + CodeLongInt(value.Rcv2);
-  result := result + CodeLongInt(value.Xmit1);
-  result := result + CodeLongInt(value.Xmit2);
+  SetLength(Result, 4);
+  Result[1] := AnsiChar(Value.mode);
+  Result[2] := AnsiChar(Value.stratum);
+  Result[3] := AnsiChar(Value.poll);
+  Result[4] := AnsiChar(Value.precision);
+  Result := Result + CodeLongInt(Value.RootDelay);
+  Result := Result + CodeLongInt(Value.RootDisperson);
+  Result := Result + CodeLongInt(Value.RefID);
+  Result := Result + CodeLongInt(Value.Ref1);
+  Result := Result + CodeLongInt(Value.Ref2);
+  Result := Result + CodeLongInt(Value.Org1);
+  Result := Result + CodeLongInt(Value.Org2);
+  Result := Result + CodeLongInt(Value.Rcv1);
+  Result := Result + CodeLongInt(Value.Rcv2);
+  Result := Result + CodeLongInt(Value.Xmit1);
+  Result := Result + CodeLongInt(Value.Xmit2);
 end;
 
-PROCEDURE TSNTPSend.ClearNTP(VAR value: Tntp);
+procedure TSNTPSend.ClearNTP(var Value: Tntp);
 begin
-  value.mode := 0;
-  value.stratum := 0;
-  value.poll := 0;
-  value.Precision := 0;
-  value.RootDelay := 0;
-  value.RootDisperson := 0;
-  value.RefID := 0;
-  value.Ref1 := 0;
-  value.Ref2 := 0;
-  value.Org1 := 0;
-  value.Org2 := 0;
-  value.Rcv1 := 0;
-  value.Rcv2 := 0;
-  value.Xmit1 := 0;
-  value.Xmit2 := 0;
+  Value.mode := 0;
+  Value.stratum := 0;
+  Value.poll := 0;
+  Value.Precision := 0;
+  Value.RootDelay := 0;
+  Value.RootDisperson := 0;
+  Value.RefID := 0;
+  Value.Ref1 := 0;
+  Value.Ref2 := 0;
+  Value.Org1 := 0;
+  Value.Org2 := 0;
+  Value.Rcv1 := 0;
+  Value.Rcv2 := 0;
+  Value.Xmit1 := 0;
+  Value.Xmit2 := 0;
 end;
 
-FUNCTION TSNTPSend.DecodeTs(Nsec, Nfrac: longint): TDateTime;
-CONST
+function TSNTPSend.DecodeTs(Nsec, Nfrac: Longint): TDateTime;
+const
   maxi = 4294967295.0;
-VAR
-  d, d1: double;
+var
+  d, d1: Double;
 begin
   d := Nsec;
   if d < 0 then
@@ -250,24 +250,24 @@ begin
   if d1 < 0 then
     d1 := maxi + d1 + 1;
   d1 := d1 / maxi;
-  d1 := trunc(d1 * 10000) / 10000;
-  result := (d + d1) / 86400;
-  result := result + 2;
+  d1 := Trunc(d1 * 10000) / 10000;
+  Result := (d + d1) / 86400;
+  Result := Result + 2;
 end;
 
-PROCEDURE TSNTPSend.EncodeTs(dt: TDateTime; VAR Nsec, Nfrac: longint);
-CONST
+procedure TSNTPSend.EncodeTs(dt: TDateTime; var Nsec, Nfrac: Longint);
+const
   maxi = 4294967295.0;
   maxilongint = 2147483647;
-VAR
-  d, d1: double;
+var
+  d, d1: Double;
 begin
   d  := (dt - 2) * 86400;
   d1 := frac(d);
   if d > maxilongint then
      d := d - maxi - 1;
   d  := trunc(d);
-  d1 := trunc(d1 * 10000) / 10000;
+  d1 := Trunc(d1 * 10000) / 10000;
   d1 := d1 * maxi;
   if d1 > maxilongint then
      d1 := d1 - maxi - 1;
@@ -275,34 +275,34 @@ begin
   Nfrac:=trunc(d1);
 end;
 
-FUNCTION TSNTPSend.GetBroadcastNTP: boolean;
-VAR
-  x: integer;
+function TSNTPSend.GetBroadcastNTP: Boolean;
+var
+  x: Integer;
 begin
-  result := false;
+  Result := False;
   FSock.Bind(FIPInterface, FTargetPort);
   FBuffer := FSock.RecvPacket(FTimeout);
   if FSock.LastError = 0 then
   begin
-    x := length(FBuffer);
+    x := Length(FBuffer);
     if (FTargetHost = '0.0.0.0') or (FSock.GetRemoteSinIP = FSock.ResolveName(FTargetHost)) then
-      if x >= sizeOf(NTPReply) then
+      if x >= SizeOf(NTPReply) then
       begin
         FNTPReply := StrToNTP(FBuffer);
         FNTPTime := DecodeTs(NTPReply.Xmit1, NTPReply.Xmit2);
         if FSyncTime and ((abs(FNTPTime - GetUTTime) * 86400) <= FMaxSyncDiff) then
           SetUTTime(FNTPTime);
-        result := true;
+        Result := True;
       end;
   end;
 end;
 
-FUNCTION TSNTPSend.GetSNTP: boolean;
-VAR
+function TSNTPSend.GetSNTP: Boolean;
+var
   q: TNtp;
-  x: integer;
+  x: Integer;
 begin
-  result := false;
+  Result := False;
   FSock.CloseSocket;
   FSock.Bind(FIPInterface, cAnyPort);
   FSock.Connect(FTargetHost, FTargetPort);
@@ -313,25 +313,25 @@ begin
   FBuffer := FSock.RecvPacket(FTimeout);
   if FSock.LastError = 0 then
   begin
-    x := length(FBuffer);
-    if x >= sizeOf(NTPReply) then
+    x := Length(FBuffer);
+    if x >= SizeOf(NTPReply) then
     begin
       FNTPReply := StrToNTP(FBuffer);
       FNTPTime := DecodeTs(NTPReply.Xmit1, NTPReply.Xmit2);
       if FSyncTime and ((abs(FNTPTime - GetUTTime) * 86400) <= FMaxSyncDiff) then
         SetUTTime(FNTPTime);
-      result := true;
+      Result := True;
     end;
   end;
 end;
 
-FUNCTION TSNTPSend.GetNTP: boolean;
-VAR
+function TSNTPSend.GetNTP: Boolean;
+var
   q: TNtp;
-  x: integer;
+  x: Integer;
   t1, t2, t3, t4 : TDateTime;
 begin
-  result := false;
+  Result := False;
   FSock.CloseSocket;
   FSock.Bind(FIPInterface, cAnyPort);
   FSock.Connect(FTargetHost, FTargetPort);
@@ -344,9 +344,9 @@ begin
   FBuffer := FSock.RecvPacket(FTimeout);
   if FSock.LastError = 0 then
   begin
-    x := length(FBuffer);
+    x := Length(FBuffer);
     t4 := GetUTTime;
-    if x >= sizeOf(NTPReply) then
+    if x >= SizeOf(NTPReply) then
     begin
       FNTPReply := StrToNTP(FBuffer);
       FLi := (NTPReply.mode and $C0) shr 6;
@@ -364,7 +364,7 @@ begin
            FNTPDelay := FNTPDelay * 86400;
            if FSyncTime and ((abs(FNTPTime - t1) * 86400) <= FMaxSyncDiff) then
              SetUTTime(FNTPTime);
-           result := true;
+           Result := True;
            end
          else result:=false;
     end;

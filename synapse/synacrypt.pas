@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.001.000 |
+| Project : Ararat Synapse                                       | 001.001.000 |
 |==============================================================================|
-| content: Encryption support                                                  |
+| Content: Encryption support                                                  |
 |==============================================================================|
 | Copyright (c)2007-2011, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,27 +20,27 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2007-2011.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 | Based on work of David Barton and Eric Young                                 |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(Encryption support)
@@ -61,128 +61,128 @@ Implemented are DES and 3DES encryption/decryption by ECB, CBC, CFB-8bit,
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT synacrypt;
+unit synacrypt;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes, synautil, synafpc;
+uses
+  SysUtils, Classes, synautil, synafpc;
 
-TYPE
+type
   {:@abstract(Implementation of common routines block ciphers (dafault size is 64-bits))
 
-   do not use this class directly, use descendants only!}
+   Do not use this class directly, use descendants only!}
   TSynaBlockCipher= class(TObject)
   protected
-    PROCEDURE InitKey(key: ansistring); virtual;
-    FUNCTION GetSize: byte; virtual;
+    procedure InitKey(Key: AnsiString); virtual;
+    function GetSize: byte; virtual;
   private
-    iv, CV: ansistring;
-    PROCEDURE IncCounter;
+    IV, CV: AnsiString;
+    procedure IncCounter;
   public
     {:Sets the IV to Value and performs a reset}
-    PROCEDURE SetIV(CONST value: ansistring); virtual;
+    procedure SetIV(const Value: AnsiString); virtual;
     {:Returns the current chaining information, not the actual IV}
-    FUNCTION GetIV: ansistring; virtual;
+    function GetIV: AnsiString; virtual;
     {:Reset any stored chaining information}
-    PROCEDURE reset; virtual;
+    procedure Reset; virtual;
     {:Encrypt a 64-bit block of data using the ECB method of encryption}
-    FUNCTION EncryptECB(CONST InData: ansistring): ansistring; virtual;
+    function EncryptECB(const InData: AnsiString): AnsiString; virtual;
     {:Decrypt a 64-bit block of data using the ECB method of decryption}
-    FUNCTION DecryptECB(CONST InData: ansistring): ansistring; virtual;
+    function DecryptECB(const InData: AnsiString): AnsiString; virtual;
     {:Encrypt data using the CBC method of encryption}
-    FUNCTION EncryptCBC(CONST Indata: ansistring): ansistring; virtual;
+    function EncryptCBC(const Indata: AnsiString): AnsiString; virtual;
     {:Decrypt data using the CBC method of decryption}
-    FUNCTION DecryptCBC(CONST Indata: ansistring): ansistring; virtual;
+    function DecryptCBC(const Indata: AnsiString): AnsiString; virtual;
     {:Encrypt data using the CFB (8 bit) method of encryption}
-    FUNCTION EncryptCFB8bit(CONST Indata: ansistring): ansistring; virtual;
+    function EncryptCFB8bit(const Indata: AnsiString): AnsiString; virtual;
     {:Decrypt data using the CFB (8 bit) method of decryption}
-    FUNCTION DecryptCFB8bit(CONST Indata: ansistring): ansistring; virtual;
+    function DecryptCFB8bit(const Indata: AnsiString): AnsiString; virtual;
     {:Encrypt data using the CFB (block) method of encryption}
-    FUNCTION EncryptCFBblock(CONST Indata: ansistring): ansistring; virtual;
+    function EncryptCFBblock(const Indata: AnsiString): AnsiString; virtual;
     {:Decrypt data using the CFB (block) method of decryption}
-    FUNCTION DecryptCFBblock(CONST Indata: ansistring): ansistring; virtual;
+    function DecryptCFBblock(const Indata: AnsiString): AnsiString; virtual;
     {:Encrypt data using the OFB method of encryption}
-    FUNCTION EncryptOFB(CONST Indata: ansistring): ansistring; virtual;
+    function EncryptOFB(const Indata: AnsiString): AnsiString; virtual;
     {:Decrypt data using the OFB method of decryption}
-    FUNCTION DecryptOFB(CONST Indata: ansistring): ansistring; virtual;
+    function DecryptOFB(const Indata: AnsiString): AnsiString; virtual;
     {:Encrypt data using the CTR method of encryption}
-    FUNCTION EncryptCTR(CONST Indata: ansistring): ansistring; virtual;
+    function EncryptCTR(const Indata: AnsiString): AnsiString; virtual;
     {:Decrypt data using the CTR method of decryption}
-    FUNCTION DecryptCTR(CONST Indata: ansistring): ansistring; virtual;
+    function DecryptCTR(const Indata: AnsiString): AnsiString; virtual;
     {:Create a encryptor/decryptor instance and initialize it by the Key.}
-    CONSTRUCTOR create(key: ansistring);
+    constructor Create(Key: AnsiString);
   end;
 
   {:@abstract(Datatype for holding one DES key data)
 
-    This data TYPE is used internally.}
+    This data type is used internally.}
   TDesKeyData = array[0..31] of integer;
 
   {:@abstract(Implementation of common routines for DES encryption)
 
-   do not use this class directly, use descendants only!}
+   Do not use this class directly, use descendants only!}
   TSynaCustomDes = class(TSynaBlockcipher)
   protected
-    PROCEDURE DoInit(KeyB: ansistring; VAR KeyData: TDesKeyData);
-    FUNCTION EncryptBlock(CONST InData: ansistring; VAR KeyData: TDesKeyData): ansistring;
-    FUNCTION DecryptBlock(CONST InData: ansistring; VAR KeyData: TDesKeyData): ansistring;
+    procedure DoInit(KeyB: AnsiString; var KeyData: TDesKeyData);
+    function EncryptBlock(const InData: AnsiString; var KeyData: TDesKeyData): AnsiString;
+    function DecryptBlock(const InData: AnsiString; var KeyData: TDesKeyData): AnsiString;
   end;
 
   {:@abstract(Implementation of DES encryption)}
   TSynaDes= class(TSynaCustomDes)
   protected
     KeyData: TDesKeyData;
-    PROCEDURE InitKey(key: ansistring); override;
+    procedure InitKey(Key: AnsiString); override;
   public
     {:Encrypt a 64-bit block of data using the ECB method of encryption}
-    FUNCTION EncryptECB(CONST InData: ansistring): ansistring; override;
+    function EncryptECB(const InData: AnsiString): AnsiString; override;
     {:Decrypt a 64-bit block of data using the ECB method of decryption}
-    FUNCTION DecryptECB(CONST InData: ansistring): ansistring; override;
+    function DecryptECB(const InData: AnsiString): AnsiString; override;
   end;
 
   {:@abstract(Implementation of 3DES encryption)}
   TSyna3Des= class(TSynaCustomDes)
   protected
     KeyData: array[0..2] of TDesKeyData;
-    PROCEDURE InitKey(key: ansistring); override;
+    procedure InitKey(Key: AnsiString); override;
   public
     {:Encrypt a 64-bit block of data using the ECB method of encryption}
-    FUNCTION EncryptECB(CONST InData: ansistring): ansistring; override;
+    function EncryptECB(const InData: AnsiString): AnsiString; override;
     {:Decrypt a 64-bit block of data using the ECB method of decryption}
-    FUNCTION DecryptECB(CONST InData: ansistring): ansistring; override;
+    function DecryptECB(const InData: AnsiString): AnsiString; override;
   end;
 
-CONST
+const
   BC = 4;
   MAXROUNDS = 14;
-TYPE
+type
   {:@abstract(Implementation of AES encryption)}
   TSynaAes= class(TSynaBlockcipher)
   protected
-    numrounds: Longword;
-    rk, drk: array[0..MAXROUNDS,0..7] of Longword;
-    PROCEDURE InitKey(key: ansistring); override;
-    FUNCTION GetSize: byte; override;
+    numrounds: longword;
+    rk, drk: array[0..MAXROUNDS,0..7] of longword;
+    procedure InitKey(Key: AnsiString); override;
+    function GetSize: byte; override;
   public
     {:Encrypt a 128-bit block of data using the ECB method of encryption}
-    FUNCTION EncryptECB(CONST InData: ansistring): ansistring; override;
+    function EncryptECB(const InData: AnsiString): AnsiString; override;
     {:Decrypt a 128-bit block of data using the ECB method of decryption}
-    FUNCTION DecryptECB(CONST InData: ansistring): ansistring; override;
+    function DecryptECB(const InData: AnsiString): AnsiString; override;
   end;
 
 {:Call internal test of all DES encryptions. Returns @true if all is OK.}
-FUNCTION TestDes: boolean;
+function TestDes: boolean;
 {:Call internal test of all 3DES encryptions. Returns @true if all is OK.}
-FUNCTION Test3Des: boolean;
+function Test3Des: boolean;
 {:Call internal test of all AES encryptions. Returns @true if all is OK.}
-FUNCTION TestAes: boolean;
+function TestAes: boolean;
 
 {==============================================================================}
-IMPLEMENTATION
+implementation
 
 //DES consts
-CONST
+const
   shifts2: array[0..15]of byte=
     (0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0);
 
@@ -481,7 +481,7 @@ CONST
     ));
 
 //AES consts
-CONST
+const
   MAXBC= 8;
   MAXKC= 8;
 
@@ -491,128 +491,128 @@ CONST
     183, 253, 147,  38,  54,  63, 247, 204,  52, 165, 229, 241, 113, 216,  49,  21,
       4, 199,  35, 195,  24, 150,   5, 154,   7,  18, 128, 226, 235,  39, 178, 117,
       9, 131,  44,  26,  27, 110,  90, 160,  82,  59, 214, 179,  41, 227,  47, 132,
-     83, 209,   0, 237,  32, 252, 177,  91, 106, 203, 190,  57,  74,  76,  88, 207,
-    208, 239, 170, 251,  67,  77,  51, 133,  69, 249,   2, 127,  80,  60, 159, 168,
-     81, 163,  64, 143, 146, 157,  56, 245, 188, 182, 218,  33,  16, 255, 243, 210,
-    205,  12,  19, 236,  95, 151,  68,  23, 196, 167, 126,  61, 100,  93,  25, 115,
-     96, 129,  79, 220,  34,  42, 144, 136,  70, 238, 184,  20, 222,  94,  11, 219,
-    224,  50,  58,  10,  73,   6,  36,  92, 194, 211, 172,  98, 145, 149, 228, 121,
-    231, 200,  55, 109, 141, 213,  78, 169, 108,  86, 244, 234, 101, 122, 174,   8,
+     83, 209,   0, 237,  32, 252, 177,  91, 106, 203, 190,  57,  74,  76,  88, 207, 
+    208, 239, 170, 251,  67,  77,  51, 133,  69, 249,   2, 127,  80,  60, 159, 168, 
+     81, 163,  64, 143, 146, 157,  56, 245, 188, 182, 218,  33,  16, 255, 243, 210, 
+    205,  12,  19, 236,  95, 151,  68,  23, 196, 167, 126,  61, 100,  93,  25, 115, 
+     96, 129,  79, 220,  34,  42, 144, 136,  70, 238, 184,  20, 222,  94,  11, 219, 
+    224,  50,  58,  10,  73,   6,  36,  92, 194, 211, 172,  98, 145, 149, 228, 121, 
+    231, 200,  55, 109, 141, 213,  78, 169, 108,  86, 244, 234, 101, 122, 174,   8, 
     186, 120,  37,  46,  28, 166, 180, 198, 232, 221, 116,  31,  75, 189, 139, 138,
     112,  62, 181, 102,  72,   3, 246,  14,  97,  53,  87, 185, 134, 193,  29, 158,
     225, 248, 152,  17, 105, 217, 142, 148, 155,  30, 135, 233, 206,  85,  40, 223,
     140, 161, 137,  13, 191, 230,  66, 104,  65, 153,  45,  15, 176,  84, 187,  22);
   T1: array[0..255,0..3] of byte= (
-    ($c6,$63,$63,$a5), ($f8,$7c,$7c,$84), ($EE,$77,$77,$99), ($f6,$7b,$7b,$8d),
+    ($c6,$63,$63,$a5), ($f8,$7c,$7c,$84), ($ee,$77,$77,$99), ($f6,$7b,$7b,$8d), 
     ($ff,$f2,$f2,$0d), ($d6,$6b,$6b,$bd), ($de,$6f,$6f,$b1), ($91,$c5,$c5,$54),
     ($60,$30,$30,$50), ($02,$01,$01,$03), ($ce,$67,$67,$a9), ($56,$2b,$2b,$7d),
-    ($e7,$fe,$fe,$19), ($b5,$d7,$d7,$62), ($4d,$ab,$ab,$e6), ($EC,$76,$76,$9a),
+    ($e7,$fe,$fe,$19), ($b5,$d7,$d7,$62), ($4d,$ab,$ab,$e6), ($ec,$76,$76,$9a),
     ($8f,$ca,$ca,$45), ($1f,$82,$82,$9d), ($89,$c9,$c9,$40), ($fa,$7d,$7d,$87),
-    ($EF,$fa,$fa,$15), ($b2,$59,$59,$eb), ($8e,$47,$47,$c9), ($fb,$f0,$f0,$0b),
-    ($41,$ad,$ad,$EC), ($b3,$d4,$d4,$67), ($5f,$a2,$a2,$fd), ($45,$af,$af,$ea),
-    ($23,$9c,$9c,$BF), ($53,$a4,$a4,$f7), ($e4,$72,$72,$96), ($9b,$c0,$c0,$5b),
+    ($ef,$fa,$fa,$15), ($b2,$59,$59,$eb), ($8e,$47,$47,$c9), ($fb,$f0,$f0,$0b), 
+    ($41,$ad,$ad,$ec), ($b3,$d4,$d4,$67), ($5f,$a2,$a2,$fd), ($45,$af,$af,$ea), 
+    ($23,$9c,$9c,$bf), ($53,$a4,$a4,$f7), ($e4,$72,$72,$96), ($9b,$c0,$c0,$5b), 
     ($75,$b7,$b7,$c2), ($e1,$fd,$fd,$1c), ($3d,$93,$93,$ae), ($4c,$26,$26,$6a),
-    ($6c,$36,$36,$5a), ($7e,$3f,$3f,$41), ($f5,$f7,$f7,$02), ($83,$cc,$cc,$4f),
-    ($68,$34,$34,$5c), ($51,$a5,$a5,$f4), ($d1,$e5,$e5,$34), ($f9,$f1,$f1,$08),
+    ($6c,$36,$36,$5a), ($7e,$3f,$3f,$41), ($f5,$f7,$f7,$02), ($83,$cc,$cc,$4f), 
+    ($68,$34,$34,$5c), ($51,$a5,$a5,$f4), ($d1,$e5,$e5,$34), ($f9,$f1,$f1,$08), 
     ($e2,$71,$71,$93), ($ab,$d8,$d8,$73), ($62,$31,$31,$53), ($2a,$15,$15,$3f),
-    ($08,$04,$04,$0c), ($95,$c7,$c7,$52), ($46,$23,$23,$65), ($9d,$c3,$c3,$5e),
+    ($08,$04,$04,$0c), ($95,$c7,$c7,$52), ($46,$23,$23,$65), ($9d,$c3,$c3,$5e), 
     ($30,$18,$18,$28), ($37,$96,$96,$a1), ($0a,$05,$05,$0f), ($2f,$9a,$9a,$b5),
-    ($0e,$07,$07,$09), ($24,$12,$12,$36), ($1b,$80,$80,$9b), ($DF,$e2,$e2,$3d),
+    ($0e,$07,$07,$09), ($24,$12,$12,$36), ($1b,$80,$80,$9b), ($df,$e2,$e2,$3d), 
     ($cd,$eb,$eb,$26), ($4e,$27,$27,$69), ($7f,$b2,$b2,$cd), ($ea,$75,$75,$9f),
-    ($12,$09,$09,$1b), ($1d,$83,$83,$9e), ($58,$2c,$2c,$74), ($34,$1a,$1a,$2e),
-    ($36,$1b,$1b,$2d), ($dc,$6e,$6e,$b2), ($b4,$5a,$5a,$EE), ($5b,$a0,$a0,$fb),
+    ($12,$09,$09,$1b), ($1d,$83,$83,$9e), ($58,$2c,$2c,$74), ($34,$1a,$1a,$2e), 
+    ($36,$1b,$1b,$2d), ($dc,$6e,$6e,$b2), ($b4,$5a,$5a,$ee), ($5b,$a0,$a0,$fb), 
     ($a4,$52,$52,$f6), ($76,$3b,$3b,$4d), ($b7,$d6,$d6,$61), ($7d,$b3,$b3,$ce),
-    ($52,$29,$29,$7b), ($dd,$e3,$e3,$3e), ($5e,$2f,$2f,$71), ($13,$84,$84,$97),
-    ($a6,$53,$53,$f5), ($b9,$d1,$d1,$68), ($00,$00,$00,$00), ($c1,$ED,$ED,$2c),
-    ($40,$20,$20,$60), ($e3,$fc,$fc,$1f), ($79,$b1,$b1,$c8), ($b6,$5b,$5b,$ED),
-    ($d4,$6a,$6a,$be), ($8d,$cb,$cb,$46), ($67,$be,$be,$d9), ($72,$39,$39,$4b),
-    ($94,$4a,$4a,$de), ($98,$4c,$4c,$d4), ($b0,$58,$58,$e8), ($85,$cf,$cf,$4a),
-    ($bb,$d0,$d0,$6b), ($c5,$EF,$EF,$2a), ($4f,$aa,$aa,$e5), ($ED,$fb,$fb,$16),
-    ($86,$43,$43,$c5), ($9a,$4d,$4d,$d7), ($66,$33,$33,$55), ($11,$85,$85,$94),
-    ($8a,$45,$45,$cf), ($e9,$f9,$f9,$10), ($04,$02,$02,$06), ($fe,$7f,$7f,$81),
-    ($a0,$50,$50,$f0), ($78,$3c,$3c,$44), ($25,$9f,$9f,$ba), ($4b,$a8,$a8,$e3),
+    ($52,$29,$29,$7b), ($dd,$e3,$e3,$3e), ($5e,$2f,$2f,$71), ($13,$84,$84,$97), 
+    ($a6,$53,$53,$f5), ($b9,$d1,$d1,$68), ($00,$00,$00,$00), ($c1,$ed,$ed,$2c), 
+    ($40,$20,$20,$60), ($e3,$fc,$fc,$1f), ($79,$b1,$b1,$c8), ($b6,$5b,$5b,$ed), 
+    ($d4,$6a,$6a,$be), ($8d,$cb,$cb,$46), ($67,$be,$be,$d9), ($72,$39,$39,$4b), 
+    ($94,$4a,$4a,$de), ($98,$4c,$4c,$d4), ($b0,$58,$58,$e8), ($85,$cf,$cf,$4a), 
+    ($bb,$d0,$d0,$6b), ($c5,$ef,$ef,$2a), ($4f,$aa,$aa,$e5), ($ed,$fb,$fb,$16),
+    ($86,$43,$43,$c5), ($9a,$4d,$4d,$d7), ($66,$33,$33,$55), ($11,$85,$85,$94), 
+    ($8a,$45,$45,$cf), ($e9,$f9,$f9,$10), ($04,$02,$02,$06), ($fe,$7f,$7f,$81), 
+    ($a0,$50,$50,$f0), ($78,$3c,$3c,$44), ($25,$9f,$9f,$ba), ($4b,$a8,$a8,$e3), 
     ($a2,$51,$51,$f3), ($5d,$a3,$a3,$fe), ($80,$40,$40,$c0), ($05,$8f,$8f,$8a),
-    ($3f,$92,$92,$ad), ($21,$9d,$9d,$bc), ($70,$38,$38,$48), ($f1,$f5,$f5,$04),
-    ($63,$bc,$bc,$DF), ($77,$b6,$b6,$c1), ($af,$da,$da,$75), ($42,$21,$21,$63),
-    ($20,$10,$10,$30), ($e5,$ff,$ff,$1a), ($fd,$f3,$f3,$0e), ($BF,$d2,$d2,$6d),
-    ($81,$cd,$cd,$4c), ($18,$0c,$0c,$14), ($26,$13,$13,$35), ($c3,$EC,$EC,$2f),
-    ($be,$5f,$5f,$e1), ($35,$97,$97,$a2), ($88,$44,$44,$cc), ($2e,$17,$17,$39),
-    ($93,$c4,$c4,$57), ($55,$a7,$a7,$f2), ($fc,$7e,$7e,$82), ($7a,$3d,$3d,$47),
-    ($c8,$64,$64,$ac), ($ba,$5d,$5d,$e7), ($32,$19,$19,$2b), ($e6,$73,$73,$95),
+    ($3f,$92,$92,$ad), ($21,$9d,$9d,$bc), ($70,$38,$38,$48), ($f1,$f5,$f5,$04), 
+    ($63,$bc,$bc,$df), ($77,$b6,$b6,$c1), ($af,$da,$da,$75), ($42,$21,$21,$63), 
+    ($20,$10,$10,$30), ($e5,$ff,$ff,$1a), ($fd,$f3,$f3,$0e), ($bf,$d2,$d2,$6d), 
+    ($81,$cd,$cd,$4c), ($18,$0c,$0c,$14), ($26,$13,$13,$35), ($c3,$ec,$ec,$2f), 
+    ($be,$5f,$5f,$e1), ($35,$97,$97,$a2), ($88,$44,$44,$cc), ($2e,$17,$17,$39), 
+    ($93,$c4,$c4,$57), ($55,$a7,$a7,$f2), ($fc,$7e,$7e,$82), ($7a,$3d,$3d,$47), 
+    ($c8,$64,$64,$ac), ($ba,$5d,$5d,$e7), ($32,$19,$19,$2b), ($e6,$73,$73,$95), 
     ($c0,$60,$60,$a0), ($19,$81,$81,$98), ($9e,$4f,$4f,$d1), ($a3,$dc,$dc,$7f),
     ($44,$22,$22,$66), ($54,$2a,$2a,$7e), ($3b,$90,$90,$ab), ($0b,$88,$88,$83),
-    ($8c,$46,$46,$ca), ($c7,$EE,$EE,$29), ($6b,$b8,$b8,$d3), ($28,$14,$14,$3c),
-    ($a7,$de,$de,$79), ($bc,$5e,$5e,$e2), ($16,$0b,$0b,$1d), ($ad,$db,$db,$76),
-    ($db,$e0,$e0,$3b), ($64,$32,$32,$56), ($74,$3a,$3a,$4e), ($14,$0a,$0a,$1e),
+    ($8c,$46,$46,$ca), ($c7,$ee,$ee,$29), ($6b,$b8,$b8,$d3), ($28,$14,$14,$3c), 
+    ($a7,$de,$de,$79), ($bc,$5e,$5e,$e2), ($16,$0b,$0b,$1d), ($ad,$db,$db,$76), 
+    ($db,$e0,$e0,$3b), ($64,$32,$32,$56), ($74,$3a,$3a,$4e), ($14,$0a,$0a,$1e), 
     ($92,$49,$49,$db), ($0c,$06,$06,$0a), ($48,$24,$24,$6c), ($b8,$5c,$5c,$e4),
-    ($9f,$c2,$c2,$5d), ($bd,$d3,$d3,$6e), ($43,$ac,$ac,$EF), ($c4,$62,$62,$a6),
-    ($39,$91,$91,$a8), ($31,$95,$95,$a4), ($d3,$e4,$e4,$37), ($f2,$79,$79,$8b),
+    ($9f,$c2,$c2,$5d), ($bd,$d3,$d3,$6e), ($43,$ac,$ac,$ef), ($c4,$62,$62,$a6), 
+    ($39,$91,$91,$a8), ($31,$95,$95,$a4), ($d3,$e4,$e4,$37), ($f2,$79,$79,$8b), 
     ($d5,$e7,$e7,$32), ($8b,$c8,$c8,$43), ($6e,$37,$37,$59), ($da,$6d,$6d,$b7),
-    ($01,$8d,$8d,$8c), ($b1,$d5,$d5,$64), ($9c,$4e,$4e,$d2), ($49,$a9,$a9,$e0),
-    ($d8,$6c,$6c,$b4), ($ac,$56,$56,$fa), ($f3,$f4,$f4,$07), ($cf,$ea,$ea,$25),
-    ($ca,$65,$65,$af), ($f4,$7a,$7a,$8e), ($47,$ae,$ae,$e9), ($10,$08,$08,$18),
+    ($01,$8d,$8d,$8c), ($b1,$d5,$d5,$64), ($9c,$4e,$4e,$d2), ($49,$a9,$a9,$e0), 
+    ($d8,$6c,$6c,$b4), ($ac,$56,$56,$fa), ($f3,$f4,$f4,$07), ($cf,$ea,$ea,$25), 
+    ($ca,$65,$65,$af), ($f4,$7a,$7a,$8e), ($47,$ae,$ae,$e9), ($10,$08,$08,$18), 
     ($6f,$ba,$ba,$d5), ($f0,$78,$78,$88), ($4a,$25,$25,$6f), ($5c,$2e,$2e,$72),
-    ($38,$1c,$1c,$24), ($57,$a6,$a6,$f1), ($73,$b4,$b4,$c7), ($97,$c6,$c6,$51),
-    ($cb,$e8,$e8,$23), ($a1,$dd,$dd,$7c), ($e8,$74,$74,$9c), ($3e,$1f,$1f,$21),
-    ($96,$4b,$4b,$dd), ($61,$bd,$bd,$dc), ($0d,$8b,$8b,$86), ($0f,$8a,$8a,$85),
-    ($e0,$70,$70,$90), ($7c,$3e,$3e,$42), ($71,$b5,$b5,$c4), ($cc,$66,$66,$aa),
-    ($90,$48,$48,$d8), ($06,$03,$03,$05), ($f7,$f6,$f6,$01), ($1c,$0e,$0e,$12),
-    ($c2,$61,$61,$a3), ($6a,$35,$35,$5f), ($ae,$57,$57,$f9), ($69,$b9,$b9,$d0),
-    ($17,$86,$86,$91), ($99,$c1,$c1,$58), ($3a,$1d,$1d,$27), ($27,$9e,$9e,$b9),
-    ($d9,$e1,$e1,$38), ($eb,$f8,$f8,$13), ($2b,$98,$98,$b3), ($22,$11,$11,$33),
-    ($d2,$69,$69,$bb), ($a9,$d9,$d9,$70), ($07,$8e,$8e,$89), ($33,$94,$94,$a7),
-    ($2d,$9b,$9b,$b6), ($3c,$1e,$1e,$22), ($15,$87,$87,$92), ($c9,$e9,$e9,$20),
-    ($87,$ce,$ce,$49), ($aa,$55,$55,$ff), ($50,$28,$28,$78), ($a5,$DF,$DF,$7a),
-    ($03,$8c,$8c,$8f), ($59,$a1,$a1,$f8), ($09,$89,$89,$80), ($1a,$0d,$0d,$17),
-    ($65,$BF,$BF,$da), ($d7,$e6,$e6,$31), ($84,$42,$42,$c6), ($d0,$68,$68,$b8),
-    ($82,$41,$41,$c3), ($29,$99,$99,$b0), ($5a,$2d,$2d,$77), ($1e,$0f,$0f,$11),
+    ($38,$1c,$1c,$24), ($57,$a6,$a6,$f1), ($73,$b4,$b4,$c7), ($97,$c6,$c6,$51), 
+    ($cb,$e8,$e8,$23), ($a1,$dd,$dd,$7c), ($e8,$74,$74,$9c), ($3e,$1f,$1f,$21), 
+    ($96,$4b,$4b,$dd), ($61,$bd,$bd,$dc), ($0d,$8b,$8b,$86), ($0f,$8a,$8a,$85), 
+    ($e0,$70,$70,$90), ($7c,$3e,$3e,$42), ($71,$b5,$b5,$c4), ($cc,$66,$66,$aa), 
+    ($90,$48,$48,$d8), ($06,$03,$03,$05), ($f7,$f6,$f6,$01), ($1c,$0e,$0e,$12), 
+    ($c2,$61,$61,$a3), ($6a,$35,$35,$5f), ($ae,$57,$57,$f9), ($69,$b9,$b9,$d0), 
+    ($17,$86,$86,$91), ($99,$c1,$c1,$58), ($3a,$1d,$1d,$27), ($27,$9e,$9e,$b9), 
+    ($d9,$e1,$e1,$38), ($eb,$f8,$f8,$13), ($2b,$98,$98,$b3), ($22,$11,$11,$33), 
+    ($d2,$69,$69,$bb), ($a9,$d9,$d9,$70), ($07,$8e,$8e,$89), ($33,$94,$94,$a7), 
+    ($2d,$9b,$9b,$b6), ($3c,$1e,$1e,$22), ($15,$87,$87,$92), ($c9,$e9,$e9,$20), 
+    ($87,$ce,$ce,$49), ($aa,$55,$55,$ff), ($50,$28,$28,$78), ($a5,$df,$df,$7a),
+    ($03,$8c,$8c,$8f), ($59,$a1,$a1,$f8), ($09,$89,$89,$80), ($1a,$0d,$0d,$17), 
+    ($65,$bf,$bf,$da), ($d7,$e6,$e6,$31), ($84,$42,$42,$c6), ($d0,$68,$68,$b8),
+    ($82,$41,$41,$c3), ($29,$99,$99,$b0), ($5a,$2d,$2d,$77), ($1e,$0f,$0f,$11), 
     ($7b,$b0,$b0,$cb), ($a8,$54,$54,$fc), ($6d,$bb,$bb,$d6), ($2c,$16,$16,$3a));
  T2: array[0..255,0..3] of byte= (
-    ($a5,$c6,$63,$63), ($84,$f8,$7c,$7c), ($99,$EE,$77,$77), ($8d,$f6,$7b,$7b),
+    ($a5,$c6,$63,$63), ($84,$f8,$7c,$7c), ($99,$ee,$77,$77), ($8d,$f6,$7b,$7b),
     ($0d,$ff,$f2,$f2), ($bd,$d6,$6b,$6b), ($b1,$de,$6f,$6f), ($54,$91,$c5,$c5),
     ($50,$60,$30,$30), ($03,$02,$01,$01), ($a9,$ce,$67,$67), ($7d,$56,$2b,$2b),
-    ($19,$e7,$fe,$fe), ($62,$b5,$d7,$d7), ($e6,$4d,$ab,$ab), ($9a,$EC,$76,$76),
+    ($19,$e7,$fe,$fe), ($62,$b5,$d7,$d7), ($e6,$4d,$ab,$ab), ($9a,$ec,$76,$76),
     ($45,$8f,$ca,$ca), ($9d,$1f,$82,$82), ($40,$89,$c9,$c9), ($87,$fa,$7d,$7d),
-    ($15,$EF,$fa,$fa), ($eb,$b2,$59,$59), ($c9,$8e,$47,$47), ($0b,$fb,$f0,$f0),
-    ($EC,$41,$ad,$ad), ($67,$b3,$d4,$d4), ($fd,$5f,$a2,$a2), ($ea,$45,$af,$af),
-    ($BF,$23,$9c,$9c), ($f7,$53,$a4,$a4), ($96,$e4,$72,$72), ($5b,$9b,$c0,$c0),
+    ($15,$ef,$fa,$fa), ($eb,$b2,$59,$59), ($c9,$8e,$47,$47), ($0b,$fb,$f0,$f0),
+    ($ec,$41,$ad,$ad), ($67,$b3,$d4,$d4), ($fd,$5f,$a2,$a2), ($ea,$45,$af,$af),
+    ($bf,$23,$9c,$9c), ($f7,$53,$a4,$a4), ($96,$e4,$72,$72), ($5b,$9b,$c0,$c0),
     ($c2,$75,$b7,$b7), ($1c,$e1,$fd,$fd), ($ae,$3d,$93,$93), ($6a,$4c,$26,$26),
     ($5a,$6c,$36,$36), ($41,$7e,$3f,$3f), ($02,$f5,$f7,$f7), ($4f,$83,$cc,$cc),
     ($5c,$68,$34,$34), ($f4,$51,$a5,$a5), ($34,$d1,$e5,$e5), ($08,$f9,$f1,$f1),
-    ($93,$e2,$71,$71), ($73,$ab,$d8,$d8), ($53,$62,$31,$31), ($3f,$2a,$15,$15),
+    ($93,$e2,$71,$71), ($73,$ab,$d8,$d8), ($53,$62,$31,$31), ($3f,$2a,$15,$15), 
     ($0c,$08,$04,$04), ($52,$95,$c7,$c7), ($65,$46,$23,$23), ($5e,$9d,$c3,$c3),
     ($28,$30,$18,$18), ($a1,$37,$96,$96), ($0f,$0a,$05,$05), ($b5,$2f,$9a,$9a),
-    ($09,$0e,$07,$07), ($36,$24,$12,$12), ($9b,$1b,$80,$80), ($3d,$DF,$e2,$e2),
+    ($09,$0e,$07,$07), ($36,$24,$12,$12), ($9b,$1b,$80,$80), ($3d,$df,$e2,$e2), 
     ($26,$cd,$eb,$eb), ($69,$4e,$27,$27), ($cd,$7f,$b2,$b2), ($9f,$ea,$75,$75),
     ($1b,$12,$09,$09), ($9e,$1d,$83,$83), ($74,$58,$2c,$2c), ($2e,$34,$1a,$1a),
-    ($2d,$36,$1b,$1b), ($b2,$dc,$6e,$6e), ($EE,$b4,$5a,$5a), ($fb,$5b,$a0,$a0),
+    ($2d,$36,$1b,$1b), ($b2,$dc,$6e,$6e), ($ee,$b4,$5a,$5a), ($fb,$5b,$a0,$a0),
     ($f6,$a4,$52,$52), ($4d,$76,$3b,$3b), ($61,$b7,$d6,$d6), ($ce,$7d,$b3,$b3),
-    ($7b,$52,$29,$29), ($3e,$dd,$e3,$e3), ($71,$5e,$2f,$2f), ($97,$13,$84,$84),
-    ($f5,$a6,$53,$53), ($68,$b9,$d1,$d1), ($00,$00,$00,$00), ($2c,$c1,$ED,$ED),
-    ($60,$40,$20,$20), ($1f,$e3,$fc,$fc), ($c8,$79,$b1,$b1), ($ED,$b6,$5b,$5b),
-    ($be,$d4,$6a,$6a), ($46,$8d,$cb,$cb), ($d9,$67,$be,$be), ($4b,$72,$39,$39),
+    ($7b,$52,$29,$29), ($3e,$dd,$e3,$e3), ($71,$5e,$2f,$2f), ($97,$13,$84,$84), 
+    ($f5,$a6,$53,$53), ($68,$b9,$d1,$d1), ($00,$00,$00,$00), ($2c,$c1,$ed,$ed), 
+    ($60,$40,$20,$20), ($1f,$e3,$fc,$fc), ($c8,$79,$b1,$b1), ($ed,$b6,$5b,$5b),
+    ($be,$d4,$6a,$6a), ($46,$8d,$cb,$cb), ($d9,$67,$be,$be), ($4b,$72,$39,$39), 
     ($de,$94,$4a,$4a), ($d4,$98,$4c,$4c), ($e8,$b0,$58,$58), ($4a,$85,$cf,$cf),
-    ($6b,$bb,$d0,$d0), ($2a,$c5,$EF,$EF), ($e5,$4f,$aa,$aa), ($16,$ED,$fb,$fb),
-    ($c5,$86,$43,$43), ($d7,$9a,$4d,$4d), ($55,$66,$33,$33), ($94,$11,$85,$85),
-    ($cf,$8a,$45,$45), ($10,$e9,$f9,$f9), ($06,$04,$02,$02), ($81,$fe,$7f,$7f),
+    ($6b,$bb,$d0,$d0), ($2a,$c5,$ef,$ef), ($e5,$4f,$aa,$aa), ($16,$ed,$fb,$fb),
+    ($c5,$86,$43,$43), ($d7,$9a,$4d,$4d), ($55,$66,$33,$33), ($94,$11,$85,$85), 
+    ($cf,$8a,$45,$45), ($10,$e9,$f9,$f9), ($06,$04,$02,$02), ($81,$fe,$7f,$7f), 
     ($f0,$a0,$50,$50), ($44,$78,$3c,$3c), ($ba,$25,$9f,$9f), ($e3,$4b,$a8,$a8),
     ($f3,$a2,$51,$51), ($fe,$5d,$a3,$a3), ($c0,$80,$40,$40), ($8a,$05,$8f,$8f),
     ($ad,$3f,$92,$92), ($bc,$21,$9d,$9d), ($48,$70,$38,$38), ($04,$f1,$f5,$f5),
-    ($DF,$63,$bc,$bc), ($c1,$77,$b6,$b6), ($75,$af,$da,$da), ($63,$42,$21,$21),
-    ($30,$20,$10,$10), ($1a,$e5,$ff,$ff), ($0e,$fd,$f3,$f3), ($6d,$BF,$d2,$d2),
-    ($4c,$81,$cd,$cd), ($14,$18,$0c,$0c), ($35,$26,$13,$13), ($2f,$c3,$EC,$EC),
+    ($df,$63,$bc,$bc), ($c1,$77,$b6,$b6), ($75,$af,$da,$da), ($63,$42,$21,$21),
+    ($30,$20,$10,$10), ($1a,$e5,$ff,$ff), ($0e,$fd,$f3,$f3), ($6d,$bf,$d2,$d2), 
+    ($4c,$81,$cd,$cd), ($14,$18,$0c,$0c), ($35,$26,$13,$13), ($2f,$c3,$ec,$ec),
     ($e1,$be,$5f,$5f), ($a2,$35,$97,$97), ($cc,$88,$44,$44), ($39,$2e,$17,$17),
-    ($57,$93,$c4,$c4), ($f2,$55,$a7,$a7), ($82,$fc,$7e,$7e), ($47,$7a,$3d,$3d),
-    ($ac,$c8,$64,$64), ($e7,$ba,$5d,$5d), ($2b,$32,$19,$19), ($95,$e6,$73,$73),
+    ($57,$93,$c4,$c4), ($f2,$55,$a7,$a7), ($82,$fc,$7e,$7e), ($47,$7a,$3d,$3d), 
+    ($ac,$c8,$64,$64), ($e7,$ba,$5d,$5d), ($2b,$32,$19,$19), ($95,$e6,$73,$73), 
     ($a0,$c0,$60,$60), ($98,$19,$81,$81), ($d1,$9e,$4f,$4f), ($7f,$a3,$dc,$dc),
-    ($66,$44,$22,$22), ($7e,$54,$2a,$2a), ($ab,$3b,$90,$90), ($83,$0b,$88,$88),
-    ($ca,$8c,$46,$46), ($29,$c7,$EE,$EE), ($d3,$6b,$b8,$b8), ($3c,$28,$14,$14),
+    ($66,$44,$22,$22), ($7e,$54,$2a,$2a), ($ab,$3b,$90,$90), ($83,$0b,$88,$88), 
+    ($ca,$8c,$46,$46), ($29,$c7,$ee,$ee), ($d3,$6b,$b8,$b8), ($3c,$28,$14,$14),
     ($79,$a7,$de,$de), ($e2,$bc,$5e,$5e), ($1d,$16,$0b,$0b), ($76,$ad,$db,$db),
     ($3b,$db,$e0,$e0), ($56,$64,$32,$32), ($4e,$74,$3a,$3a), ($1e,$14,$0a,$0a),
     ($db,$92,$49,$49), ($0a,$0c,$06,$06), ($6c,$48,$24,$24), ($e4,$b8,$5c,$5c),
-    ($5d,$9f,$c2,$c2), ($6e,$bd,$d3,$d3), ($EF,$43,$ac,$ac), ($a6,$c4,$62,$62),
+    ($5d,$9f,$c2,$c2), ($6e,$bd,$d3,$d3), ($ef,$43,$ac,$ac), ($a6,$c4,$62,$62),
     ($a8,$39,$91,$91), ($a4,$31,$95,$95), ($37,$d3,$e4,$e4), ($8b,$f2,$79,$79),
-    ($32,$d5,$e7,$e7), ($43,$8b,$c8,$c8), ($59,$6e,$37,$37), ($b7,$da,$6d,$6d),
+    ($32,$d5,$e7,$e7), ($43,$8b,$c8,$c8), ($59,$6e,$37,$37), ($b7,$da,$6d,$6d), 
     ($8c,$01,$8d,$8d), ($64,$b1,$d5,$d5), ($d2,$9c,$4e,$4e), ($e0,$49,$a9,$a9),
     ($b4,$d8,$6c,$6c), ($fa,$ac,$56,$56), ($07,$f3,$f4,$f4), ($25,$cf,$ea,$ea),
     ($af,$ca,$65,$65), ($8e,$f4,$7a,$7a), ($e9,$47,$ae,$ae), ($18,$10,$08,$08),
@@ -627,202 +627,202 @@ CONST
     ($38,$d9,$e1,$e1), ($13,$eb,$f8,$f8), ($b3,$2b,$98,$98), ($33,$22,$11,$11),
     ($bb,$d2,$69,$69), ($70,$a9,$d9,$d9), ($89,$07,$8e,$8e), ($a7,$33,$94,$94),
     ($b6,$2d,$9b,$9b), ($22,$3c,$1e,$1e), ($92,$15,$87,$87), ($20,$c9,$e9,$e9),
-    ($49,$87,$ce,$ce), ($ff,$aa,$55,$55), ($78,$50,$28,$28), ($7a,$a5,$DF,$DF),
+    ($49,$87,$ce,$ce), ($ff,$aa,$55,$55), ($78,$50,$28,$28), ($7a,$a5,$df,$df),
     ($8f,$03,$8c,$8c), ($f8,$59,$a1,$a1), ($80,$09,$89,$89), ($17,$1a,$0d,$0d),
-    ($da,$65,$BF,$BF), ($31,$d7,$e6,$e6), ($c6,$84,$42,$42), ($b8,$d0,$68,$68),
+    ($da,$65,$bf,$bf), ($31,$d7,$e6,$e6), ($c6,$84,$42,$42), ($b8,$d0,$68,$68),
     ($c3,$82,$41,$41), ($b0,$29,$99,$99), ($77,$5a,$2d,$2d), ($11,$1e,$0f,$0f),
     ($cb,$7b,$b0,$b0), ($fc,$a8,$54,$54), ($d6,$6d,$bb,$bb), ($3a,$2c,$16,$16));
   T3: array[0..255,0..3] of byte= (
-    ($63,$a5,$c6,$63), ($7c,$84,$f8,$7c), ($77,$99,$EE,$77), ($7b,$8d,$f6,$7b),
+    ($63,$a5,$c6,$63), ($7c,$84,$f8,$7c), ($77,$99,$ee,$77), ($7b,$8d,$f6,$7b),
     ($f2,$0d,$ff,$f2), ($6b,$bd,$d6,$6b), ($6f,$b1,$de,$6f), ($c5,$54,$91,$c5),
     ($30,$50,$60,$30), ($01,$03,$02,$01), ($67,$a9,$ce,$67), ($2b,$7d,$56,$2b),
-    ($fe,$19,$e7,$fe), ($d7,$62,$b5,$d7), ($ab,$e6,$4d,$ab), ($76,$9a,$EC,$76),
+    ($fe,$19,$e7,$fe), ($d7,$62,$b5,$d7), ($ab,$e6,$4d,$ab), ($76,$9a,$ec,$76),
     ($ca,$45,$8f,$ca), ($82,$9d,$1f,$82), ($c9,$40,$89,$c9), ($7d,$87,$fa,$7d),
-    ($fa,$15,$EF,$fa), ($59,$eb,$b2,$59), ($47,$c9,$8e,$47), ($f0,$0b,$fb,$f0),
-    ($ad,$EC,$41,$ad), ($d4,$67,$b3,$d4), ($a2,$fd,$5f,$a2), ($af,$ea,$45,$af),
-    ($9c,$BF,$23,$9c), ($a4,$f7,$53,$a4), ($72,$96,$e4,$72), ($c0,$5b,$9b,$c0),
-    ($b7,$c2,$75,$b7), ($fd,$1c,$e1,$fd), ($93,$ae,$3d,$93), ($26,$6a,$4c,$26),
+    ($fa,$15,$ef,$fa), ($59,$eb,$b2,$59), ($47,$c9,$8e,$47), ($f0,$0b,$fb,$f0),
+    ($ad,$ec,$41,$ad), ($d4,$67,$b3,$d4), ($a2,$fd,$5f,$a2), ($af,$ea,$45,$af),
+    ($9c,$bf,$23,$9c), ($a4,$f7,$53,$a4), ($72,$96,$e4,$72), ($c0,$5b,$9b,$c0),
+    ($b7,$c2,$75,$b7), ($fd,$1c,$e1,$fd), ($93,$ae,$3d,$93), ($26,$6a,$4c,$26), 
     ($36,$5a,$6c,$36), ($3f,$41,$7e,$3f), ($f7,$02,$f5,$f7), ($cc,$4f,$83,$cc),
-    ($34,$5c,$68,$34), ($a5,$f4,$51,$a5), ($e5,$34,$d1,$e5), ($f1,$08,$f9,$f1),
+    ($34,$5c,$68,$34), ($a5,$f4,$51,$a5), ($e5,$34,$d1,$e5), ($f1,$08,$f9,$f1), 
     ($71,$93,$e2,$71), ($d8,$73,$ab,$d8), ($31,$53,$62,$31), ($15,$3f,$2a,$15),
-    ($04,$0c,$08,$04), ($c7,$52,$95,$c7), ($23,$65,$46,$23), ($c3,$5e,$9d,$c3),
-    ($18,$28,$30,$18), ($96,$a1,$37,$96), ($05,$0f,$0a,$05), ($9a,$b5,$2f,$9a),
-    ($07,$09,$0e,$07), ($12,$36,$24,$12), ($80,$9b,$1b,$80), ($e2,$3d,$DF,$e2),
+    ($04,$0c,$08,$04), ($c7,$52,$95,$c7), ($23,$65,$46,$23), ($c3,$5e,$9d,$c3), 
+    ($18,$28,$30,$18), ($96,$a1,$37,$96), ($05,$0f,$0a,$05), ($9a,$b5,$2f,$9a), 
+    ($07,$09,$0e,$07), ($12,$36,$24,$12), ($80,$9b,$1b,$80), ($e2,$3d,$df,$e2), 
     ($eb,$26,$cd,$eb), ($27,$69,$4e,$27), ($b2,$cd,$7f,$b2), ($75,$9f,$ea,$75),
-    ($09,$1b,$12,$09), ($83,$9e,$1d,$83), ($2c,$74,$58,$2c), ($1a,$2e,$34,$1a),
-    ($1b,$2d,$36,$1b), ($6e,$b2,$dc,$6e), ($5a,$EE,$b4,$5a), ($a0,$fb,$5b,$a0),
+    ($09,$1b,$12,$09), ($83,$9e,$1d,$83), ($2c,$74,$58,$2c), ($1a,$2e,$34,$1a), 
+    ($1b,$2d,$36,$1b), ($6e,$b2,$dc,$6e), ($5a,$ee,$b4,$5a), ($a0,$fb,$5b,$a0), 
     ($52,$f6,$a4,$52), ($3b,$4d,$76,$3b), ($d6,$61,$b7,$d6), ($b3,$ce,$7d,$b3),
-    ($29,$7b,$52,$29), ($e3,$3e,$dd,$e3), ($2f,$71,$5e,$2f), ($84,$97,$13,$84),
-    ($53,$f5,$a6,$53), ($d1,$68,$b9,$d1), ($00,$00,$00,$00), ($ED,$2c,$c1,$ED),
-    ($20,$60,$40,$20), ($fc,$1f,$e3,$fc), ($b1,$c8,$79,$b1), ($5b,$ED,$b6,$5b),
-    ($6a,$be,$d4,$6a), ($cb,$46,$8d,$cb), ($be,$d9,$67,$be), ($39,$4b,$72,$39),
+    ($29,$7b,$52,$29), ($e3,$3e,$dd,$e3), ($2f,$71,$5e,$2f), ($84,$97,$13,$84), 
+    ($53,$f5,$a6,$53), ($d1,$68,$b9,$d1), ($00,$00,$00,$00), ($ed,$2c,$c1,$ed),
+    ($20,$60,$40,$20), ($fc,$1f,$e3,$fc), ($b1,$c8,$79,$b1), ($5b,$ed,$b6,$5b), 
+    ($6a,$be,$d4,$6a), ($cb,$46,$8d,$cb), ($be,$d9,$67,$be), ($39,$4b,$72,$39), 
     ($4a,$de,$94,$4a), ($4c,$d4,$98,$4c), ($58,$e8,$b0,$58), ($cf,$4a,$85,$cf),
-    ($d0,$6b,$bb,$d0), ($EF,$2a,$c5,$EF), ($aa,$e5,$4f,$aa), ($fb,$16,$ED,$fb),
-    ($43,$c5,$86,$43), ($4d,$d7,$9a,$4d), ($33,$55,$66,$33), ($85,$94,$11,$85),
-    ($45,$cf,$8a,$45), ($f9,$10,$e9,$f9), ($02,$06,$04,$02), ($7f,$81,$fe,$7f),
+    ($d0,$6b,$bb,$d0), ($ef,$2a,$c5,$ef), ($aa,$e5,$4f,$aa), ($fb,$16,$ed,$fb), 
+    ($43,$c5,$86,$43), ($4d,$d7,$9a,$4d), ($33,$55,$66,$33), ($85,$94,$11,$85), 
+    ($45,$cf,$8a,$45), ($f9,$10,$e9,$f9), ($02,$06,$04,$02), ($7f,$81,$fe,$7f), 
     ($50,$f0,$a0,$50), ($3c,$44,$78,$3c), ($9f,$ba,$25,$9f), ($a8,$e3,$4b,$a8),
-    ($51,$f3,$a2,$51), ($a3,$fe,$5d,$a3), ($40,$c0,$80,$40), ($8f,$8a,$05,$8f),
-    ($92,$ad,$3f,$92), ($9d,$bc,$21,$9d), ($38,$48,$70,$38), ($f5,$04,$f1,$f5),
-    ($bc,$DF,$63,$bc), ($b6,$c1,$77,$b6), ($da,$75,$af,$da), ($21,$63,$42,$21),
-    ($10,$30,$20,$10), ($ff,$1a,$e5,$ff), ($f3,$0e,$fd,$f3), ($d2,$6d,$BF,$d2),
-    ($cd,$4c,$81,$cd), ($0c,$14,$18,$0c), ($13,$35,$26,$13), ($EC,$2f,$c3,$EC),
-    ($5f,$e1,$be,$5f), ($97,$a2,$35,$97), ($44,$cc,$88,$44), ($17,$39,$2e,$17),
+    ($51,$f3,$a2,$51), ($a3,$fe,$5d,$a3), ($40,$c0,$80,$40), ($8f,$8a,$05,$8f), 
+    ($92,$ad,$3f,$92), ($9d,$bc,$21,$9d), ($38,$48,$70,$38), ($f5,$04,$f1,$f5), 
+    ($bc,$df,$63,$bc), ($b6,$c1,$77,$b6), ($da,$75,$af,$da), ($21,$63,$42,$21),
+    ($10,$30,$20,$10), ($ff,$1a,$e5,$ff), ($f3,$0e,$fd,$f3), ($d2,$6d,$bf,$d2), 
+    ($cd,$4c,$81,$cd), ($0c,$14,$18,$0c), ($13,$35,$26,$13), ($ec,$2f,$c3,$ec), 
+    ($5f,$e1,$be,$5f), ($97,$a2,$35,$97), ($44,$cc,$88,$44), ($17,$39,$2e,$17), 
     ($c4,$57,$93,$c4), ($a7,$f2,$55,$a7), ($7e,$82,$fc,$7e), ($3d,$47,$7a,$3d),
-    ($64,$ac,$c8,$64), ($5d,$e7,$ba,$5d), ($19,$2b,$32,$19), ($73,$95,$e6,$73),
-    ($60,$a0,$c0,$60), ($81,$98,$19,$81), ($4f,$d1,$9e,$4f), ($dc,$7f,$a3,$dc),
+    ($64,$ac,$c8,$64), ($5d,$e7,$ba,$5d), ($19,$2b,$32,$19), ($73,$95,$e6,$73), 
+    ($60,$a0,$c0,$60), ($81,$98,$19,$81), ($4f,$d1,$9e,$4f), ($dc,$7f,$a3,$dc), 
     ($22,$66,$44,$22), ($2a,$7e,$54,$2a), ($90,$ab,$3b,$90), ($88,$83,$0b,$88),
-    ($46,$ca,$8c,$46), ($EE,$29,$c7,$EE), ($b8,$d3,$6b,$b8), ($14,$3c,$28,$14),
-    ($de,$79,$a7,$de), ($5e,$e2,$bc,$5e), ($0b,$1d,$16,$0b), ($db,$76,$ad,$db),
-    ($e0,$3b,$db,$e0), ($32,$56,$64,$32), ($3a,$4e,$74,$3a), ($0a,$1e,$14,$0a),
+    ($46,$ca,$8c,$46), ($ee,$29,$c7,$ee), ($b8,$d3,$6b,$b8), ($14,$3c,$28,$14), 
+    ($de,$79,$a7,$de), ($5e,$e2,$bc,$5e), ($0b,$1d,$16,$0b), ($db,$76,$ad,$db), 
+    ($e0,$3b,$db,$e0), ($32,$56,$64,$32), ($3a,$4e,$74,$3a), ($0a,$1e,$14,$0a), 
     ($49,$db,$92,$49), ($06,$0a,$0c,$06), ($24,$6c,$48,$24), ($5c,$e4,$b8,$5c),
-    ($c2,$5d,$9f,$c2), ($d3,$6e,$bd,$d3), ($ac,$EF,$43,$ac), ($62,$a6,$c4,$62),
+    ($c2,$5d,$9f,$c2), ($d3,$6e,$bd,$d3), ($ac,$ef,$43,$ac), ($62,$a6,$c4,$62), 
     ($91,$a8,$39,$91), ($95,$a4,$31,$95), ($e4,$37,$d3,$e4), ($79,$8b,$f2,$79),
-    ($e7,$32,$d5,$e7), ($c8,$43,$8b,$c8), ($37,$59,$6e,$37), ($6d,$b7,$da,$6d),
-    ($8d,$8c,$01,$8d), ($d5,$64,$b1,$d5), ($4e,$d2,$9c,$4e), ($a9,$e0,$49,$a9),
+    ($e7,$32,$d5,$e7), ($c8,$43,$8b,$c8), ($37,$59,$6e,$37), ($6d,$b7,$da,$6d), 
+    ($8d,$8c,$01,$8d), ($d5,$64,$b1,$d5), ($4e,$d2,$9c,$4e), ($a9,$e0,$49,$a9), 
     ($6c,$b4,$d8,$6c), ($56,$fa,$ac,$56), ($f4,$07,$f3,$f4), ($ea,$25,$cf,$ea),
-    ($65,$af,$ca,$65), ($7a,$8e,$f4,$7a), ($ae,$e9,$47,$ae), ($08,$18,$10,$08),
-    ($ba,$d5,$6f,$ba), ($78,$88,$f0,$78), ($25,$6f,$4a,$25), ($2e,$72,$5c,$2e),
-    ($1c,$24,$38,$1c), ($a6,$f1,$57,$a6), ($b4,$c7,$73,$b4), ($c6,$51,$97,$c6),
+    ($65,$af,$ca,$65), ($7a,$8e,$f4,$7a), ($ae,$e9,$47,$ae), ($08,$18,$10,$08), 
+    ($ba,$d5,$6f,$ba), ($78,$88,$f0,$78), ($25,$6f,$4a,$25), ($2e,$72,$5c,$2e), 
+    ($1c,$24,$38,$1c), ($a6,$f1,$57,$a6), ($b4,$c7,$73,$b4), ($c6,$51,$97,$c6), 
     ($e8,$23,$cb,$e8), ($dd,$7c,$a1,$dd), ($74,$9c,$e8,$74), ($1f,$21,$3e,$1f),
-    ($4b,$dd,$96,$4b), ($bd,$dc,$61,$bd), ($8b,$86,$0d,$8b), ($8a,$85,$0f,$8a),
-    ($70,$90,$e0,$70), ($3e,$42,$7c,$3e), ($b5,$c4,$71,$b5), ($66,$aa,$cc,$66),
-    ($48,$d8,$90,$48), ($03,$05,$06,$03), ($f6,$01,$f7,$f6), ($0e,$12,$1c,$0e),
-    ($61,$a3,$c2,$61), ($35,$5f,$6a,$35), ($57,$f9,$ae,$57), ($b9,$d0,$69,$b9),
-    ($86,$91,$17,$86), ($c1,$58,$99,$c1), ($1d,$27,$3a,$1d), ($9e,$b9,$27,$9e),
-    ($e1,$38,$d9,$e1), ($f8,$13,$eb,$f8), ($98,$b3,$2b,$98), ($11,$33,$22,$11),
+    ($4b,$dd,$96,$4b), ($bd,$dc,$61,$bd), ($8b,$86,$0d,$8b), ($8a,$85,$0f,$8a), 
+    ($70,$90,$e0,$70), ($3e,$42,$7c,$3e), ($b5,$c4,$71,$b5), ($66,$aa,$cc,$66), 
+    ($48,$d8,$90,$48), ($03,$05,$06,$03), ($f6,$01,$f7,$f6), ($0e,$12,$1c,$0e), 
+    ($61,$a3,$c2,$61), ($35,$5f,$6a,$35), ($57,$f9,$ae,$57), ($b9,$d0,$69,$b9), 
+    ($86,$91,$17,$86), ($c1,$58,$99,$c1), ($1d,$27,$3a,$1d), ($9e,$b9,$27,$9e), 
+    ($e1,$38,$d9,$e1), ($f8,$13,$eb,$f8), ($98,$b3,$2b,$98), ($11,$33,$22,$11), 
     ($69,$bb,$d2,$69), ($d9,$70,$a9,$d9), ($8e,$89,$07,$8e), ($94,$a7,$33,$94),
-    ($9b,$b6,$2d,$9b), ($1e,$22,$3c,$1e), ($87,$92,$15,$87), ($e9,$20,$c9,$e9),
-    ($ce,$49,$87,$ce), ($55,$ff,$aa,$55), ($28,$78,$50,$28), ($DF,$7a,$a5,$DF),
-    ($8c,$8f,$03,$8c), ($a1,$f8,$59,$a1), ($89,$80,$09,$89), ($0d,$17,$1a,$0d),
-    ($BF,$da,$65,$BF), ($e6,$31,$d7,$e6), ($42,$c6,$84,$42), ($68,$b8,$d0,$68),
-    ($41,$c3,$82,$41), ($99,$b0,$29,$99), ($2d,$77,$5a,$2d), ($0f,$11,$1e,$0f),
+    ($9b,$b6,$2d,$9b), ($1e,$22,$3c,$1e), ($87,$92,$15,$87), ($e9,$20,$c9,$e9), 
+    ($ce,$49,$87,$ce), ($55,$ff,$aa,$55), ($28,$78,$50,$28), ($df,$7a,$a5,$df), 
+    ($8c,$8f,$03,$8c), ($a1,$f8,$59,$a1), ($89,$80,$09,$89), ($0d,$17,$1a,$0d), 
+    ($bf,$da,$65,$bf), ($e6,$31,$d7,$e6), ($42,$c6,$84,$42), ($68,$b8,$d0,$68), 
+    ($41,$c3,$82,$41), ($99,$b0,$29,$99), ($2d,$77,$5a,$2d), ($0f,$11,$1e,$0f), 
     ($b0,$cb,$7b,$b0), ($54,$fc,$a8,$54), ($bb,$d6,$6d,$bb), ($16,$3a,$2c,$16));
   T4: array[0..255,0..3] of byte= (
-    ($63,$63,$a5,$c6), ($7c,$7c,$84,$f8), ($77,$77,$99,$EE), ($7b,$7b,$8d,$f6),
+    ($63,$63,$a5,$c6), ($7c,$7c,$84,$f8), ($77,$77,$99,$ee), ($7b,$7b,$8d,$f6),
     ($f2,$f2,$0d,$ff), ($6b,$6b,$bd,$d6), ($6f,$6f,$b1,$de), ($c5,$c5,$54,$91),
     ($30,$30,$50,$60), ($01,$01,$03,$02), ($67,$67,$a9,$ce), ($2b,$2b,$7d,$56),
-    ($fe,$fe,$19,$e7), ($d7,$d7,$62,$b5), ($ab,$ab,$e6,$4d), ($76,$76,$9a,$EC),
-    ($ca,$ca,$45,$8f), ($82,$82,$9d,$1f), ($c9,$c9,$40,$89), ($7d,$7d,$87,$fa),
-    ($fa,$fa,$15,$EF), ($59,$59,$eb,$b2), ($47,$47,$c9,$8e), ($f0,$f0,$0b,$fb),
-    ($ad,$ad,$EC,$41), ($d4,$d4,$67,$b3), ($a2,$a2,$fd,$5f), ($af,$af,$ea,$45),
-    ($9c,$9c,$BF,$23), ($a4,$a4,$f7,$53), ($72,$72,$96,$e4), ($c0,$c0,$5b,$9b),
+    ($fe,$fe,$19,$e7), ($d7,$d7,$62,$b5), ($ab,$ab,$e6,$4d), ($76,$76,$9a,$ec), 
+    ($ca,$ca,$45,$8f), ($82,$82,$9d,$1f), ($c9,$c9,$40,$89), ($7d,$7d,$87,$fa), 
+    ($fa,$fa,$15,$ef), ($59,$59,$eb,$b2), ($47,$47,$c9,$8e), ($f0,$f0,$0b,$fb), 
+    ($ad,$ad,$ec,$41), ($d4,$d4,$67,$b3), ($a2,$a2,$fd,$5f), ($af,$af,$ea,$45), 
+    ($9c,$9c,$bf,$23), ($a4,$a4,$f7,$53), ($72,$72,$96,$e4), ($c0,$c0,$5b,$9b), 
     ($b7,$b7,$c2,$75), ($fd,$fd,$1c,$e1), ($93,$93,$ae,$3d), ($26,$26,$6a,$4c),
-    ($36,$36,$5a,$6c), ($3f,$3f,$41,$7e), ($f7,$f7,$02,$f5), ($cc,$cc,$4f,$83),
-    ($34,$34,$5c,$68), ($a5,$a5,$f4,$51), ($e5,$e5,$34,$d1), ($f1,$f1,$08,$f9),
-    ($71,$71,$93,$e2), ($d8,$d8,$73,$ab), ($31,$31,$53,$62), ($15,$15,$3f,$2a),
-    ($04,$04,$0c,$08), ($c7,$c7,$52,$95), ($23,$23,$65,$46), ($c3,$c3,$5e,$9d),
+    ($36,$36,$5a,$6c), ($3f,$3f,$41,$7e), ($f7,$f7,$02,$f5), ($cc,$cc,$4f,$83), 
+    ($34,$34,$5c,$68), ($a5,$a5,$f4,$51), ($e5,$e5,$34,$d1), ($f1,$f1,$08,$f9), 
+    ($71,$71,$93,$e2), ($d8,$d8,$73,$ab), ($31,$31,$53,$62), ($15,$15,$3f,$2a), 
+    ($04,$04,$0c,$08), ($c7,$c7,$52,$95), ($23,$23,$65,$46), ($c3,$c3,$5e,$9d), 
     ($18,$18,$28,$30), ($96,$96,$a1,$37), ($05,$05,$0f,$0a), ($9a,$9a,$b5,$2f),
-    ($07,$07,$09,$0e), ($12,$12,$36,$24), ($80,$80,$9b,$1b), ($e2,$e2,$3d,$DF),
-    ($eb,$eb,$26,$cd), ($27,$27,$69,$4e), ($b2,$b2,$cd,$7f), ($75,$75,$9f,$ea),
-    ($09,$09,$1b,$12), ($83,$83,$9e,$1d), ($2c,$2c,$74,$58), ($1a,$1a,$2e,$34),
-    ($1b,$1b,$2d,$36), ($6e,$6e,$b2,$dc), ($5a,$5a,$EE,$b4), ($a0,$a0,$fb,$5b),
+    ($07,$07,$09,$0e), ($12,$12,$36,$24), ($80,$80,$9b,$1b), ($e2,$e2,$3d,$df), 
+    ($eb,$eb,$26,$cd), ($27,$27,$69,$4e), ($b2,$b2,$cd,$7f), ($75,$75,$9f,$ea), 
+    ($09,$09,$1b,$12), ($83,$83,$9e,$1d), ($2c,$2c,$74,$58), ($1a,$1a,$2e,$34), 
+    ($1b,$1b,$2d,$36), ($6e,$6e,$b2,$dc), ($5a,$5a,$ee,$b4), ($a0,$a0,$fb,$5b), 
     ($52,$52,$f6,$a4), ($3b,$3b,$4d,$76), ($d6,$d6,$61,$b7), ($b3,$b3,$ce,$7d),
-    ($29,$29,$7b,$52), ($e3,$e3,$3e,$dd), ($2f,$2f,$71,$5e), ($84,$84,$97,$13),
-    ($53,$53,$f5,$a6), ($d1,$d1,$68,$b9), ($00,$00,$00,$00), ($ED,$ED,$2c,$c1),
-    ($20,$20,$60,$40), ($fc,$fc,$1f,$e3), ($b1,$b1,$c8,$79), ($5b,$5b,$ED,$b6),
-    ($6a,$6a,$be,$d4), ($cb,$cb,$46,$8d), ($be,$be,$d9,$67), ($39,$39,$4b,$72),
+    ($29,$29,$7b,$52), ($e3,$e3,$3e,$dd), ($2f,$2f,$71,$5e), ($84,$84,$97,$13), 
+    ($53,$53,$f5,$a6), ($d1,$d1,$68,$b9), ($00,$00,$00,$00), ($ed,$ed,$2c,$c1), 
+    ($20,$20,$60,$40), ($fc,$fc,$1f,$e3), ($b1,$b1,$c8,$79), ($5b,$5b,$ed,$b6), 
+    ($6a,$6a,$be,$d4), ($cb,$cb,$46,$8d), ($be,$be,$d9,$67), ($39,$39,$4b,$72), 
     ($4a,$4a,$de,$94), ($4c,$4c,$d4,$98), ($58,$58,$e8,$b0), ($cf,$cf,$4a,$85),
-    ($d0,$d0,$6b,$bb), ($EF,$EF,$2a,$c5), ($aa,$aa,$e5,$4f), ($fb,$fb,$16,$ED),
-    ($43,$43,$c5,$86), ($4d,$4d,$d7,$9a), ($33,$33,$55,$66), ($85,$85,$94,$11),
-    ($45,$45,$cf,$8a), ($f9,$f9,$10,$e9), ($02,$02,$06,$04), ($7f,$7f,$81,$fe),
-    ($50,$50,$f0,$a0), ($3c,$3c,$44,$78), ($9f,$9f,$ba,$25), ($a8,$a8,$e3,$4b),
+    ($d0,$d0,$6b,$bb), ($ef,$ef,$2a,$c5), ($aa,$aa,$e5,$4f), ($fb,$fb,$16,$ed),
+    ($43,$43,$c5,$86), ($4d,$4d,$d7,$9a), ($33,$33,$55,$66), ($85,$85,$94,$11), 
+    ($45,$45,$cf,$8a), ($f9,$f9,$10,$e9), ($02,$02,$06,$04), ($7f,$7f,$81,$fe), 
+    ($50,$50,$f0,$a0), ($3c,$3c,$44,$78), ($9f,$9f,$ba,$25), ($a8,$a8,$e3,$4b), 
     ($51,$51,$f3,$a2), ($a3,$a3,$fe,$5d), ($40,$40,$c0,$80), ($8f,$8f,$8a,$05),
-    ($92,$92,$ad,$3f), ($9d,$9d,$bc,$21), ($38,$38,$48,$70), ($f5,$f5,$04,$f1),
-    ($bc,$bc,$DF,$63), ($b6,$b6,$c1,$77), ($da,$da,$75,$af), ($21,$21,$63,$42),
-    ($10,$10,$30,$20), ($ff,$ff,$1a,$e5), ($f3,$f3,$0e,$fd), ($d2,$d2,$6d,$BF),
-    ($cd,$cd,$4c,$81), ($0c,$0c,$14,$18), ($13,$13,$35,$26), ($EC,$EC,$2f,$c3),
-    ($5f,$5f,$e1,$be), ($97,$97,$a2,$35), ($44,$44,$cc,$88), ($17,$17,$39,$2e),
-    ($c4,$c4,$57,$93), ($a7,$a7,$f2,$55), ($7e,$7e,$82,$fc), ($3d,$3d,$47,$7a),
-    ($64,$64,$ac,$c8), ($5d,$5d,$e7,$ba), ($19,$19,$2b,$32), ($73,$73,$95,$e6),
+    ($92,$92,$ad,$3f), ($9d,$9d,$bc,$21), ($38,$38,$48,$70), ($f5,$f5,$04,$f1), 
+    ($bc,$bc,$df,$63), ($b6,$b6,$c1,$77), ($da,$da,$75,$af), ($21,$21,$63,$42), 
+    ($10,$10,$30,$20), ($ff,$ff,$1a,$e5), ($f3,$f3,$0e,$fd), ($d2,$d2,$6d,$bf),
+    ($cd,$cd,$4c,$81), ($0c,$0c,$14,$18), ($13,$13,$35,$26), ($ec,$ec,$2f,$c3), 
+    ($5f,$5f,$e1,$be), ($97,$97,$a2,$35), ($44,$44,$cc,$88), ($17,$17,$39,$2e), 
+    ($c4,$c4,$57,$93), ($a7,$a7,$f2,$55), ($7e,$7e,$82,$fc), ($3d,$3d,$47,$7a), 
+    ($64,$64,$ac,$c8), ($5d,$5d,$e7,$ba), ($19,$19,$2b,$32), ($73,$73,$95,$e6), 
     ($60,$60,$a0,$c0), ($81,$81,$98,$19), ($4f,$4f,$d1,$9e), ($dc,$dc,$7f,$a3),
-    ($22,$22,$66,$44), ($2a,$2a,$7e,$54), ($90,$90,$ab,$3b), ($88,$88,$83,$0b),
-    ($46,$46,$ca,$8c), ($EE,$EE,$29,$c7), ($b8,$b8,$d3,$6b), ($14,$14,$3c,$28),
-    ($de,$de,$79,$a7), ($5e,$5e,$e2,$bc), ($0b,$0b,$1d,$16), ($db,$db,$76,$ad),
-    ($e0,$e0,$3b,$db), ($32,$32,$56,$64), ($3a,$3a,$4e,$74), ($0a,$0a,$1e,$14),
+    ($22,$22,$66,$44), ($2a,$2a,$7e,$54), ($90,$90,$ab,$3b), ($88,$88,$83,$0b), 
+    ($46,$46,$ca,$8c), ($ee,$ee,$29,$c7), ($b8,$b8,$d3,$6b), ($14,$14,$3c,$28), 
+    ($de,$de,$79,$a7), ($5e,$5e,$e2,$bc), ($0b,$0b,$1d,$16), ($db,$db,$76,$ad), 
+    ($e0,$e0,$3b,$db), ($32,$32,$56,$64), ($3a,$3a,$4e,$74), ($0a,$0a,$1e,$14), 
     ($49,$49,$db,$92), ($06,$06,$0a,$0c), ($24,$24,$6c,$48), ($5c,$5c,$e4,$b8),
-    ($c2,$c2,$5d,$9f), ($d3,$d3,$6e,$bd), ($ac,$ac,$EF,$43), ($62,$62,$a6,$c4),
-    ($91,$91,$a8,$39), ($95,$95,$a4,$31), ($e4,$e4,$37,$d3), ($79,$79,$8b,$f2),
-    ($e7,$e7,$32,$d5), ($c8,$c8,$43,$8b), ($37,$37,$59,$6e), ($6d,$6d,$b7,$da),
-    ($8d,$8d,$8c,$01), ($d5,$d5,$64,$b1), ($4e,$4e,$d2,$9c), ($a9,$a9,$e0,$49),
+    ($c2,$c2,$5d,$9f), ($d3,$d3,$6e,$bd), ($ac,$ac,$ef,$43), ($62,$62,$a6,$c4), 
+    ($91,$91,$a8,$39), ($95,$95,$a4,$31), ($e4,$e4,$37,$d3), ($79,$79,$8b,$f2), 
+    ($e7,$e7,$32,$d5), ($c8,$c8,$43,$8b), ($37,$37,$59,$6e), ($6d,$6d,$b7,$da), 
+    ($8d,$8d,$8c,$01), ($d5,$d5,$64,$b1), ($4e,$4e,$d2,$9c), ($a9,$a9,$e0,$49), 
     ($6c,$6c,$b4,$d8), ($56,$56,$fa,$ac), ($f4,$f4,$07,$f3), ($ea,$ea,$25,$cf),
     ($65,$65,$af,$ca), ($7a,$7a,$8e,$f4), ($ae,$ae,$e9,$47), ($08,$08,$18,$10),
-    ($ba,$ba,$d5,$6f), ($78,$78,$88,$f0), ($25,$25,$6f,$4a), ($2e,$2e,$72,$5c),
-    ($1c,$1c,$24,$38), ($a6,$a6,$f1,$57), ($b4,$b4,$c7,$73), ($c6,$c6,$51,$97),
+    ($ba,$ba,$d5,$6f), ($78,$78,$88,$f0), ($25,$25,$6f,$4a), ($2e,$2e,$72,$5c), 
+    ($1c,$1c,$24,$38), ($a6,$a6,$f1,$57), ($b4,$b4,$c7,$73), ($c6,$c6,$51,$97), 
     ($e8,$e8,$23,$cb), ($dd,$dd,$7c,$a1), ($74,$74,$9c,$e8), ($1f,$1f,$21,$3e),
-    ($4b,$4b,$dd,$96), ($bd,$bd,$dc,$61), ($8b,$8b,$86,$0d), ($8a,$8a,$85,$0f),
-    ($70,$70,$90,$e0), ($3e,$3e,$42,$7c), ($b5,$b5,$c4,$71), ($66,$66,$aa,$cc),
-    ($48,$48,$d8,$90), ($03,$03,$05,$06), ($f6,$f6,$01,$f7), ($0e,$0e,$12,$1c),
+    ($4b,$4b,$dd,$96), ($bd,$bd,$dc,$61), ($8b,$8b,$86,$0d), ($8a,$8a,$85,$0f), 
+    ($70,$70,$90,$e0), ($3e,$3e,$42,$7c), ($b5,$b5,$c4,$71), ($66,$66,$aa,$cc), 
+    ($48,$48,$d8,$90), ($03,$03,$05,$06), ($f6,$f6,$01,$f7), ($0e,$0e,$12,$1c), 
     ($61,$61,$a3,$c2), ($35,$35,$5f,$6a), ($57,$57,$f9,$ae), ($b9,$b9,$d0,$69),
-    ($86,$86,$91,$17), ($c1,$c1,$58,$99), ($1d,$1d,$27,$3a), ($9e,$9e,$b9,$27),
-    ($e1,$e1,$38,$d9), ($f8,$f8,$13,$eb), ($98,$98,$b3,$2b), ($11,$11,$33,$22),
-    ($69,$69,$bb,$d2), ($d9,$d9,$70,$a9), ($8e,$8e,$89,$07), ($94,$94,$a7,$33),
-    ($9b,$9b,$b6,$2d), ($1e,$1e,$22,$3c), ($87,$87,$92,$15), ($e9,$e9,$20,$c9),
-    ($ce,$ce,$49,$87), ($55,$55,$ff,$aa), ($28,$28,$78,$50), ($DF,$DF,$7a,$a5),
+    ($86,$86,$91,$17), ($c1,$c1,$58,$99), ($1d,$1d,$27,$3a), ($9e,$9e,$b9,$27), 
+    ($e1,$e1,$38,$d9), ($f8,$f8,$13,$eb), ($98,$98,$b3,$2b), ($11,$11,$33,$22), 
+    ($69,$69,$bb,$d2), ($d9,$d9,$70,$a9), ($8e,$8e,$89,$07), ($94,$94,$a7,$33), 
+    ($9b,$9b,$b6,$2d), ($1e,$1e,$22,$3c), ($87,$87,$92,$15), ($e9,$e9,$20,$c9), 
+    ($ce,$ce,$49,$87), ($55,$55,$ff,$aa), ($28,$28,$78,$50), ($df,$df,$7a,$a5),
     ($8c,$8c,$8f,$03), ($a1,$a1,$f8,$59), ($89,$89,$80,$09), ($0d,$0d,$17,$1a),
-    ($BF,$BF,$da,$65), ($e6,$e6,$31,$d7), ($42,$42,$c6,$84), ($68,$68,$b8,$d0),
-    ($41,$41,$c3,$82), ($99,$99,$b0,$29), ($2d,$2d,$77,$5a), ($0f,$0f,$11,$1e),
+    ($bf,$bf,$da,$65), ($e6,$e6,$31,$d7), ($42,$42,$c6,$84), ($68,$68,$b8,$d0), 
+    ($41,$41,$c3,$82), ($99,$99,$b0,$29), ($2d,$2d,$77,$5a), ($0f,$0f,$11,$1e), 
     ($b0,$b0,$cb,$7b), ($54,$54,$fc,$a8), ($bb,$bb,$d6,$6d), ($16,$16,$3a,$2c));
   T5: array[0..255,0..3] of byte= (
     ($51,$f4,$a7,$50), ($7e,$41,$65,$53), ($1a,$17,$a4,$c3), ($3a,$27,$5e,$96),
     ($3b,$ab,$6b,$cb), ($1f,$9d,$45,$f1), ($ac,$fa,$58,$ab), ($4b,$e3,$03,$93),
     ($20,$30,$fa,$55), ($ad,$76,$6d,$f6), ($88,$cc,$76,$91), ($f5,$02,$4c,$25),
-    ($4f,$e5,$d7,$fc), ($c5,$2a,$cb,$d7), ($26,$35,$44,$80), ($b5,$62,$a3,$8f),
-    ($de,$b1,$5a,$49), ($25,$ba,$1b,$67), ($45,$ea,$0e,$98), ($5d,$fe,$c0,$e1),
+    ($4f,$e5,$d7,$fc), ($c5,$2a,$cb,$d7), ($26,$35,$44,$80), ($b5,$62,$a3,$8f), 
+    ($de,$b1,$5a,$49), ($25,$ba,$1b,$67), ($45,$ea,$0e,$98), ($5d,$fe,$c0,$e1), 
     ($c3,$2f,$75,$02), ($81,$4c,$f0,$12), ($8d,$46,$97,$a3), ($6b,$d3,$f9,$c6),
-    ($03,$8f,$5f,$e7), ($15,$92,$9c,$95), ($BF,$6d,$7a,$eb), ($95,$52,$59,$da),
-    ($d4,$be,$83,$2d), ($58,$74,$21,$d3), ($49,$e0,$69,$29), ($8e,$c9,$c8,$44),
-    ($75,$c2,$89,$6a), ($f4,$8e,$79,$78), ($99,$58,$3e,$6b), ($27,$b9,$71,$dd),
-    ($be,$e1,$4f,$b6), ($f0,$88,$ad,$17), ($c9,$20,$ac,$66), ($7d,$ce,$3a,$b4),
-    ($63,$DF,$4a,$18), ($e5,$1a,$31,$82), ($97,$51,$33,$60), ($62,$53,$7f,$45),
+    ($03,$8f,$5f,$e7), ($15,$92,$9c,$95), ($bf,$6d,$7a,$eb), ($95,$52,$59,$da), 
+    ($d4,$be,$83,$2d), ($58,$74,$21,$d3), ($49,$e0,$69,$29), ($8e,$c9,$c8,$44), 
+    ($75,$c2,$89,$6a), ($f4,$8e,$79,$78), ($99,$58,$3e,$6b), ($27,$b9,$71,$dd), 
+    ($be,$e1,$4f,$b6), ($f0,$88,$ad,$17), ($c9,$20,$ac,$66), ($7d,$ce,$3a,$b4), 
+    ($63,$df,$4a,$18), ($e5,$1a,$31,$82), ($97,$51,$33,$60), ($62,$53,$7f,$45), 
     ($b1,$64,$77,$e0), ($bb,$6b,$ae,$84), ($fe,$81,$a0,$1c), ($f9,$08,$2b,$94),
     ($70,$48,$68,$58), ($8f,$45,$fd,$19), ($94,$de,$6c,$87), ($52,$7b,$f8,$b7),
-    ($ab,$73,$d3,$23), ($72,$4b,$02,$e2), ($e3,$1f,$8f,$57), ($66,$55,$ab,$2a),
-    ($b2,$eb,$28,$07), ($2f,$b5,$c2,$03), ($86,$c5,$7b,$9a), ($d3,$37,$08,$a5),
-    ($30,$28,$87,$f2), ($23,$BF,$a5,$b2), ($02,$03,$6a,$ba), ($ED,$16,$82,$5c),
-    ($8a,$cf,$1c,$2b), ($a7,$79,$b4,$92), ($f3,$07,$f2,$f0), ($4e,$69,$e2,$a1),
+    ($ab,$73,$d3,$23), ($72,$4b,$02,$e2), ($e3,$1f,$8f,$57), ($66,$55,$ab,$2a), 
+    ($b2,$eb,$28,$07), ($2f,$b5,$c2,$03), ($86,$c5,$7b,$9a), ($d3,$37,$08,$a5), 
+    ($30,$28,$87,$f2), ($23,$bf,$a5,$b2), ($02,$03,$6a,$ba), ($ed,$16,$82,$5c),
+    ($8a,$cf,$1c,$2b), ($a7,$79,$b4,$92), ($f3,$07,$f2,$f0), ($4e,$69,$e2,$a1), 
     ($65,$da,$f4,$cd), ($06,$05,$be,$d5), ($d1,$34,$62,$1f), ($c4,$a6,$fe,$8a),
     ($34,$2e,$53,$9d), ($a2,$f3,$55,$a0), ($05,$8a,$e1,$32), ($a4,$f6,$eb,$75),
-    ($0b,$83,$EC,$39), ($40,$60,$EF,$aa), ($5e,$71,$9f,$06), ($bd,$6e,$10,$51),
-    ($3e,$21,$8a,$f9), ($96,$dd,$06,$3d), ($dd,$3e,$05,$ae), ($4d,$e6,$bd,$46),
-    ($91,$54,$8d,$b5), ($71,$c4,$5d,$05), ($04,$06,$d4,$6f), ($60,$50,$15,$ff),
+    ($0b,$83,$ec,$39), ($40,$60,$ef,$aa), ($5e,$71,$9f,$06), ($bd,$6e,$10,$51), 
+    ($3e,$21,$8a,$f9), ($96,$dd,$06,$3d), ($dd,$3e,$05,$ae), ($4d,$e6,$bd,$46), 
+    ($91,$54,$8d,$b5), ($71,$c4,$5d,$05), ($04,$06,$d4,$6f), ($60,$50,$15,$ff), 
     ($19,$98,$fb,$24), ($d6,$bd,$e9,$97), ($89,$40,$43,$cc), ($67,$d9,$9e,$77),
-    ($b0,$e8,$42,$bd), ($07,$89,$8b,$88), ($e7,$19,$5b,$38), ($79,$c8,$EE,$db),
-    ($a1,$7c,$0a,$47), ($7c,$42,$0f,$e9), ($f8,$84,$1e,$c9), ($00,$00,$00,$00),
-    ($09,$80,$86,$83), ($32,$2b,$ED,$48), ($1e,$11,$70,$ac), ($6c,$5a,$72,$4e),
-    ($fd,$0e,$ff,$fb), ($0f,$85,$38,$56), ($3d,$ae,$d5,$1e), ($36,$2d,$39,$27),
-    ($0a,$0f,$d9,$64), ($68,$5c,$a6,$21), ($9b,$5b,$54,$d1), ($24,$36,$2e,$3a),
-    ($0c,$0a,$67,$b1), ($93,$57,$e7,$0f), ($b4,$EE,$96,$d2), ($1b,$9b,$91,$9e),
-    ($80,$c0,$c5,$4f), ($61,$dc,$20,$a2), ($5a,$77,$4b,$69), ($1c,$12,$1a,$16),
-    ($e2,$93,$ba,$0a), ($c0,$a0,$2a,$e5), ($3c,$22,$e0,$43), ($12,$1b,$17,$1d),
-    ($0e,$09,$0d,$0b), ($f2,$8b,$c7,$ad), ($2d,$b6,$a8,$b9), ($14,$1e,$a9,$c8),
-    ($57,$f1,$19,$85), ($af,$75,$07,$4c), ($EE,$99,$dd,$bb), ($a3,$7f,$60,$fd),
-    ($f7,$01,$26,$9f), ($5c,$72,$f5,$bc), ($44,$66,$3b,$c5), ($5b,$fb,$7e,$34),
-    ($8b,$43,$29,$76), ($cb,$23,$c6,$dc), ($b6,$ED,$fc,$68), ($b8,$e4,$f1,$63),
+    ($b0,$e8,$42,$bd), ($07,$89,$8b,$88), ($e7,$19,$5b,$38), ($79,$c8,$ee,$db),
+    ($a1,$7c,$0a,$47), ($7c,$42,$0f,$e9), ($f8,$84,$1e,$c9), ($00,$00,$00,$00), 
+    ($09,$80,$86,$83), ($32,$2b,$ed,$48), ($1e,$11,$70,$ac), ($6c,$5a,$72,$4e), 
+    ($fd,$0e,$ff,$fb), ($0f,$85,$38,$56), ($3d,$ae,$d5,$1e), ($36,$2d,$39,$27), 
+    ($0a,$0f,$d9,$64), ($68,$5c,$a6,$21), ($9b,$5b,$54,$d1), ($24,$36,$2e,$3a), 
+    ($0c,$0a,$67,$b1), ($93,$57,$e7,$0f), ($b4,$ee,$96,$d2), ($1b,$9b,$91,$9e),
+    ($80,$c0,$c5,$4f), ($61,$dc,$20,$a2), ($5a,$77,$4b,$69), ($1c,$12,$1a,$16), 
+    ($e2,$93,$ba,$0a), ($c0,$a0,$2a,$e5), ($3c,$22,$e0,$43), ($12,$1b,$17,$1d), 
+    ($0e,$09,$0d,$0b), ($f2,$8b,$c7,$ad), ($2d,$b6,$a8,$b9), ($14,$1e,$a9,$c8), 
+    ($57,$f1,$19,$85), ($af,$75,$07,$4c), ($ee,$99,$dd,$bb), ($a3,$7f,$60,$fd),
+    ($f7,$01,$26,$9f), ($5c,$72,$f5,$bc), ($44,$66,$3b,$c5), ($5b,$fb,$7e,$34), 
+    ($8b,$43,$29,$76), ($cb,$23,$c6,$dc), ($b6,$ed,$fc,$68), ($b8,$e4,$f1,$63), 
     ($d7,$31,$dc,$ca), ($42,$63,$85,$10), ($13,$97,$22,$40), ($84,$c6,$11,$20),
-    ($85,$4a,$24,$7d), ($d2,$bb,$3d,$f8), ($ae,$f9,$32,$11), ($c7,$29,$a1,$6d),
-    ($1d,$9e,$2f,$4b), ($dc,$b2,$30,$f3), ($0d,$86,$52,$EC), ($77,$c1,$e3,$d0),
+    ($85,$4a,$24,$7d), ($d2,$bb,$3d,$f8), ($ae,$f9,$32,$11), ($c7,$29,$a1,$6d), 
+    ($1d,$9e,$2f,$4b), ($dc,$b2,$30,$f3), ($0d,$86,$52,$ec), ($77,$c1,$e3,$d0),
     ($2b,$b3,$16,$6c), ($a9,$70,$b9,$99), ($11,$94,$48,$fa), ($47,$e9,$64,$22),
-    ($a8,$fc,$8c,$c4), ($a0,$f0,$3f,$1a), ($56,$7d,$2c,$d8), ($22,$33,$90,$EF),
+    ($a8,$fc,$8c,$c4), ($a0,$f0,$3f,$1a), ($56,$7d,$2c,$d8), ($22,$33,$90,$ef), 
     ($87,$49,$4e,$c7), ($d9,$38,$d1,$c1), ($8c,$ca,$a2,$fe), ($98,$d4,$0b,$36),
-    ($a6,$f5,$81,$cf), ($a5,$7a,$de,$28), ($da,$b7,$8e,$26), ($3f,$ad,$BF,$a4),
-    ($2c,$3a,$9d,$e4), ($50,$78,$92,$0d), ($6a,$5f,$cc,$9b), ($54,$7e,$46,$62),
-    ($f6,$8d,$13,$c2), ($90,$d8,$b8,$e8), ($2e,$39,$f7,$5e), ($82,$c3,$af,$f5),
-    ($9f,$5d,$80,$be), ($69,$d0,$93,$7c), ($6f,$d5,$2d,$a9), ($cf,$25,$12,$b3),
+    ($a6,$f5,$81,$cf), ($a5,$7a,$de,$28), ($da,$b7,$8e,$26), ($3f,$ad,$bf,$a4),
+    ($2c,$3a,$9d,$e4), ($50,$78,$92,$0d), ($6a,$5f,$cc,$9b), ($54,$7e,$46,$62), 
+    ($f6,$8d,$13,$c2), ($90,$d8,$b8,$e8), ($2e,$39,$f7,$5e), ($82,$c3,$af,$f5), 
+    ($9f,$5d,$80,$be), ($69,$d0,$93,$7c), ($6f,$d5,$2d,$a9), ($cf,$25,$12,$b3), 
     ($c8,$ac,$99,$3b), ($10,$18,$7d,$a7), ($e8,$9c,$63,$6e), ($db,$3b,$bb,$7b),
-    ($cd,$26,$78,$09), ($6e,$59,$18,$f4), ($EC,$9a,$b7,$01), ($83,$4f,$9a,$a8),
-    ($e6,$95,$6e,$65), ($aa,$ff,$e6,$7e), ($21,$bc,$cf,$08), ($EF,$15,$e8,$e6),
-    ($ba,$e7,$9b,$d9), ($4a,$6f,$36,$ce), ($ea,$9f,$09,$d4), ($29,$b0,$7c,$d6),
-    ($31,$a4,$b2,$af), ($2a,$3f,$23,$31), ($c6,$a5,$94,$30), ($35,$a2,$66,$c0),
-    ($74,$4e,$bc,$37), ($fc,$82,$ca,$a6), ($e0,$90,$d0,$b0), ($33,$a7,$d8,$15),
-    ($f1,$04,$98,$4a), ($41,$EC,$da,$f7), ($7f,$cd,$50,$0e), ($17,$91,$f6,$2f),
-    ($76,$4d,$d6,$8d), ($43,$EF,$b0,$4d), ($cc,$aa,$4d,$54), ($e4,$96,$04,$DF),
-    ($9e,$d1,$b5,$e3), ($4c,$6a,$88,$1b), ($c1,$2c,$1f,$b8), ($46,$65,$51,$7f),
-    ($9d,$5e,$ea,$04), ($01,$8c,$35,$5d), ($fa,$87,$74,$73), ($fb,$0b,$41,$2e),
-    ($b3,$67,$1d,$5a), ($92,$db,$d2,$52), ($e9,$10,$56,$33), ($6d,$d6,$47,$13),
-    ($9a,$d7,$61,$8c), ($37,$a1,$0c,$7a), ($59,$f8,$14,$8e), ($eb,$13,$3c,$89),
-    ($ce,$a9,$27,$EE), ($b7,$61,$c9,$35), ($e1,$1c,$e5,$ED), ($7a,$47,$b1,$3c),
-    ($9c,$d2,$DF,$59), ($55,$f2,$73,$3f), ($18,$14,$ce,$79), ($73,$c7,$37,$BF),
-    ($53,$f7,$cd,$ea), ($5f,$fd,$aa,$5b), ($DF,$3d,$6f,$14), ($78,$44,$db,$86),
+    ($cd,$26,$78,$09), ($6e,$59,$18,$f4), ($ec,$9a,$b7,$01), ($83,$4f,$9a,$a8),
+    ($e6,$95,$6e,$65), ($aa,$ff,$e6,$7e), ($21,$bc,$cf,$08), ($ef,$15,$e8,$e6), 
+    ($ba,$e7,$9b,$d9), ($4a,$6f,$36,$ce), ($ea,$9f,$09,$d4), ($29,$b0,$7c,$d6), 
+    ($31,$a4,$b2,$af), ($2a,$3f,$23,$31), ($c6,$a5,$94,$30), ($35,$a2,$66,$c0), 
+    ($74,$4e,$bc,$37), ($fc,$82,$ca,$a6), ($e0,$90,$d0,$b0), ($33,$a7,$d8,$15), 
+    ($f1,$04,$98,$4a), ($41,$ec,$da,$f7), ($7f,$cd,$50,$0e), ($17,$91,$f6,$2f),
+    ($76,$4d,$d6,$8d), ($43,$ef,$b0,$4d), ($cc,$aa,$4d,$54), ($e4,$96,$04,$df), 
+    ($9e,$d1,$b5,$e3), ($4c,$6a,$88,$1b), ($c1,$2c,$1f,$b8), ($46,$65,$51,$7f), 
+    ($9d,$5e,$ea,$04), ($01,$8c,$35,$5d), ($fa,$87,$74,$73), ($fb,$0b,$41,$2e), 
+    ($b3,$67,$1d,$5a), ($92,$db,$d2,$52), ($e9,$10,$56,$33), ($6d,$d6,$47,$13), 
+    ($9a,$d7,$61,$8c), ($37,$a1,$0c,$7a), ($59,$f8,$14,$8e), ($eb,$13,$3c,$89), 
+    ($ce,$a9,$27,$ee), ($b7,$61,$c9,$35), ($e1,$1c,$e5,$ed), ($7a,$47,$b1,$3c), 
+    ($9c,$d2,$df,$59), ($55,$f2,$73,$3f), ($18,$14,$ce,$79), ($73,$c7,$37,$bf),
+    ($53,$f7,$cd,$ea), ($5f,$fd,$aa,$5b), ($df,$3d,$6f,$14), ($78,$44,$db,$86), 
     ($ca,$af,$f3,$81), ($b9,$68,$c4,$3e), ($38,$24,$34,$2c), ($c2,$a3,$40,$5f),
     ($16,$1d,$c3,$72), ($bc,$e2,$25,$0c), ($28,$3c,$49,$8b), ($ff,$0d,$95,$41),
     ($39,$a8,$01,$71), ($08,$0c,$b3,$de), ($d8,$b4,$e4,$9c), ($64,$56,$c1,$90),
@@ -831,63 +831,63 @@ CONST
     ($50,$51,$f4,$a7), ($53,$7e,$41,$65), ($c3,$1a,$17,$a4), ($96,$3a,$27,$5e),
     ($cb,$3b,$ab,$6b), ($f1,$1f,$9d,$45), ($ab,$ac,$fa,$58), ($93,$4b,$e3,$03),
     ($55,$20,$30,$fa), ($f6,$ad,$76,$6d), ($91,$88,$cc,$76), ($25,$f5,$02,$4c),
-    ($fc,$4f,$e5,$d7), ($d7,$c5,$2a,$cb), ($80,$26,$35,$44), ($8f,$b5,$62,$a3),
-    ($49,$de,$b1,$5a), ($67,$25,$ba,$1b), ($98,$45,$ea,$0e), ($e1,$5d,$fe,$c0),
-    ($02,$c3,$2f,$75), ($12,$81,$4c,$f0), ($a3,$8d,$46,$97), ($c6,$6b,$d3,$f9),
-    ($e7,$03,$8f,$5f), ($95,$15,$92,$9c), ($eb,$BF,$6d,$7a), ($da,$95,$52,$59),
-    ($2d,$d4,$be,$83), ($d3,$58,$74,$21), ($29,$49,$e0,$69), ($44,$8e,$c9,$c8),
-    ($6a,$75,$c2,$89), ($78,$f4,$8e,$79), ($6b,$99,$58,$3e), ($dd,$27,$b9,$71),
+    ($fc,$4f,$e5,$d7), ($d7,$c5,$2a,$cb), ($80,$26,$35,$44), ($8f,$b5,$62,$a3), 
+    ($49,$de,$b1,$5a), ($67,$25,$ba,$1b), ($98,$45,$ea,$0e), ($e1,$5d,$fe,$c0), 
+    ($02,$c3,$2f,$75), ($12,$81,$4c,$f0), ($a3,$8d,$46,$97), ($c6,$6b,$d3,$f9), 
+    ($e7,$03,$8f,$5f), ($95,$15,$92,$9c), ($eb,$bf,$6d,$7a), ($da,$95,$52,$59), 
+    ($2d,$d4,$be,$83), ($d3,$58,$74,$21), ($29,$49,$e0,$69), ($44,$8e,$c9,$c8), 
+    ($6a,$75,$c2,$89), ($78,$f4,$8e,$79), ($6b,$99,$58,$3e), ($dd,$27,$b9,$71), 
     ($b6,$be,$e1,$4f), ($17,$f0,$88,$ad), ($66,$c9,$20,$ac), ($b4,$7d,$ce,$3a),
-    ($18,$63,$DF,$4a), ($82,$e5,$1a,$31), ($60,$97,$51,$33), ($45,$62,$53,$7f),
-    ($e0,$b1,$64,$77), ($84,$bb,$6b,$ae), ($1c,$fe,$81,$a0), ($94,$f9,$08,$2b),
-    ($58,$70,$48,$68), ($19,$8f,$45,$fd), ($87,$94,$de,$6c), ($b7,$52,$7b,$f8),
-    ($23,$ab,$73,$d3), ($e2,$72,$4b,$02), ($57,$e3,$1f,$8f), ($2a,$66,$55,$ab),
-    ($07,$b2,$eb,$28), ($03,$2f,$b5,$c2), ($9a,$86,$c5,$7b), ($a5,$d3,$37,$08),
-    ($f2,$30,$28,$87), ($b2,$23,$BF,$a5), ($ba,$02,$03,$6a), ($5c,$ED,$16,$82),
+    ($18,$63,$df,$4a), ($82,$e5,$1a,$31), ($60,$97,$51,$33), ($45,$62,$53,$7f), 
+    ($e0,$b1,$64,$77), ($84,$bb,$6b,$ae), ($1c,$fe,$81,$a0), ($94,$f9,$08,$2b), 
+    ($58,$70,$48,$68), ($19,$8f,$45,$fd), ($87,$94,$de,$6c), ($b7,$52,$7b,$f8), 
+    ($23,$ab,$73,$d3), ($e2,$72,$4b,$02), ($57,$e3,$1f,$8f), ($2a,$66,$55,$ab), 
+    ($07,$b2,$eb,$28), ($03,$2f,$b5,$c2), ($9a,$86,$c5,$7b), ($a5,$d3,$37,$08), 
+    ($f2,$30,$28,$87), ($b2,$23,$bf,$a5), ($ba,$02,$03,$6a), ($5c,$ed,$16,$82), 
     ($2b,$8a,$cf,$1c), ($92,$a7,$79,$b4), ($f0,$f3,$07,$f2), ($a1,$4e,$69,$e2),
     ($cd,$65,$da,$f4), ($d5,$06,$05,$be), ($1f,$d1,$34,$62), ($8a,$c4,$a6,$fe),
     ($9d,$34,$2e,$53), ($a0,$a2,$f3,$55), ($32,$05,$8a,$e1), ($75,$a4,$f6,$eb),
-    ($39,$0b,$83,$EC), ($aa,$40,$60,$EF), ($06,$5e,$71,$9f), ($51,$bd,$6e,$10),
-    ($f9,$3e,$21,$8a), ($3d,$96,$dd,$06), ($ae,$dd,$3e,$05), ($46,$4d,$e6,$bd),
-    ($b5,$91,$54,$8d), ($05,$71,$c4,$5d), ($6f,$04,$06,$d4), ($ff,$60,$50,$15),
+    ($39,$0b,$83,$ec), ($aa,$40,$60,$ef), ($06,$5e,$71,$9f), ($51,$bd,$6e,$10), 
+    ($f9,$3e,$21,$8a), ($3d,$96,$dd,$06), ($ae,$dd,$3e,$05), ($46,$4d,$e6,$bd), 
+    ($b5,$91,$54,$8d), ($05,$71,$c4,$5d), ($6f,$04,$06,$d4), ($ff,$60,$50,$15), 
     ($24,$19,$98,$fb), ($97,$d6,$bd,$e9), ($cc,$89,$40,$43), ($77,$67,$d9,$9e),
-    ($bd,$b0,$e8,$42), ($88,$07,$89,$8b), ($38,$e7,$19,$5b), ($db,$79,$c8,$EE),
+    ($bd,$b0,$e8,$42), ($88,$07,$89,$8b), ($38,$e7,$19,$5b), ($db,$79,$c8,$ee),
     ($47,$a1,$7c,$0a), ($e9,$7c,$42,$0f), ($c9,$f8,$84,$1e), ($00,$00,$00,$00),
-    ($83,$09,$80,$86), ($48,$32,$2b,$ED), ($ac,$1e,$11,$70), ($4e,$6c,$5a,$72),
-    ($fb,$fd,$0e,$ff), ($56,$0f,$85,$38), ($1e,$3d,$ae,$d5), ($27,$36,$2d,$39),
-    ($64,$0a,$0f,$d9), ($21,$68,$5c,$a6), ($d1,$9b,$5b,$54), ($3a,$24,$36,$2e),
-    ($b1,$0c,$0a,$67), ($0f,$93,$57,$e7), ($d2,$b4,$EE,$96), ($9e,$1b,$9b,$91),
-    ($4f,$80,$c0,$c5), ($a2,$61,$dc,$20), ($69,$5a,$77,$4b), ($16,$1c,$12,$1a),
-    ($0a,$e2,$93,$ba), ($e5,$c0,$a0,$2a), ($43,$3c,$22,$e0), ($1d,$12,$1b,$17),
-    ($0b,$0e,$09,$0d), ($ad,$f2,$8b,$c7), ($b9,$2d,$b6,$a8), ($c8,$14,$1e,$a9),
-    ($85,$57,$f1,$19), ($4c,$af,$75,$07), ($bb,$EE,$99,$dd), ($fd,$a3,$7f,$60),
+    ($83,$09,$80,$86), ($48,$32,$2b,$ed), ($ac,$1e,$11,$70), ($4e,$6c,$5a,$72), 
+    ($fb,$fd,$0e,$ff), ($56,$0f,$85,$38), ($1e,$3d,$ae,$d5), ($27,$36,$2d,$39), 
+    ($64,$0a,$0f,$d9), ($21,$68,$5c,$a6), ($d1,$9b,$5b,$54), ($3a,$24,$36,$2e), 
+    ($b1,$0c,$0a,$67), ($0f,$93,$57,$e7), ($d2,$b4,$ee,$96), ($9e,$1b,$9b,$91),
+    ($4f,$80,$c0,$c5), ($a2,$61,$dc,$20), ($69,$5a,$77,$4b), ($16,$1c,$12,$1a), 
+    ($0a,$e2,$93,$ba), ($e5,$c0,$a0,$2a), ($43,$3c,$22,$e0), ($1d,$12,$1b,$17), 
+    ($0b,$0e,$09,$0d), ($ad,$f2,$8b,$c7), ($b9,$2d,$b6,$a8), ($c8,$14,$1e,$a9), 
+    ($85,$57,$f1,$19), ($4c,$af,$75,$07), ($bb,$ee,$99,$dd), ($fd,$a3,$7f,$60),
     ($9f,$f7,$01,$26), ($bc,$5c,$72,$f5), ($c5,$44,$66,$3b), ($34,$5b,$fb,$7e),
-    ($76,$8b,$43,$29), ($dc,$cb,$23,$c6), ($68,$b6,$ED,$fc), ($63,$b8,$e4,$f1),
-    ($ca,$d7,$31,$dc), ($10,$42,$63,$85), ($40,$13,$97,$22), ($20,$84,$c6,$11),
-    ($7d,$85,$4a,$24), ($f8,$d2,$bb,$3d), ($11,$ae,$f9,$32), ($6d,$c7,$29,$a1),
-    ($4b,$1d,$9e,$2f), ($f3,$dc,$b2,$30), ($EC,$0d,$86,$52), ($d0,$77,$c1,$e3),
-    ($6c,$2b,$b3,$16), ($99,$a9,$70,$b9), ($fa,$11,$94,$48), ($22,$47,$e9,$64),
-    ($c4,$a8,$fc,$8c), ($1a,$a0,$f0,$3f), ($d8,$56,$7d,$2c), ($EF,$22,$33,$90),
+    ($76,$8b,$43,$29), ($dc,$cb,$23,$c6), ($68,$b6,$ed,$fc), ($63,$b8,$e4,$f1), 
+    ($ca,$d7,$31,$dc), ($10,$42,$63,$85), ($40,$13,$97,$22), ($20,$84,$c6,$11), 
+    ($7d,$85,$4a,$24), ($f8,$d2,$bb,$3d), ($11,$ae,$f9,$32), ($6d,$c7,$29,$a1), 
+    ($4b,$1d,$9e,$2f), ($f3,$dc,$b2,$30), ($ec,$0d,$86,$52), ($d0,$77,$c1,$e3), 
+    ($6c,$2b,$b3,$16), ($99,$a9,$70,$b9), ($fa,$11,$94,$48), ($22,$47,$e9,$64), 
+    ($c4,$a8,$fc,$8c), ($1a,$a0,$f0,$3f), ($d8,$56,$7d,$2c), ($ef,$22,$33,$90),
     ($c7,$87,$49,$4e), ($c1,$d9,$38,$d1), ($fe,$8c,$ca,$a2), ($36,$98,$d4,$0b),
-    ($cf,$a6,$f5,$81), ($28,$a5,$7a,$de), ($26,$da,$b7,$8e), ($a4,$3f,$ad,$BF),
-    ($e4,$2c,$3a,$9d), ($0d,$50,$78,$92), ($9b,$6a,$5f,$cc), ($62,$54,$7e,$46),
-    ($c2,$f6,$8d,$13), ($e8,$90,$d8,$b8), ($5e,$2e,$39,$f7), ($f5,$82,$c3,$af),
-    ($be,$9f,$5d,$80), ($7c,$69,$d0,$93), ($a9,$6f,$d5,$2d), ($b3,$cf,$25,$12),
+    ($cf,$a6,$f5,$81), ($28,$a5,$7a,$de), ($26,$da,$b7,$8e), ($a4,$3f,$ad,$bf),
+    ($e4,$2c,$3a,$9d), ($0d,$50,$78,$92), ($9b,$6a,$5f,$cc), ($62,$54,$7e,$46), 
+    ($c2,$f6,$8d,$13), ($e8,$90,$d8,$b8), ($5e,$2e,$39,$f7), ($f5,$82,$c3,$af), 
+    ($be,$9f,$5d,$80), ($7c,$69,$d0,$93), ($a9,$6f,$d5,$2d), ($b3,$cf,$25,$12), 
     ($3b,$c8,$ac,$99), ($a7,$10,$18,$7d), ($6e,$e8,$9c,$63), ($7b,$db,$3b,$bb),
-    ($09,$cd,$26,$78), ($f4,$6e,$59,$18), ($01,$EC,$9a,$b7), ($a8,$83,$4f,$9a),
-    ($65,$e6,$95,$6e), ($7e,$aa,$ff,$e6), ($08,$21,$bc,$cf), ($e6,$EF,$15,$e8),
+    ($09,$cd,$26,$78), ($f4,$6e,$59,$18), ($01,$ec,$9a,$b7), ($a8,$83,$4f,$9a),
+    ($65,$e6,$95,$6e), ($7e,$aa,$ff,$e6), ($08,$21,$bc,$cf), ($e6,$ef,$15,$e8),
     ($d9,$ba,$e7,$9b), ($ce,$4a,$6f,$36), ($d4,$ea,$9f,$09), ($d6,$29,$b0,$7c),
     ($af,$31,$a4,$b2), ($31,$2a,$3f,$23), ($30,$c6,$a5,$94), ($c0,$35,$a2,$66),
     ($37,$74,$4e,$bc), ($a6,$fc,$82,$ca), ($b0,$e0,$90,$d0), ($15,$33,$a7,$d8),
-    ($4a,$f1,$04,$98), ($f7,$41,$EC,$da), ($0e,$7f,$cd,$50), ($2f,$17,$91,$f6),
-    ($8d,$76,$4d,$d6), ($4d,$43,$EF,$b0), ($54,$cc,$aa,$4d), ($DF,$e4,$96,$04),
+    ($4a,$f1,$04,$98), ($f7,$41,$ec,$da), ($0e,$7f,$cd,$50), ($2f,$17,$91,$f6),
+    ($8d,$76,$4d,$d6), ($4d,$43,$ef,$b0), ($54,$cc,$aa,$4d), ($df,$e4,$96,$04),
     ($e3,$9e,$d1,$b5), ($1b,$4c,$6a,$88), ($b8,$c1,$2c,$1f), ($7f,$46,$65,$51),
     ($04,$9d,$5e,$ea), ($5d,$01,$8c,$35), ($73,$fa,$87,$74), ($2e,$fb,$0b,$41),
     ($5a,$b3,$67,$1d), ($52,$92,$db,$d2), ($33,$e9,$10,$56), ($13,$6d,$d6,$47),
     ($8c,$9a,$d7,$61), ($7a,$37,$a1,$0c), ($8e,$59,$f8,$14), ($89,$eb,$13,$3c),
-    ($EE,$ce,$a9,$27), ($35,$b7,$61,$c9), ($ED,$e1,$1c,$e5), ($3c,$7a,$47,$b1),
-    ($59,$9c,$d2,$DF), ($3f,$55,$f2,$73), ($79,$18,$14,$ce), ($BF,$73,$c7,$37),
-    ($ea,$53,$f7,$cd), ($5b,$5f,$fd,$aa), ($14,$DF,$3d,$6f), ($86,$78,$44,$db),
+    ($ee,$ce,$a9,$27), ($35,$b7,$61,$c9), ($ed,$e1,$1c,$e5), ($3c,$7a,$47,$b1),
+    ($59,$9c,$d2,$df), ($3f,$55,$f2,$73), ($79,$18,$14,$ce), ($bf,$73,$c7,$37),
+    ($ea,$53,$f7,$cd), ($5b,$5f,$fd,$aa), ($14,$df,$3d,$6f), ($86,$78,$44,$db),
     ($81,$ca,$af,$f3), ($3e,$b9,$68,$c4), ($2c,$38,$24,$34), ($5f,$c2,$a3,$40),
     ($72,$16,$1d,$c3), ($0c,$bc,$e2,$25), ($8b,$28,$3c,$49), ($41,$ff,$0d,$95),
     ($71,$39,$a8,$01), ($de,$08,$0c,$b3), ($9c,$d8,$b4,$e4), ($90,$64,$56,$c1),
@@ -899,60 +899,60 @@ CONST
     ($d7,$fc,$4f,$e5), ($cb,$d7,$c5,$2a), ($44,$80,$26,$35), ($a3,$8f,$b5,$62),
     ($5a,$49,$de,$b1), ($1b,$67,$25,$ba), ($0e,$98,$45,$ea), ($c0,$e1,$5d,$fe),
     ($75,$02,$c3,$2f), ($f0,$12,$81,$4c), ($97,$a3,$8d,$46), ($f9,$c6,$6b,$d3),
-    ($5f,$e7,$03,$8f), ($9c,$95,$15,$92), ($7a,$eb,$BF,$6d), ($59,$da,$95,$52),
+    ($5f,$e7,$03,$8f), ($9c,$95,$15,$92), ($7a,$eb,$bf,$6d), ($59,$da,$95,$52),
     ($83,$2d,$d4,$be), ($21,$d3,$58,$74), ($69,$29,$49,$e0), ($c8,$44,$8e,$c9),
-    ($89,$6a,$75,$c2), ($79,$78,$f4,$8e), ($3e,$6b,$99,$58), ($71,$dd,$27,$b9),
-    ($4f,$b6,$be,$e1), ($ad,$17,$f0,$88), ($ac,$66,$c9,$20), ($3a,$b4,$7d,$ce),
-    ($4a,$18,$63,$DF), ($31,$82,$e5,$1a), ($33,$60,$97,$51), ($7f,$45,$62,$53),
+    ($89,$6a,$75,$c2), ($79,$78,$f4,$8e), ($3e,$6b,$99,$58), ($71,$dd,$27,$b9), 
+    ($4f,$b6,$be,$e1), ($ad,$17,$f0,$88), ($ac,$66,$c9,$20), ($3a,$b4,$7d,$ce), 
+    ($4a,$18,$63,$df), ($31,$82,$e5,$1a), ($33,$60,$97,$51), ($7f,$45,$62,$53), 
     ($77,$e0,$b1,$64), ($ae,$84,$bb,$6b), ($a0,$1c,$fe,$81), ($2b,$94,$f9,$08),
-    ($68,$58,$70,$48), ($fd,$19,$8f,$45), ($6c,$87,$94,$de), ($f8,$b7,$52,$7b),
+    ($68,$58,$70,$48), ($fd,$19,$8f,$45), ($6c,$87,$94,$de), ($f8,$b7,$52,$7b), 
     ($d3,$23,$ab,$73), ($02,$e2,$72,$4b), ($8f,$57,$e3,$1f), ($ab,$2a,$66,$55),
-    ($28,$07,$b2,$eb), ($c2,$03,$2f,$b5), ($7b,$9a,$86,$c5), ($08,$a5,$d3,$37),
-    ($87,$f2,$30,$28), ($a5,$b2,$23,$BF), ($6a,$ba,$02,$03), ($82,$5c,$ED,$16),
-    ($1c,$2b,$8a,$cf), ($b4,$92,$a7,$79), ($f2,$f0,$f3,$07), ($e2,$a1,$4e,$69),
-    ($f4,$cd,$65,$da), ($be,$d5,$06,$05), ($62,$1f,$d1,$34), ($fe,$8a,$c4,$a6),
+    ($28,$07,$b2,$eb), ($c2,$03,$2f,$b5), ($7b,$9a,$86,$c5), ($08,$a5,$d3,$37), 
+    ($87,$f2,$30,$28), ($a5,$b2,$23,$bf), ($6a,$ba,$02,$03), ($82,$5c,$ed,$16),
+    ($1c,$2b,$8a,$cf), ($b4,$92,$a7,$79), ($f2,$f0,$f3,$07), ($e2,$a1,$4e,$69), 
+    ($f4,$cd,$65,$da), ($be,$d5,$06,$05), ($62,$1f,$d1,$34), ($fe,$8a,$c4,$a6), 
     ($53,$9d,$34,$2e), ($55,$a0,$a2,$f3), ($e1,$32,$05,$8a), ($eb,$75,$a4,$f6),
-    ($EC,$39,$0b,$83), ($EF,$aa,$40,$60), ($9f,$06,$5e,$71), ($10,$51,$bd,$6e),
+    ($ec,$39,$0b,$83), ($ef,$aa,$40,$60), ($9f,$06,$5e,$71), ($10,$51,$bd,$6e),
     ($8a,$f9,$3e,$21), ($06,$3d,$96,$dd), ($05,$ae,$dd,$3e), ($bd,$46,$4d,$e6),
-    ($8d,$b5,$91,$54), ($5d,$05,$71,$c4), ($d4,$6f,$04,$06), ($15,$ff,$60,$50),
-    ($fb,$24,$19,$98), ($e9,$97,$d6,$bd), ($43,$cc,$89,$40), ($9e,$77,$67,$d9),
-    ($42,$bd,$b0,$e8), ($8b,$88,$07,$89), ($5b,$38,$e7,$19), ($EE,$db,$79,$c8),
-    ($0a,$47,$a1,$7c), ($0f,$e9,$7c,$42), ($1e,$c9,$f8,$84), ($00,$00,$00,$00),
-    ($86,$83,$09,$80), ($ED,$48,$32,$2b), ($70,$ac,$1e,$11), ($72,$4e,$6c,$5a),
-    ($ff,$fb,$fd,$0e), ($38,$56,$0f,$85), ($d5,$1e,$3d,$ae), ($39,$27,$36,$2d),
-    ($d9,$64,$0a,$0f), ($a6,$21,$68,$5c), ($54,$d1,$9b,$5b), ($2e,$3a,$24,$36),
-    ($67,$b1,$0c,$0a), ($e7,$0f,$93,$57), ($96,$d2,$b4,$EE), ($91,$9e,$1b,$9b),
-    ($c5,$4f,$80,$c0), ($20,$a2,$61,$dc), ($4b,$69,$5a,$77), ($1a,$16,$1c,$12),
-    ($ba,$0a,$e2,$93), ($2a,$e5,$c0,$a0), ($e0,$43,$3c,$22), ($17,$1d,$12,$1b),
-    ($0d,$0b,$0e,$09), ($c7,$ad,$f2,$8b), ($a8,$b9,$2d,$b6), ($a9,$c8,$14,$1e),
-    ($19,$85,$57,$f1), ($07,$4c,$af,$75), ($dd,$bb,$EE,$99), ($60,$fd,$a3,$7f),
-    ($26,$9f,$f7,$01), ($f5,$bc,$5c,$72), ($3b,$c5,$44,$66), ($7e,$34,$5b,$fb),
-    ($29,$76,$8b,$43), ($c6,$dc,$cb,$23), ($fc,$68,$b6,$ED), ($f1,$63,$b8,$e4),
-    ($dc,$ca,$d7,$31), ($85,$10,$42,$63), ($22,$40,$13,$97), ($11,$20,$84,$c6),
+    ($8d,$b5,$91,$54), ($5d,$05,$71,$c4), ($d4,$6f,$04,$06), ($15,$ff,$60,$50), 
+    ($fb,$24,$19,$98), ($e9,$97,$d6,$bd), ($43,$cc,$89,$40), ($9e,$77,$67,$d9), 
+    ($42,$bd,$b0,$e8), ($8b,$88,$07,$89), ($5b,$38,$e7,$19), ($ee,$db,$79,$c8),
+    ($0a,$47,$a1,$7c), ($0f,$e9,$7c,$42), ($1e,$c9,$f8,$84), ($00,$00,$00,$00), 
+    ($86,$83,$09,$80), ($ed,$48,$32,$2b), ($70,$ac,$1e,$11), ($72,$4e,$6c,$5a), 
+    ($ff,$fb,$fd,$0e), ($38,$56,$0f,$85), ($d5,$1e,$3d,$ae), ($39,$27,$36,$2d), 
+    ($d9,$64,$0a,$0f), ($a6,$21,$68,$5c), ($54,$d1,$9b,$5b), ($2e,$3a,$24,$36), 
+    ($67,$b1,$0c,$0a), ($e7,$0f,$93,$57), ($96,$d2,$b4,$ee), ($91,$9e,$1b,$9b), 
+    ($c5,$4f,$80,$c0), ($20,$a2,$61,$dc), ($4b,$69,$5a,$77), ($1a,$16,$1c,$12), 
+    ($ba,$0a,$e2,$93), ($2a,$e5,$c0,$a0), ($e0,$43,$3c,$22), ($17,$1d,$12,$1b), 
+    ($0d,$0b,$0e,$09), ($c7,$ad,$f2,$8b), ($a8,$b9,$2d,$b6), ($a9,$c8,$14,$1e), 
+    ($19,$85,$57,$f1), ($07,$4c,$af,$75), ($dd,$bb,$ee,$99), ($60,$fd,$a3,$7f), 
+    ($26,$9f,$f7,$01), ($f5,$bc,$5c,$72), ($3b,$c5,$44,$66), ($7e,$34,$5b,$fb), 
+    ($29,$76,$8b,$43), ($c6,$dc,$cb,$23), ($fc,$68,$b6,$ed), ($f1,$63,$b8,$e4),
+    ($dc,$ca,$d7,$31), ($85,$10,$42,$63), ($22,$40,$13,$97), ($11,$20,$84,$c6), 
     ($24,$7d,$85,$4a), ($3d,$f8,$d2,$bb), ($32,$11,$ae,$f9), ($a1,$6d,$c7,$29),
-    ($2f,$4b,$1d,$9e), ($30,$f3,$dc,$b2), ($52,$EC,$0d,$86), ($e3,$d0,$77,$c1),
-    ($16,$6c,$2b,$b3), ($b9,$99,$a9,$70), ($48,$fa,$11,$94), ($64,$22,$47,$e9),
-    ($8c,$c4,$a8,$fc), ($3f,$1a,$a0,$f0), ($2c,$d8,$56,$7d), ($90,$EF,$22,$33),
-    ($4e,$c7,$87,$49), ($d1,$c1,$d9,$38), ($a2,$fe,$8c,$ca), ($0b,$36,$98,$d4),
-    ($81,$cf,$a6,$f5), ($de,$28,$a5,$7a), ($8e,$26,$da,$b7), ($BF,$a4,$3f,$ad),
+    ($2f,$4b,$1d,$9e), ($30,$f3,$dc,$b2), ($52,$ec,$0d,$86), ($e3,$d0,$77,$c1),
+    ($16,$6c,$2b,$b3), ($b9,$99,$a9,$70), ($48,$fa,$11,$94), ($64,$22,$47,$e9), 
+    ($8c,$c4,$a8,$fc), ($3f,$1a,$a0,$f0), ($2c,$d8,$56,$7d), ($90,$ef,$22,$33), 
+    ($4e,$c7,$87,$49), ($d1,$c1,$d9,$38), ($a2,$fe,$8c,$ca), ($0b,$36,$98,$d4), 
+    ($81,$cf,$a6,$f5), ($de,$28,$a5,$7a), ($8e,$26,$da,$b7), ($bf,$a4,$3f,$ad),
     ($9d,$e4,$2c,$3a), ($92,$0d,$50,$78), ($cc,$9b,$6a,$5f), ($46,$62,$54,$7e),
     ($13,$c2,$f6,$8d), ($b8,$e8,$90,$d8), ($f7,$5e,$2e,$39), ($af,$f5,$82,$c3),
     ($80,$be,$9f,$5d), ($93,$7c,$69,$d0), ($2d,$a9,$6f,$d5), ($12,$b3,$cf,$25),
     ($99,$3b,$c8,$ac), ($7d,$a7,$10,$18), ($63,$6e,$e8,$9c), ($bb,$7b,$db,$3b),
-    ($78,$09,$cd,$26), ($18,$f4,$6e,$59), ($b7,$01,$EC,$9a), ($9a,$a8,$83,$4f),
-    ($6e,$65,$e6,$95), ($e6,$7e,$aa,$ff), ($cf,$08,$21,$bc), ($e8,$e6,$EF,$15),
-    ($9b,$d9,$ba,$e7), ($36,$ce,$4a,$6f), ($09,$d4,$ea,$9f), ($7c,$d6,$29,$b0),
+    ($78,$09,$cd,$26), ($18,$f4,$6e,$59), ($b7,$01,$ec,$9a), ($9a,$a8,$83,$4f),
+    ($6e,$65,$e6,$95), ($e6,$7e,$aa,$ff), ($cf,$08,$21,$bc), ($e8,$e6,$ef,$15), 
+    ($9b,$d9,$ba,$e7), ($36,$ce,$4a,$6f), ($09,$d4,$ea,$9f), ($7c,$d6,$29,$b0), 
     ($b2,$af,$31,$a4), ($23,$31,$2a,$3f), ($94,$30,$c6,$a5), ($66,$c0,$35,$a2),
-    ($bc,$37,$74,$4e), ($ca,$a6,$fc,$82), ($d0,$b0,$e0,$90), ($d8,$15,$33,$a7),
-    ($98,$4a,$f1,$04), ($da,$f7,$41,$EC), ($50,$0e,$7f,$cd), ($f6,$2f,$17,$91),
-    ($d6,$8d,$76,$4d), ($b0,$4d,$43,$EF), ($4d,$54,$cc,$aa), ($04,$DF,$e4,$96),
-    ($b5,$e3,$9e,$d1), ($88,$1b,$4c,$6a), ($1f,$b8,$c1,$2c), ($51,$7f,$46,$65),
-    ($ea,$04,$9d,$5e), ($35,$5d,$01,$8c), ($74,$73,$fa,$87), ($41,$2e,$fb,$0b),
+    ($bc,$37,$74,$4e), ($ca,$a6,$fc,$82), ($d0,$b0,$e0,$90), ($d8,$15,$33,$a7), 
+    ($98,$4a,$f1,$04), ($da,$f7,$41,$ec), ($50,$0e,$7f,$cd), ($f6,$2f,$17,$91),
+    ($d6,$8d,$76,$4d), ($b0,$4d,$43,$ef), ($4d,$54,$cc,$aa), ($04,$df,$e4,$96),
+    ($b5,$e3,$9e,$d1), ($88,$1b,$4c,$6a), ($1f,$b8,$c1,$2c), ($51,$7f,$46,$65), 
+    ($ea,$04,$9d,$5e), ($35,$5d,$01,$8c), ($74,$73,$fa,$87), ($41,$2e,$fb,$0b), 
     ($1d,$5a,$b3,$67), ($d2,$52,$92,$db), ($56,$33,$e9,$10), ($47,$13,$6d,$d6),
-    ($61,$8c,$9a,$d7), ($0c,$7a,$37,$a1), ($14,$8e,$59,$f8), ($3c,$89,$eb,$13),
-    ($27,$EE,$ce,$a9), ($c9,$35,$b7,$61), ($e5,$ED,$e1,$1c), ($b1,$3c,$7a,$47),
-    ($DF,$59,$9c,$d2), ($73,$3f,$55,$f2), ($ce,$79,$18,$14), ($37,$BF,$73,$c7),
-    ($cd,$ea,$53,$f7), ($aa,$5b,$5f,$fd), ($6f,$14,$DF,$3d), ($db,$86,$78,$44),
+    ($61,$8c,$9a,$d7), ($0c,$7a,$37,$a1), ($14,$8e,$59,$f8), ($3c,$89,$eb,$13), 
+    ($27,$ee,$ce,$a9), ($c9,$35,$b7,$61), ($e5,$ed,$e1,$1c), ($b1,$3c,$7a,$47),
+    ($df,$59,$9c,$d2), ($73,$3f,$55,$f2), ($ce,$79,$18,$14), ($37,$bf,$73,$c7),
+    ($cd,$ea,$53,$f7), ($aa,$5b,$5f,$fd), ($6f,$14,$df,$3d), ($db,$86,$78,$44),
     ($f3,$81,$ca,$af), ($c4,$3e,$b9,$68), ($34,$2c,$38,$24), ($40,$5f,$c2,$a3),
     ($c3,$72,$16,$1d), ($25,$0c,$bc,$e2), ($49,$8b,$28,$3c), ($95,$41,$ff,$0d),
     ($01,$71,$39,$a8), ($b3,$de,$08,$0c), ($e4,$9c,$d8,$b4), ($c1,$90,$64,$56),
@@ -961,63 +961,63 @@ CONST
     ($f4,$a7,$50,$51), ($41,$65,$53,$7e), ($17,$a4,$c3,$1a), ($27,$5e,$96,$3a),
     ($ab,$6b,$cb,$3b), ($9d,$45,$f1,$1f), ($fa,$58,$ab,$ac), ($e3,$03,$93,$4b),
     ($30,$fa,$55,$20), ($76,$6d,$f6,$ad), ($cc,$76,$91,$88), ($02,$4c,$25,$f5),
-    ($e5,$d7,$fc,$4f), ($2a,$cb,$d7,$c5), ($35,$44,$80,$26), ($62,$a3,$8f,$b5),
-    ($b1,$5a,$49,$de), ($ba,$1b,$67,$25), ($ea,$0e,$98,$45), ($fe,$c0,$e1,$5d),
-    ($2f,$75,$02,$c3), ($4c,$f0,$12,$81), ($46,$97,$a3,$8d), ($d3,$f9,$c6,$6b),
-    ($8f,$5f,$e7,$03), ($92,$9c,$95,$15), ($6d,$7a,$eb,$BF), ($52,$59,$da,$95),
+    ($e5,$d7,$fc,$4f), ($2a,$cb,$d7,$c5), ($35,$44,$80,$26), ($62,$a3,$8f,$b5), 
+    ($b1,$5a,$49,$de), ($ba,$1b,$67,$25), ($ea,$0e,$98,$45), ($fe,$c0,$e1,$5d), 
+    ($2f,$75,$02,$c3), ($4c,$f0,$12,$81), ($46,$97,$a3,$8d), ($d3,$f9,$c6,$6b), 
+    ($8f,$5f,$e7,$03), ($92,$9c,$95,$15), ($6d,$7a,$eb,$bf), ($52,$59,$da,$95), 
     ($be,$83,$2d,$d4), ($74,$21,$d3,$58), ($e0,$69,$29,$49), ($c9,$c8,$44,$8e),
-    ($c2,$89,$6a,$75), ($8e,$79,$78,$f4), ($58,$3e,$6b,$99), ($b9,$71,$dd,$27),
-    ($e1,$4f,$b6,$be), ($88,$ad,$17,$f0), ($20,$ac,$66,$c9), ($ce,$3a,$b4,$7d),
-    ($DF,$4a,$18,$63), ($1a,$31,$82,$e5), ($51,$33,$60,$97), ($53,$7f,$45,$62),
-    ($64,$77,$e0,$b1), ($6b,$ae,$84,$bb), ($81,$a0,$1c,$fe), ($08,$2b,$94,$f9),
-    ($48,$68,$58,$70), ($45,$fd,$19,$8f), ($de,$6c,$87,$94), ($7b,$f8,$b7,$52),
-    ($73,$d3,$23,$ab), ($4b,$02,$e2,$72), ($1f,$8f,$57,$e3), ($55,$ab,$2a,$66),
+    ($c2,$89,$6a,$75), ($8e,$79,$78,$f4), ($58,$3e,$6b,$99), ($b9,$71,$dd,$27), 
+    ($e1,$4f,$b6,$be), ($88,$ad,$17,$f0), ($20,$ac,$66,$c9), ($ce,$3a,$b4,$7d), 
+    ($df,$4a,$18,$63), ($1a,$31,$82,$e5), ($51,$33,$60,$97), ($53,$7f,$45,$62), 
+    ($64,$77,$e0,$b1), ($6b,$ae,$84,$bb), ($81,$a0,$1c,$fe), ($08,$2b,$94,$f9), 
+    ($48,$68,$58,$70), ($45,$fd,$19,$8f), ($de,$6c,$87,$94), ($7b,$f8,$b7,$52), 
+    ($73,$d3,$23,$ab), ($4b,$02,$e2,$72), ($1f,$8f,$57,$e3), ($55,$ab,$2a,$66), 
     ($eb,$28,$07,$b2), ($b5,$c2,$03,$2f), ($c5,$7b,$9a,$86), ($37,$08,$a5,$d3),
-    ($28,$87,$f2,$30), ($BF,$a5,$b2,$23), ($03,$6a,$ba,$02), ($16,$82,$5c,$ED),
-    ($cf,$1c,$2b,$8a), ($79,$b4,$92,$a7), ($07,$f2,$f0,$f3), ($69,$e2,$a1,$4e),
+    ($28,$87,$f2,$30), ($bf,$a5,$b2,$23), ($03,$6a,$ba,$02), ($16,$82,$5c,$ed), 
+    ($cf,$1c,$2b,$8a), ($79,$b4,$92,$a7), ($07,$f2,$f0,$f3), ($69,$e2,$a1,$4e), 
     ($da,$f4,$cd,$65), ($05,$be,$d5,$06), ($34,$62,$1f,$d1), ($a6,$fe,$8a,$c4),
     ($2e,$53,$9d,$34), ($f3,$55,$a0,$a2), ($8a,$e1,$32,$05), ($f6,$eb,$75,$a4),
-    ($83,$EC,$39,$0b), ($60,$EF,$aa,$40), ($71,$9f,$06,$5e), ($6e,$10,$51,$bd),
-    ($21,$8a,$f9,$3e), ($dd,$06,$3d,$96), ($3e,$05,$ae,$dd), ($e6,$bd,$46,$4d),
+    ($83,$ec,$39,$0b), ($60,$ef,$aa,$40), ($71,$9f,$06,$5e), ($6e,$10,$51,$bd), 
+    ($21,$8a,$f9,$3e), ($dd,$06,$3d,$96), ($3e,$05,$ae,$dd), ($e6,$bd,$46,$4d), 
     ($54,$8d,$b5,$91), ($c4,$5d,$05,$71), ($06,$d4,$6f,$04), ($50,$15,$ff,$60),
-    ($98,$fb,$24,$19), ($bd,$e9,$97,$d6), ($40,$43,$cc,$89), ($d9,$9e,$77,$67),
-    ($e8,$42,$bd,$b0), ($89,$8b,$88,$07), ($19,$5b,$38,$e7), ($c8,$EE,$db,$79),
+    ($98,$fb,$24,$19), ($bd,$e9,$97,$d6), ($40,$43,$cc,$89), ($d9,$9e,$77,$67), 
+    ($e8,$42,$bd,$b0), ($89,$8b,$88,$07), ($19,$5b,$38,$e7), ($c8,$ee,$db,$79),
     ($7c,$0a,$47,$a1), ($42,$0f,$e9,$7c), ($84,$1e,$c9,$f8), ($00,$00,$00,$00),
-    ($80,$86,$83,$09), ($2b,$ED,$48,$32), ($11,$70,$ac,$1e), ($5a,$72,$4e,$6c),
-    ($0e,$ff,$fb,$fd), ($85,$38,$56,$0f), ($ae,$d5,$1e,$3d), ($2d,$39,$27,$36),
-    ($0f,$d9,$64,$0a), ($5c,$a6,$21,$68), ($5b,$54,$d1,$9b), ($36,$2e,$3a,$24),
-    ($0a,$67,$b1,$0c), ($57,$e7,$0f,$93), ($EE,$96,$d2,$b4), ($9b,$91,$9e,$1b),
-    ($c0,$c5,$4f,$80), ($dc,$20,$a2,$61), ($77,$4b,$69,$5a), ($12,$1a,$16,$1c),
-    ($93,$ba,$0a,$e2), ($a0,$2a,$e5,$c0), ($22,$e0,$43,$3c), ($1b,$17,$1d,$12),
-    ($09,$0d,$0b,$0e), ($8b,$c7,$ad,$f2), ($b6,$a8,$b9,$2d), ($1e,$a9,$c8,$14),
-    ($f1,$19,$85,$57), ($75,$07,$4c,$af), ($99,$dd,$bb,$EE), ($7f,$60,$fd,$a3),
-    ($01,$26,$9f,$f7), ($72,$f5,$bc,$5c), ($66,$3b,$c5,$44), ($fb,$7e,$34,$5b),
-    ($43,$29,$76,$8b), ($23,$c6,$dc,$cb), ($ED,$fc,$68,$b6), ($e4,$f1,$63,$b8),
+    ($80,$86,$83,$09), ($2b,$ed,$48,$32), ($11,$70,$ac,$1e), ($5a,$72,$4e,$6c), 
+    ($0e,$ff,$fb,$fd), ($85,$38,$56,$0f), ($ae,$d5,$1e,$3d), ($2d,$39,$27,$36), 
+    ($0f,$d9,$64,$0a), ($5c,$a6,$21,$68), ($5b,$54,$d1,$9b), ($36,$2e,$3a,$24), 
+    ($0a,$67,$b1,$0c), ($57,$e7,$0f,$93), ($ee,$96,$d2,$b4), ($9b,$91,$9e,$1b),
+    ($c0,$c5,$4f,$80), ($dc,$20,$a2,$61), ($77,$4b,$69,$5a), ($12,$1a,$16,$1c), 
+    ($93,$ba,$0a,$e2), ($a0,$2a,$e5,$c0), ($22,$e0,$43,$3c), ($1b,$17,$1d,$12), 
+    ($09,$0d,$0b,$0e), ($8b,$c7,$ad,$f2), ($b6,$a8,$b9,$2d), ($1e,$a9,$c8,$14), 
+    ($f1,$19,$85,$57), ($75,$07,$4c,$af), ($99,$dd,$bb,$ee), ($7f,$60,$fd,$a3), 
+    ($01,$26,$9f,$f7), ($72,$f5,$bc,$5c), ($66,$3b,$c5,$44), ($fb,$7e,$34,$5b), 
+    ($43,$29,$76,$8b), ($23,$c6,$dc,$cb), ($ed,$fc,$68,$b6), ($e4,$f1,$63,$b8), 
     ($31,$dc,$ca,$d7), ($63,$85,$10,$42), ($97,$22,$40,$13), ($c6,$11,$20,$84),
-    ($4a,$24,$7d,$85), ($bb,$3d,$f8,$d2), ($f9,$32,$11,$ae), ($29,$a1,$6d,$c7),
-    ($9e,$2f,$4b,$1d), ($b2,$30,$f3,$dc), ($86,$52,$EC,$0d), ($c1,$e3,$d0,$77),
-    ($b3,$16,$6c,$2b), ($70,$b9,$99,$a9), ($94,$48,$fa,$11), ($e9,$64,$22,$47),
-    ($fc,$8c,$c4,$a8), ($f0,$3f,$1a,$a0), ($7d,$2c,$d8,$56), ($33,$90,$EF,$22),
+    ($4a,$24,$7d,$85), ($bb,$3d,$f8,$d2), ($f9,$32,$11,$ae), ($29,$a1,$6d,$c7), 
+    ($9e,$2f,$4b,$1d), ($b2,$30,$f3,$dc), ($86,$52,$ec,$0d), ($c1,$e3,$d0,$77), 
+    ($b3,$16,$6c,$2b), ($70,$b9,$99,$a9), ($94,$48,$fa,$11), ($e9,$64,$22,$47), 
+    ($fc,$8c,$c4,$a8), ($f0,$3f,$1a,$a0), ($7d,$2c,$d8,$56), ($33,$90,$ef,$22), 
     ($49,$4e,$c7,$87), ($38,$d1,$c1,$d9), ($ca,$a2,$fe,$8c), ($d4,$0b,$36,$98),
-    ($f5,$81,$cf,$a6), ($7a,$de,$28,$a5), ($b7,$8e,$26,$da), ($ad,$BF,$a4,$3f),
+    ($f5,$81,$cf,$a6), ($7a,$de,$28,$a5), ($b7,$8e,$26,$da), ($ad,$bf,$a4,$3f),
     ($3a,$9d,$e4,$2c), ($78,$92,$0d,$50), ($5f,$cc,$9b,$6a), ($7e,$46,$62,$54),
-    ($8d,$13,$c2,$f6), ($d8,$b8,$e8,$90), ($39,$f7,$5e,$2e), ($c3,$af,$f5,$82),
+    ($8d,$13,$c2,$f6), ($d8,$b8,$e8,$90), ($39,$f7,$5e,$2e), ($c3,$af,$f5,$82), 
     ($5d,$80,$be,$9f), ($d0,$93,$7c,$69), ($d5,$2d,$a9,$6f), ($25,$12,$b3,$cf),
-    ($ac,$99,$3b,$c8), ($18,$7d,$a7,$10), ($9c,$63,$6e,$e8), ($3b,$bb,$7b,$db),
-    ($26,$78,$09,$cd), ($59,$18,$f4,$6e), ($9a,$b7,$01,$EC), ($4f,$9a,$a8,$83),
-    ($95,$6e,$65,$e6), ($ff,$e6,$7e,$aa), ($bc,$cf,$08,$21), ($15,$e8,$e6,$EF),
-    ($e7,$9b,$d9,$ba), ($6f,$36,$ce,$4a), ($9f,$09,$d4,$ea), ($b0,$7c,$d6,$29),
+    ($ac,$99,$3b,$c8), ($18,$7d,$a7,$10), ($9c,$63,$6e,$e8), ($3b,$bb,$7b,$db), 
+    ($26,$78,$09,$cd), ($59,$18,$f4,$6e), ($9a,$b7,$01,$ec), ($4f,$9a,$a8,$83),
+    ($95,$6e,$65,$e6), ($ff,$e6,$7e,$aa), ($bc,$cf,$08,$21), ($15,$e8,$e6,$ef),
+    ($e7,$9b,$d9,$ba), ($6f,$36,$ce,$4a), ($9f,$09,$d4,$ea), ($b0,$7c,$d6,$29), 
     ($a4,$b2,$af,$31), ($3f,$23,$31,$2a), ($a5,$94,$30,$c6), ($a2,$66,$c0,$35),
     ($4e,$bc,$37,$74), ($82,$ca,$a6,$fc), ($90,$d0,$b0,$e0), ($a7,$d8,$15,$33),
-    ($04,$98,$4a,$f1), ($EC,$da,$f7,$41), ($cd,$50,$0e,$7f), ($91,$f6,$2f,$17),
-    ($4d,$d6,$8d,$76), ($EF,$b0,$4d,$43), ($aa,$4d,$54,$cc), ($96,$04,$DF,$e4),
-    ($d1,$b5,$e3,$9e), ($6a,$88,$1b,$4c), ($2c,$1f,$b8,$c1), ($65,$51,$7f,$46),
+    ($04,$98,$4a,$f1), ($ec,$da,$f7,$41), ($cd,$50,$0e,$7f), ($91,$f6,$2f,$17),
+    ($4d,$d6,$8d,$76), ($ef,$b0,$4d,$43), ($aa,$4d,$54,$cc), ($96,$04,$df,$e4),
+    ($d1,$b5,$e3,$9e), ($6a,$88,$1b,$4c), ($2c,$1f,$b8,$c1), ($65,$51,$7f,$46), 
     ($5e,$ea,$04,$9d), ($8c,$35,$5d,$01), ($87,$74,$73,$fa), ($0b,$41,$2e,$fb),
     ($67,$1d,$5a,$b3), ($db,$d2,$52,$92), ($10,$56,$33,$e9), ($d6,$47,$13,$6d),
-    ($d7,$61,$8c,$9a), ($a1,$0c,$7a,$37), ($f8,$14,$8e,$59), ($13,$3c,$89,$eb),
-    ($a9,$27,$EE,$ce), ($61,$c9,$35,$b7), ($1c,$e5,$ED,$e1), ($47,$b1,$3c,$7a),
-    ($d2,$DF,$59,$9c), ($f2,$73,$3f,$55), ($14,$ce,$79,$18), ($c7,$37,$BF,$73),
-    ($f7,$cd,$ea,$53), ($fd,$aa,$5b,$5f), ($3d,$6f,$14,$DF), ($44,$db,$86,$78),
+    ($d7,$61,$8c,$9a), ($a1,$0c,$7a,$37), ($f8,$14,$8e,$59), ($13,$3c,$89,$eb), 
+    ($a9,$27,$ee,$ce), ($61,$c9,$35,$b7), ($1c,$e5,$ed,$e1), ($47,$b1,$3c,$7a),
+    ($d2,$df,$59,$9c), ($f2,$73,$3f,$55), ($14,$ce,$79,$18), ($c7,$37,$bf,$73),
+    ($f7,$cd,$ea,$53), ($fd,$aa,$5b,$5f), ($3d,$6f,$14,$df), ($44,$db,$86,$78),
     ($af,$f3,$81,$ca), ($68,$c4,$3e,$b9), ($24,$34,$2c,$38), ($a3,$40,$5f,$c2),
     ($1d,$c3,$72,$16), ($e2,$25,$0c,$bc), ($3c,$49,$8b,$28), ($0d,$95,$41,$ff),
     ($a8,$01,$71,$39), ($0c,$b3,$de,$08), ($b4,$e4,$9c,$d8), ($56,$c1,$90,$64),
@@ -1025,7 +1025,7 @@ CONST
   S5: array[0..255] of byte= (
     $52,$09,$6a,$d5,
     $30,$36,$a5,$38,
-    $BF,$40,$a3,$9e,
+    $bf,$40,$a3,$9e,
     $81,$f3,$d7,$fb,
     $7c,$e3,$39,$82,
     $9b,$2f,$ff,$87,
@@ -1033,7 +1033,7 @@ CONST
     $c4,$de,$e9,$cb,
     $54,$7b,$94,$32,
     $a6,$c2,$23,$3d,
-    $EE,$4c,$95,$0b,
+    $ee,$4c,$95,$0b,
     $42,$fa,$c3,$4e,
     $08,$2e,$a1,$66,
     $28,$d9,$24,$b2,
@@ -1044,7 +1044,7 @@ CONST
     $d4,$a4,$5c,$cc,
     $5d,$65,$b6,$92,
     $6c,$70,$48,$50,
-    $fd,$ED,$b9,$da,
+    $fd,$ed,$b9,$da,
     $5e,$15,$46,$57,
     $a7,$8d,$9d,$84,
     $90,$d8,$ab,$00,
@@ -1062,7 +1062,7 @@ CONST
     $96,$ac,$74,$22,
     $e7,$ad,$35,$85,
     $e2,$f9,$37,$e8,
-    $1c,$75,$DF,$6e,
+    $1c,$75,$df,$6e,
     $47,$f1,$1a,$71,
     $1d,$29,$c5,$89,
     $6f,$b7,$62,$0e,
@@ -1074,11 +1074,11 @@ CONST
     $1f,$dd,$a8,$33,
     $88,$07,$c7,$31,
     $b1,$12,$10,$59,
-    $27,$80,$EC,$5f,
+    $27,$80,$ec,$5f,
     $60,$51,$7f,$a9,
     $19,$b5,$4a,$0d,
     $2d,$e5,$7a,$9f,
-    $93,$c9,$9c,$EF,
+    $93,$c9,$9c,$ef,
     $a0,$e0,$3b,$4d,
     $ae,$2a,$f5,$b0,
     $c8,$eb,$bb,$3c,
@@ -1092,64 +1092,64 @@ CONST
     ($38,$24,$34,$2c), ($36,$2d,$39,$27), ($24,$36,$2e,$3a), ($2a,$3f,$23,$31),
     ($70,$48,$68,$58), ($7e,$41,$65,$53), ($6c,$5a,$72,$4e), ($62,$53,$7f,$45),
     ($48,$6c,$5c,$74), ($46,$65,$51,$7f), ($54,$7e,$46,$62), ($5a,$77,$4b,$69),
-    ($e0,$90,$d0,$b0), ($EE,$99,$dd,$bb), ($fc,$82,$ca,$a6), ($f2,$8b,$c7,$ad),
-    ($d8,$b4,$e4,$9c), ($d6,$bd,$e9,$97), ($c4,$a6,$fe,$8a), ($ca,$af,$f3,$81),
+    ($e0,$90,$d0,$b0), ($ee,$99,$dd,$bb), ($fc,$82,$ca,$a6), ($f2,$8b,$c7,$ad),
+    ($d8,$b4,$e4,$9c), ($d6,$bd,$e9,$97), ($c4,$a6,$fe,$8a), ($ca,$af,$f3,$81), 
     ($90,$d8,$b8,$e8), ($9e,$d1,$b5,$e3), ($8c,$ca,$a2,$fe), ($82,$c3,$af,$f5),
-    ($a8,$fc,$8c,$c4), ($a6,$f5,$81,$cf), ($b4,$EE,$96,$d2), ($ba,$e7,$9b,$d9),
+    ($a8,$fc,$8c,$c4), ($a6,$f5,$81,$cf), ($b4,$ee,$96,$d2), ($ba,$e7,$9b,$d9),
     ($db,$3b,$bb,$7b), ($d5,$32,$b6,$70), ($c7,$29,$a1,$6d), ($c9,$20,$ac,$66),
-    ($e3,$1f,$8f,$57), ($ED,$16,$82,$5c), ($ff,$0d,$95,$41), ($f1,$04,$98,$4a),
+    ($e3,$1f,$8f,$57), ($ed,$16,$82,$5c), ($ff,$0d,$95,$41), ($f1,$04,$98,$4a),
     ($ab,$73,$d3,$23), ($a5,$7a,$de,$28), ($b7,$61,$c9,$35), ($b9,$68,$c4,$3e),
     ($93,$57,$e7,$0f), ($9d,$5e,$ea,$04), ($8f,$45,$fd,$19), ($81,$4c,$f0,$12),
     ($3b,$ab,$6b,$cb), ($35,$a2,$66,$c0), ($27,$b9,$71,$dd), ($29,$b0,$7c,$d6),
-    ($03,$8f,$5f,$e7), ($0d,$86,$52,$EC), ($1f,$9d,$45,$f1), ($11,$94,$48,$fa),
+    ($03,$8f,$5f,$e7), ($0d,$86,$52,$ec), ($1f,$9d,$45,$f1), ($11,$94,$48,$fa),
     ($4b,$e3,$03,$93), ($45,$ea,$0e,$98), ($57,$f1,$19,$85), ($59,$f8,$14,$8e),
-    ($73,$c7,$37,$BF), ($7d,$ce,$3a,$b4), ($6f,$d5,$2d,$a9), ($61,$dc,$20,$a2),
-    ($ad,$76,$6d,$f6), ($a3,$7f,$60,$fd), ($b1,$64,$77,$e0), ($BF,$6d,$7a,$eb),
+    ($73,$c7,$37,$bf), ($7d,$ce,$3a,$b4), ($6f,$d5,$2d,$a9), ($61,$dc,$20,$a2),
+    ($ad,$76,$6d,$f6), ($a3,$7f,$60,$fd), ($b1,$64,$77,$e0), ($bf,$6d,$7a,$eb),
     ($95,$52,$59,$da), ($9b,$5b,$54,$d1), ($89,$40,$43,$cc), ($87,$49,$4e,$c7),
     ($dd,$3e,$05,$ae), ($d3,$37,$08,$a5), ($c1,$2c,$1f,$b8), ($cf,$25,$12,$b3),
     ($e5,$1a,$31,$82), ($eb,$13,$3c,$89), ($f9,$08,$2b,$94), ($f7,$01,$26,$9f),
-    ($4d,$e6,$bd,$46), ($43,$EF,$b0,$4d), ($51,$f4,$a7,$50), ($5f,$fd,$aa,$5b),
-    ($75,$c2,$89,$6a), ($7b,$cb,$84,$61), ($69,$d0,$93,$7c), ($67,$d9,$9e,$77),
+    ($4d,$e6,$bd,$46), ($43,$ef,$b0,$4d), ($51,$f4,$a7,$50), ($5f,$fd,$aa,$5b),
+    ($75,$c2,$89,$6a), ($7b,$cb,$84,$61), ($69,$d0,$93,$7c), ($67,$d9,$9e,$77), 
     ($3d,$ae,$d5,$1e), ($33,$a7,$d8,$15), ($21,$bc,$cf,$08), ($2f,$b5,$c2,$03),
-    ($05,$8a,$e1,$32), ($0b,$83,$EC,$39), ($19,$98,$fb,$24), ($17,$91,$f6,$2f),
+    ($05,$8a,$e1,$32), ($0b,$83,$ec,$39), ($19,$98,$fb,$24), ($17,$91,$f6,$2f),
     ($76,$4d,$d6,$8d), ($78,$44,$db,$86), ($6a,$5f,$cc,$9b), ($64,$56,$c1,$90),
-    ($4e,$69,$e2,$a1), ($40,$60,$EF,$aa), ($52,$7b,$f8,$b7), ($5c,$72,$f5,$bc),
-    ($06,$05,$be,$d5), ($08,$0c,$b3,$de), ($1a,$17,$a4,$c3), ($14,$1e,$a9,$c8),
-    ($3e,$21,$8a,$f9), ($30,$28,$87,$f2), ($22,$33,$90,$EF), ($2c,$3a,$9d,$e4),
+    ($4e,$69,$e2,$a1), ($40,$60,$ef,$aa), ($52,$7b,$f8,$b7), ($5c,$72,$f5,$bc),
+    ($06,$05,$be,$d5), ($08,$0c,$b3,$de), ($1a,$17,$a4,$c3), ($14,$1e,$a9,$c8), 
+    ($3e,$21,$8a,$f9), ($30,$28,$87,$f2), ($22,$33,$90,$ef), ($2c,$3a,$9d,$e4), 
     ($96,$dd,$06,$3d), ($98,$d4,$0b,$36), ($8a,$cf,$1c,$2b), ($84,$c6,$11,$20),
     ($ae,$f9,$32,$11), ($a0,$f0,$3f,$1a), ($b2,$eb,$28,$07), ($bc,$e2,$25,$0c),
-    ($e6,$95,$6e,$65), ($e8,$9c,$63,$6e), ($fa,$87,$74,$73), ($f4,$8e,$79,$78),
+    ($e6,$95,$6e,$65), ($e8,$9c,$63,$6e), ($fa,$87,$74,$73), ($f4,$8e,$79,$78), 
     ($de,$b1,$5a,$49), ($d0,$b8,$57,$42), ($c2,$a3,$40,$5f), ($cc,$aa,$4d,$54),
-    ($41,$EC,$da,$f7), ($4f,$e5,$d7,$fc), ($5d,$fe,$c0,$e1), ($53,$f7,$cd,$ea),
-    ($79,$c8,$EE,$db), ($77,$c1,$e3,$d0), ($65,$da,$f4,$cd), ($6b,$d3,$f9,$c6),
-    ($31,$a4,$b2,$af), ($3f,$ad,$BF,$a4), ($2d,$b6,$a8,$b9), ($23,$BF,$a5,$b2),
-    ($09,$80,$86,$83), ($07,$89,$8b,$88), ($15,$92,$9c,$95), ($1b,$9b,$91,$9e),
-    ($a1,$7c,$0a,$47), ($af,$75,$07,$4c), ($bd,$6e,$10,$51), ($b3,$67,$1d,$5a),
+    ($41,$ec,$da,$f7), ($4f,$e5,$d7,$fc), ($5d,$fe,$c0,$e1), ($53,$f7,$cd,$ea),
+    ($79,$c8,$ee,$db), ($77,$c1,$e3,$d0), ($65,$da,$f4,$cd), ($6b,$d3,$f9,$c6), 
+    ($31,$a4,$b2,$af), ($3f,$ad,$bf,$a4), ($2d,$b6,$a8,$b9), ($23,$bf,$a5,$b2), 
+    ($09,$80,$86,$83), ($07,$89,$8b,$88), ($15,$92,$9c,$95), ($1b,$9b,$91,$9e), 
+    ($a1,$7c,$0a,$47), ($af,$75,$07,$4c), ($bd,$6e,$10,$51), ($b3,$67,$1d,$5a), 
     ($99,$58,$3e,$6b), ($97,$51,$33,$60), ($85,$4a,$24,$7d), ($8b,$43,$29,$76),
-    ($d1,$34,$62,$1f), ($DF,$3d,$6f,$14), ($cd,$26,$78,$09), ($c3,$2f,$75,$02),
-    ($e9,$10,$56,$33), ($e7,$19,$5b,$38), ($f5,$02,$4c,$25), ($fb,$0b,$41,$2e),
+    ($d1,$34,$62,$1f), ($df,$3d,$6f,$14), ($cd,$26,$78,$09), ($c3,$2f,$75,$02), 
+    ($e9,$10,$56,$33), ($e7,$19,$5b,$38), ($f5,$02,$4c,$25), ($fb,$0b,$41,$2e), 
     ($9a,$d7,$61,$8c), ($94,$de,$6c,$87), ($86,$c5,$7b,$9a), ($88,$cc,$76,$91),
     ($a2,$f3,$55,$a0), ($ac,$fa,$58,$ab), ($be,$e1,$4f,$b6), ($b0,$e8,$42,$bd),
-    ($ea,$9f,$09,$d4), ($e4,$96,$04,$DF), ($f6,$8d,$13,$c2), ($f8,$84,$1e,$c9),
-    ($d2,$bb,$3d,$f8), ($dc,$b2,$30,$f3), ($ce,$a9,$27,$EE), ($c0,$a0,$2a,$e5),
-    ($7a,$47,$b1,$3c), ($74,$4e,$bc,$37), ($66,$55,$ab,$2a), ($68,$5c,$a6,$21),
+    ($ea,$9f,$09,$d4), ($e4,$96,$04,$df), ($f6,$8d,$13,$c2), ($f8,$84,$1e,$c9), 
+    ($d2,$bb,$3d,$f8), ($dc,$b2,$30,$f3), ($ce,$a9,$27,$ee), ($c0,$a0,$2a,$e5), 
+    ($7a,$47,$b1,$3c), ($74,$4e,$bc,$37), ($66,$55,$ab,$2a), ($68,$5c,$a6,$21), 
     ($42,$63,$85,$10), ($4c,$6a,$88,$1b), ($5e,$71,$9f,$06), ($50,$78,$92,$0d),
     ($0a,$0f,$d9,$64), ($04,$06,$d4,$6f), ($16,$1d,$c3,$72), ($18,$14,$ce,$79),
-    ($32,$2b,$ED,$48), ($3c,$22,$e0,$43), ($2e,$39,$f7,$5e), ($20,$30,$fa,$55),
-    ($EC,$9a,$b7,$01), ($e2,$93,$ba,$0a), ($f0,$88,$ad,$17), ($fe,$81,$a0,$1c),
-    ($d4,$be,$83,$2d), ($da,$b7,$8e,$26), ($c8,$ac,$99,$3b), ($c6,$a5,$94,$30),
-    ($9c,$d2,$DF,$59), ($92,$db,$d2,$52), ($80,$c0,$c5,$4f), ($8e,$c9,$c8,$44),
-    ($a4,$f6,$eb,$75), ($aa,$ff,$e6,$7e), ($b8,$e4,$f1,$63), ($b6,$ED,$fc,$68),
+    ($32,$2b,$ed,$48), ($3c,$22,$e0,$43), ($2e,$39,$f7,$5e), ($20,$30,$fa,$55),
+    ($ec,$9a,$b7,$01), ($e2,$93,$ba,$0a), ($f0,$88,$ad,$17), ($fe,$81,$a0,$1c),
+    ($d4,$be,$83,$2d), ($da,$b7,$8e,$26), ($c8,$ac,$99,$3b), ($c6,$a5,$94,$30), 
+    ($9c,$d2,$df,$59), ($92,$db,$d2,$52), ($80,$c0,$c5,$4f), ($8e,$c9,$c8,$44),
+    ($a4,$f6,$eb,$75), ($aa,$ff,$e6,$7e), ($b8,$e4,$f1,$63), ($b6,$ed,$fc,$68), 
     ($0c,$0a,$67,$b1), ($02,$03,$6a,$ba), ($10,$18,$7d,$a7), ($1e,$11,$70,$ac),
-    ($34,$2e,$53,$9d), ($3a,$27,$5e,$96), ($28,$3c,$49,$8b), ($26,$35,$44,$80),
+    ($34,$2e,$53,$9d), ($3a,$27,$5e,$96), ($28,$3c,$49,$8b), ($26,$35,$44,$80), 
     ($7c,$42,$0f,$e9), ($72,$4b,$02,$e2), ($60,$50,$15,$ff), ($6e,$59,$18,$f4),
     ($44,$66,$3b,$c5), ($4a,$6f,$36,$ce), ($58,$74,$21,$d3), ($56,$7d,$2c,$d8),
-    ($37,$a1,$0c,$7a), ($39,$a8,$01,$71), ($2b,$b3,$16,$6c), ($25,$ba,$1b,$67),
+    ($37,$a1,$0c,$7a), ($39,$a8,$01,$71), ($2b,$b3,$16,$6c), ($25,$ba,$1b,$67), 
     ($0f,$85,$38,$56), ($01,$8c,$35,$5d), ($13,$97,$22,$40), ($1d,$9e,$2f,$4b),
     ($47,$e9,$64,$22), ($49,$e0,$69,$29), ($5b,$fb,$7e,$34), ($55,$f2,$73,$3f),
-    ($7f,$cd,$50,$0e), ($71,$c4,$5d,$05), ($63,$DF,$4a,$18), ($6d,$d6,$47,$13),
+    ($7f,$cd,$50,$0e), ($71,$c4,$5d,$05), ($63,$df,$4a,$18), ($6d,$d6,$47,$13),
     ($d7,$31,$dc,$ca), ($d9,$38,$d1,$c1), ($cb,$23,$c6,$dc), ($c5,$2a,$cb,$d7),
-    ($EF,$15,$e8,$e6), ($e1,$1c,$e5,$ED), ($f3,$07,$f2,$f0), ($fd,$0e,$ff,$fb),
+    ($ef,$15,$e8,$e6), ($e1,$1c,$e5,$ed), ($f3,$07,$f2,$f0), ($fd,$0e,$ff,$fb),
     ($a7,$79,$b4,$92), ($a9,$70,$b9,$99), ($bb,$6b,$ae,$84), ($b5,$62,$a3,$8f),
     ($9f,$5d,$80,$be), ($91,$54,$8d,$b5), ($83,$4f,$9a,$a8), ($8d,$46,$97,$a3));
   U2: array[0..255,0..3] of byte= (
@@ -1157,64 +1157,64 @@ CONST
     ($2c,$38,$24,$34), ($27,$36,$2d,$39), ($3a,$24,$36,$2e), ($31,$2a,$3f,$23),
     ($58,$70,$48,$68), ($53,$7e,$41,$65), ($4e,$6c,$5a,$72), ($45,$62,$53,$7f),
     ($74,$48,$6c,$5c), ($7f,$46,$65,$51), ($62,$54,$7e,$46), ($69,$5a,$77,$4b),
-    ($b0,$e0,$90,$d0), ($bb,$EE,$99,$dd), ($a6,$fc,$82,$ca), ($ad,$f2,$8b,$c7),
+    ($b0,$e0,$90,$d0), ($bb,$ee,$99,$dd), ($a6,$fc,$82,$ca), ($ad,$f2,$8b,$c7),
     ($9c,$d8,$b4,$e4), ($97,$d6,$bd,$e9), ($8a,$c4,$a6,$fe), ($81,$ca,$af,$f3),
-    ($e8,$90,$d8,$b8), ($e3,$9e,$d1,$b5), ($fe,$8c,$ca,$a2), ($f5,$82,$c3,$af),
-    ($c4,$a8,$fc,$8c), ($cf,$a6,$f5,$81), ($d2,$b4,$EE,$96), ($d9,$ba,$e7,$9b),
+    ($e8,$90,$d8,$b8), ($e3,$9e,$d1,$b5), ($fe,$8c,$ca,$a2), ($f5,$82,$c3,$af), 
+    ($c4,$a8,$fc,$8c), ($cf,$a6,$f5,$81), ($d2,$b4,$ee,$96), ($d9,$ba,$e7,$9b), 
     ($7b,$db,$3b,$bb), ($70,$d5,$32,$b6), ($6d,$c7,$29,$a1), ($66,$c9,$20,$ac),
-    ($57,$e3,$1f,$8f), ($5c,$ED,$16,$82), ($41,$ff,$0d,$95), ($4a,$f1,$04,$98),
-    ($23,$ab,$73,$d3), ($28,$a5,$7a,$de), ($35,$b7,$61,$c9), ($3e,$b9,$68,$c4),
+    ($57,$e3,$1f,$8f), ($5c,$ed,$16,$82), ($41,$ff,$0d,$95), ($4a,$f1,$04,$98), 
+    ($23,$ab,$73,$d3), ($28,$a5,$7a,$de), ($35,$b7,$61,$c9), ($3e,$b9,$68,$c4), 
     ($0f,$93,$57,$e7), ($04,$9d,$5e,$ea), ($19,$8f,$45,$fd), ($12,$81,$4c,$f0),
     ($cb,$3b,$ab,$6b), ($c0,$35,$a2,$66), ($dd,$27,$b9,$71), ($d6,$29,$b0,$7c),
-    ($e7,$03,$8f,$5f), ($EC,$0d,$86,$52), ($f1,$1f,$9d,$45), ($fa,$11,$94,$48),
-    ($93,$4b,$e3,$03), ($98,$45,$ea,$0e), ($85,$57,$f1,$19), ($8e,$59,$f8,$14),
-    ($BF,$73,$c7,$37), ($b4,$7d,$ce,$3a), ($a9,$6f,$d5,$2d), ($a2,$61,$dc,$20),
-    ($f6,$ad,$76,$6d), ($fd,$a3,$7f,$60), ($e0,$b1,$64,$77), ($eb,$BF,$6d,$7a),
-    ($da,$95,$52,$59), ($d1,$9b,$5b,$54), ($cc,$89,$40,$43), ($c7,$87,$49,$4e),
+    ($e7,$03,$8f,$5f), ($ec,$0d,$86,$52), ($f1,$1f,$9d,$45), ($fa,$11,$94,$48),
+    ($93,$4b,$e3,$03), ($98,$45,$ea,$0e), ($85,$57,$f1,$19), ($8e,$59,$f8,$14), 
+    ($bf,$73,$c7,$37), ($b4,$7d,$ce,$3a), ($a9,$6f,$d5,$2d), ($a2,$61,$dc,$20),
+    ($f6,$ad,$76,$6d), ($fd,$a3,$7f,$60), ($e0,$b1,$64,$77), ($eb,$bf,$6d,$7a),
+    ($da,$95,$52,$59), ($d1,$9b,$5b,$54), ($cc,$89,$40,$43), ($c7,$87,$49,$4e), 
     ($ae,$dd,$3e,$05), ($a5,$d3,$37,$08), ($b8,$c1,$2c,$1f), ($b3,$cf,$25,$12),
-    ($82,$e5,$1a,$31), ($89,$eb,$13,$3c), ($94,$f9,$08,$2b), ($9f,$f7,$01,$26),
-    ($46,$4d,$e6,$bd), ($4d,$43,$EF,$b0), ($50,$51,$f4,$a7), ($5b,$5f,$fd,$aa),
-    ($6a,$75,$c2,$89), ($61,$7b,$cb,$84), ($7c,$69,$d0,$93), ($77,$67,$d9,$9e),
-    ($1e,$3d,$ae,$d5), ($15,$33,$a7,$d8), ($08,$21,$bc,$cf), ($03,$2f,$b5,$c2),
-    ($32,$05,$8a,$e1), ($39,$0b,$83,$EC), ($24,$19,$98,$fb), ($2f,$17,$91,$f6),
+    ($82,$e5,$1a,$31), ($89,$eb,$13,$3c), ($94,$f9,$08,$2b), ($9f,$f7,$01,$26), 
+    ($46,$4d,$e6,$bd), ($4d,$43,$ef,$b0), ($50,$51,$f4,$a7), ($5b,$5f,$fd,$aa), 
+    ($6a,$75,$c2,$89), ($61,$7b,$cb,$84), ($7c,$69,$d0,$93), ($77,$67,$d9,$9e), 
+    ($1e,$3d,$ae,$d5), ($15,$33,$a7,$d8), ($08,$21,$bc,$cf), ($03,$2f,$b5,$c2), 
+    ($32,$05,$8a,$e1), ($39,$0b,$83,$ec), ($24,$19,$98,$fb), ($2f,$17,$91,$f6),
     ($8d,$76,$4d,$d6), ($86,$78,$44,$db), ($9b,$6a,$5f,$cc), ($90,$64,$56,$c1),
-    ($a1,$4e,$69,$e2), ($aa,$40,$60,$EF), ($b7,$52,$7b,$f8), ($bc,$5c,$72,$f5),
-    ($d5,$06,$05,$be), ($de,$08,$0c,$b3), ($c3,$1a,$17,$a4), ($c8,$14,$1e,$a9),
-    ($f9,$3e,$21,$8a), ($f2,$30,$28,$87), ($EF,$22,$33,$90), ($e4,$2c,$3a,$9d),
-    ($3d,$96,$dd,$06), ($36,$98,$d4,$0b), ($2b,$8a,$cf,$1c), ($20,$84,$c6,$11),
-    ($11,$ae,$f9,$32), ($1a,$a0,$f0,$3f), ($07,$b2,$eb,$28), ($0c,$bc,$e2,$25),
-    ($65,$e6,$95,$6e), ($6e,$e8,$9c,$63), ($73,$fa,$87,$74), ($78,$f4,$8e,$79),
+    ($a1,$4e,$69,$e2), ($aa,$40,$60,$ef), ($b7,$52,$7b,$f8), ($bc,$5c,$72,$f5), 
+    ($d5,$06,$05,$be), ($de,$08,$0c,$b3), ($c3,$1a,$17,$a4), ($c8,$14,$1e,$a9), 
+    ($f9,$3e,$21,$8a), ($f2,$30,$28,$87), ($ef,$22,$33,$90), ($e4,$2c,$3a,$9d),
+    ($3d,$96,$dd,$06), ($36,$98,$d4,$0b), ($2b,$8a,$cf,$1c), ($20,$84,$c6,$11), 
+    ($11,$ae,$f9,$32), ($1a,$a0,$f0,$3f), ($07,$b2,$eb,$28), ($0c,$bc,$e2,$25), 
+    ($65,$e6,$95,$6e), ($6e,$e8,$9c,$63), ($73,$fa,$87,$74), ($78,$f4,$8e,$79), 
     ($49,$de,$b1,$5a), ($42,$d0,$b8,$57), ($5f,$c2,$a3,$40), ($54,$cc,$aa,$4d),
-    ($f7,$41,$EC,$da), ($fc,$4f,$e5,$d7), ($e1,$5d,$fe,$c0), ($ea,$53,$f7,$cd),
-    ($db,$79,$c8,$EE), ($d0,$77,$c1,$e3), ($cd,$65,$da,$f4), ($c6,$6b,$d3,$f9),
-    ($af,$31,$a4,$b2), ($a4,$3f,$ad,$BF), ($b9,$2d,$b6,$a8), ($b2,$23,$BF,$a5),
+    ($f7,$41,$ec,$da), ($fc,$4f,$e5,$d7), ($e1,$5d,$fe,$c0), ($ea,$53,$f7,$cd), 
+    ($db,$79,$c8,$ee), ($d0,$77,$c1,$e3), ($cd,$65,$da,$f4), ($c6,$6b,$d3,$f9), 
+    ($af,$31,$a4,$b2), ($a4,$3f,$ad,$bf), ($b9,$2d,$b6,$a8), ($b2,$23,$bf,$a5), 
     ($83,$09,$80,$86), ($88,$07,$89,$8b), ($95,$15,$92,$9c), ($9e,$1b,$9b,$91),
     ($47,$a1,$7c,$0a), ($4c,$af,$75,$07), ($51,$bd,$6e,$10), ($5a,$b3,$67,$1d),
     ($6b,$99,$58,$3e), ($60,$97,$51,$33), ($7d,$85,$4a,$24), ($76,$8b,$43,$29),
-    ($1f,$d1,$34,$62), ($14,$DF,$3d,$6f), ($09,$cd,$26,$78), ($02,$c3,$2f,$75),
+    ($1f,$d1,$34,$62), ($14,$df,$3d,$6f), ($09,$cd,$26,$78), ($02,$c3,$2f,$75),
     ($33,$e9,$10,$56), ($38,$e7,$19,$5b), ($25,$f5,$02,$4c), ($2e,$fb,$0b,$41),
-    ($8c,$9a,$d7,$61), ($87,$94,$de,$6c), ($9a,$86,$c5,$7b), ($91,$88,$cc,$76),
+    ($8c,$9a,$d7,$61), ($87,$94,$de,$6c), ($9a,$86,$c5,$7b), ($91,$88,$cc,$76), 
     ($a0,$a2,$f3,$55), ($ab,$ac,$fa,$58), ($b6,$be,$e1,$4f), ($bd,$b0,$e8,$42),
-    ($d4,$ea,$9f,$09), ($DF,$e4,$96,$04), ($c2,$f6,$8d,$13), ($c9,$f8,$84,$1e),
-    ($f8,$d2,$bb,$3d), ($f3,$dc,$b2,$30), ($EE,$ce,$a9,$27), ($e5,$c0,$a0,$2a),
+    ($d4,$ea,$9f,$09), ($df,$e4,$96,$04), ($c2,$f6,$8d,$13), ($c9,$f8,$84,$1e), 
+    ($f8,$d2,$bb,$3d), ($f3,$dc,$b2,$30), ($ee,$ce,$a9,$27), ($e5,$c0,$a0,$2a), 
     ($3c,$7a,$47,$b1), ($37,$74,$4e,$bc), ($2a,$66,$55,$ab), ($21,$68,$5c,$a6),
-    ($10,$42,$63,$85), ($1b,$4c,$6a,$88), ($06,$5e,$71,$9f), ($0d,$50,$78,$92),
+    ($10,$42,$63,$85), ($1b,$4c,$6a,$88), ($06,$5e,$71,$9f), ($0d,$50,$78,$92), 
     ($64,$0a,$0f,$d9), ($6f,$04,$06,$d4), ($72,$16,$1d,$c3), ($79,$18,$14,$ce),
-    ($48,$32,$2b,$ED), ($43,$3c,$22,$e0), ($5e,$2e,$39,$f7), ($55,$20,$30,$fa),
-    ($01,$EC,$9a,$b7), ($0a,$e2,$93,$ba), ($17,$f0,$88,$ad), ($1c,$fe,$81,$a0),
-    ($2d,$d4,$be,$83), ($26,$da,$b7,$8e), ($3b,$c8,$ac,$99), ($30,$c6,$a5,$94),
-    ($59,$9c,$d2,$DF), ($52,$92,$db,$d2), ($4f,$80,$c0,$c5), ($44,$8e,$c9,$c8),
-    ($75,$a4,$f6,$eb), ($7e,$aa,$ff,$e6), ($63,$b8,$e4,$f1), ($68,$b6,$ED,$fc),
-    ($b1,$0c,$0a,$67), ($ba,$02,$03,$6a), ($a7,$10,$18,$7d), ($ac,$1e,$11,$70),
-    ($9d,$34,$2e,$53), ($96,$3a,$27,$5e), ($8b,$28,$3c,$49), ($80,$26,$35,$44),
+    ($48,$32,$2b,$ed), ($43,$3c,$22,$e0), ($5e,$2e,$39,$f7), ($55,$20,$30,$fa),
+    ($01,$ec,$9a,$b7), ($0a,$e2,$93,$ba), ($17,$f0,$88,$ad), ($1c,$fe,$81,$a0), 
+    ($2d,$d4,$be,$83), ($26,$da,$b7,$8e), ($3b,$c8,$ac,$99), ($30,$c6,$a5,$94), 
+    ($59,$9c,$d2,$df), ($52,$92,$db,$d2), ($4f,$80,$c0,$c5), ($44,$8e,$c9,$c8),
+    ($75,$a4,$f6,$eb), ($7e,$aa,$ff,$e6), ($63,$b8,$e4,$f1), ($68,$b6,$ed,$fc), 
+    ($b1,$0c,$0a,$67), ($ba,$02,$03,$6a), ($a7,$10,$18,$7d), ($ac,$1e,$11,$70), 
+    ($9d,$34,$2e,$53), ($96,$3a,$27,$5e), ($8b,$28,$3c,$49), ($80,$26,$35,$44), 
     ($e9,$7c,$42,$0f), ($e2,$72,$4b,$02), ($ff,$60,$50,$15), ($f4,$6e,$59,$18),
-    ($c5,$44,$66,$3b), ($ce,$4a,$6f,$36), ($d3,$58,$74,$21), ($d8,$56,$7d,$2c),
-    ($7a,$37,$a1,$0c), ($71,$39,$a8,$01), ($6c,$2b,$b3,$16), ($67,$25,$ba,$1b),
-    ($56,$0f,$85,$38), ($5d,$01,$8c,$35), ($40,$13,$97,$22), ($4b,$1d,$9e,$2f),
+    ($c5,$44,$66,$3b), ($ce,$4a,$6f,$36), ($d3,$58,$74,$21), ($d8,$56,$7d,$2c), 
+    ($7a,$37,$a1,$0c), ($71,$39,$a8,$01), ($6c,$2b,$b3,$16), ($67,$25,$ba,$1b), 
+    ($56,$0f,$85,$38), ($5d,$01,$8c,$35), ($40,$13,$97,$22), ($4b,$1d,$9e,$2f), 
     ($22,$47,$e9,$64), ($29,$49,$e0,$69), ($34,$5b,$fb,$7e), ($3f,$55,$f2,$73),
-    ($0e,$7f,$cd,$50), ($05,$71,$c4,$5d), ($18,$63,$DF,$4a), ($13,$6d,$d6,$47),
-    ($ca,$d7,$31,$dc), ($c1,$d9,$38,$d1), ($dc,$cb,$23,$c6), ($d7,$c5,$2a,$cb),
-    ($e6,$EF,$15,$e8), ($ED,$e1,$1c,$e5), ($f0,$f3,$07,$f2), ($fb,$fd,$0e,$ff),
+    ($0e,$7f,$cd,$50), ($05,$71,$c4,$5d), ($18,$63,$df,$4a), ($13,$6d,$d6,$47),
+    ($ca,$d7,$31,$dc), ($c1,$d9,$38,$d1), ($dc,$cb,$23,$c6), ($d7,$c5,$2a,$cb), 
+    ($e6,$ef,$15,$e8), ($ed,$e1,$1c,$e5), ($f0,$f3,$07,$f2), ($fb,$fd,$0e,$ff), 
     ($92,$a7,$79,$b4), ($99,$a9,$70,$b9), ($84,$bb,$6b,$ae), ($8f,$b5,$62,$a3),
     ($be,$9f,$5d,$80), ($b5,$91,$54,$8d), ($a8,$83,$4f,$9a), ($a3,$8d,$46,$97));
   U3: array[0..255,0..3] of byte= (
@@ -1222,54 +1222,54 @@ CONST
     ($34,$2c,$38,$24), ($39,$27,$36,$2d), ($2e,$3a,$24,$36), ($23,$31,$2a,$3f),
     ($68,$58,$70,$48), ($65,$53,$7e,$41), ($72,$4e,$6c,$5a), ($7f,$45,$62,$53),
     ($5c,$74,$48,$6c), ($51,$7f,$46,$65), ($46,$62,$54,$7e), ($4b,$69,$5a,$77),
-    ($d0,$b0,$e0,$90), ($dd,$bb,$EE,$99), ($ca,$a6,$fc,$82), ($c7,$ad,$f2,$8b),
+    ($d0,$b0,$e0,$90), ($dd,$bb,$ee,$99), ($ca,$a6,$fc,$82), ($c7,$ad,$f2,$8b), 
     ($e4,$9c,$d8,$b4), ($e9,$97,$d6,$bd), ($fe,$8a,$c4,$a6), ($f3,$81,$ca,$af),
     ($b8,$e8,$90,$d8), ($b5,$e3,$9e,$d1), ($a2,$fe,$8c,$ca), ($af,$f5,$82,$c3),
-    ($8c,$c4,$a8,$fc), ($81,$cf,$a6,$f5), ($96,$d2,$b4,$EE), ($9b,$d9,$ba,$e7),
-    ($bb,$7b,$db,$3b), ($b6,$70,$d5,$32), ($a1,$6d,$c7,$29), ($ac,$66,$c9,$20),
-    ($8f,$57,$e3,$1f), ($82,$5c,$ED,$16), ($95,$41,$ff,$0d), ($98,$4a,$f1,$04),
+    ($8c,$c4,$a8,$fc), ($81,$cf,$a6,$f5), ($96,$d2,$b4,$ee), ($9b,$d9,$ba,$e7), 
+    ($bb,$7b,$db,$3b), ($b6,$70,$d5,$32), ($a1,$6d,$c7,$29), ($ac,$66,$c9,$20), 
+    ($8f,$57,$e3,$1f), ($82,$5c,$ed,$16), ($95,$41,$ff,$0d), ($98,$4a,$f1,$04), 
     ($d3,$23,$ab,$73), ($de,$28,$a5,$7a), ($c9,$35,$b7,$61), ($c4,$3e,$b9,$68),
-    ($e7,$0f,$93,$57), ($ea,$04,$9d,$5e), ($fd,$19,$8f,$45), ($f0,$12,$81,$4c),
-    ($6b,$cb,$3b,$ab), ($66,$c0,$35,$a2), ($71,$dd,$27,$b9), ($7c,$d6,$29,$b0),
-    ($5f,$e7,$03,$8f), ($52,$EC,$0d,$86), ($45,$f1,$1f,$9d), ($48,$fa,$11,$94),
-    ($03,$93,$4b,$e3), ($0e,$98,$45,$ea), ($19,$85,$57,$f1), ($14,$8e,$59,$f8),
-    ($37,$BF,$73,$c7), ($3a,$b4,$7d,$ce), ($2d,$a9,$6f,$d5), ($20,$a2,$61,$dc),
-    ($6d,$f6,$ad,$76), ($60,$fd,$a3,$7f), ($77,$e0,$b1,$64), ($7a,$eb,$BF,$6d),
+    ($e7,$0f,$93,$57), ($ea,$04,$9d,$5e), ($fd,$19,$8f,$45), ($f0,$12,$81,$4c), 
+    ($6b,$cb,$3b,$ab), ($66,$c0,$35,$a2), ($71,$dd,$27,$b9), ($7c,$d6,$29,$b0), 
+    ($5f,$e7,$03,$8f), ($52,$ec,$0d,$86), ($45,$f1,$1f,$9d), ($48,$fa,$11,$94), 
+    ($03,$93,$4b,$e3), ($0e,$98,$45,$ea), ($19,$85,$57,$f1), ($14,$8e,$59,$f8), 
+    ($37,$bf,$73,$c7), ($3a,$b4,$7d,$ce), ($2d,$a9,$6f,$d5), ($20,$a2,$61,$dc), 
+    ($6d,$f6,$ad,$76), ($60,$fd,$a3,$7f), ($77,$e0,$b1,$64), ($7a,$eb,$bf,$6d),
     ($59,$da,$95,$52), ($54,$d1,$9b,$5b), ($43,$cc,$89,$40), ($4e,$c7,$87,$49),
     ($05,$ae,$dd,$3e), ($08,$a5,$d3,$37), ($1f,$b8,$c1,$2c), ($12,$b3,$cf,$25),
     ($31,$82,$e5,$1a), ($3c,$89,$eb,$13), ($2b,$94,$f9,$08), ($26,$9f,$f7,$01),
-    ($bd,$46,$4d,$e6), ($b0,$4d,$43,$EF), ($a7,$50,$51,$f4), ($aa,$5b,$5f,$fd),
-    ($89,$6a,$75,$c2), ($84,$61,$7b,$cb), ($93,$7c,$69,$d0), ($9e,$77,$67,$d9),
+    ($bd,$46,$4d,$e6), ($b0,$4d,$43,$ef), ($a7,$50,$51,$f4), ($aa,$5b,$5f,$fd), 
+    ($89,$6a,$75,$c2), ($84,$61,$7b,$cb), ($93,$7c,$69,$d0), ($9e,$77,$67,$d9), 
     ($d5,$1e,$3d,$ae), ($d8,$15,$33,$a7), ($cf,$08,$21,$bc), ($c2,$03,$2f,$b5),
-    ($e1,$32,$05,$8a), ($EC,$39,$0b,$83), ($fb,$24,$19,$98), ($f6,$2f,$17,$91),
+    ($e1,$32,$05,$8a), ($ec,$39,$0b,$83), ($fb,$24,$19,$98), ($f6,$2f,$17,$91),
     ($d6,$8d,$76,$4d), ($db,$86,$78,$44), ($cc,$9b,$6a,$5f), ($c1,$90,$64,$56),
-    ($e2,$a1,$4e,$69), ($EF,$aa,$40,$60), ($f8,$b7,$52,$7b), ($f5,$bc,$5c,$72),
+    ($e2,$a1,$4e,$69), ($ef,$aa,$40,$60), ($f8,$b7,$52,$7b), ($f5,$bc,$5c,$72),
     ($be,$d5,$06,$05), ($b3,$de,$08,$0c), ($a4,$c3,$1a,$17), ($a9,$c8,$14,$1e),
-    ($8a,$f9,$3e,$21), ($87,$f2,$30,$28), ($90,$EF,$22,$33), ($9d,$e4,$2c,$3a),
+    ($8a,$f9,$3e,$21), ($87,$f2,$30,$28), ($90,$ef,$22,$33), ($9d,$e4,$2c,$3a), 
     ($06,$3d,$96,$dd), ($0b,$36,$98,$d4), ($1c,$2b,$8a,$cf), ($11,$20,$84,$c6),
     ($32,$11,$ae,$f9), ($3f,$1a,$a0,$f0), ($28,$07,$b2,$eb), ($25,$0c,$bc,$e2),
-    ($6e,$65,$e6,$95), ($63,$6e,$e8,$9c), ($74,$73,$fa,$87), ($79,$78,$f4,$8e),
+    ($6e,$65,$e6,$95), ($63,$6e,$e8,$9c), ($74,$73,$fa,$87), ($79,$78,$f4,$8e), 
     ($5a,$49,$de,$b1), ($57,$42,$d0,$b8), ($40,$5f,$c2,$a3), ($4d,$54,$cc,$aa),
-    ($da,$f7,$41,$EC), ($d7,$fc,$4f,$e5), ($c0,$e1,$5d,$fe), ($cd,$ea,$53,$f7),
-    ($EE,$db,$79,$c8), ($e3,$d0,$77,$c1), ($f4,$cd,$65,$da), ($f9,$c6,$6b,$d3),
-    ($b2,$af,$31,$a4), ($BF,$a4,$3f,$ad), ($a8,$b9,$2d,$b6), ($a5,$b2,$23,$BF),
-    ($86,$83,$09,$80), ($8b,$88,$07,$89), ($9c,$95,$15,$92), ($91,$9e,$1b,$9b),
-    ($0a,$47,$a1,$7c), ($07,$4c,$af,$75), ($10,$51,$bd,$6e), ($1d,$5a,$b3,$67),
-    ($3e,$6b,$99,$58), ($33,$60,$97,$51), ($24,$7d,$85,$4a), ($29,$76,$8b,$43),
-    ($62,$1f,$d1,$34), ($6f,$14,$DF,$3d), ($78,$09,$cd,$26), ($75,$02,$c3,$2f),
+    ($da,$f7,$41,$ec), ($d7,$fc,$4f,$e5), ($c0,$e1,$5d,$fe), ($cd,$ea,$53,$f7), 
+    ($ee,$db,$79,$c8), ($e3,$d0,$77,$c1), ($f4,$cd,$65,$da), ($f9,$c6,$6b,$d3),
+    ($b2,$af,$31,$a4), ($bf,$a4,$3f,$ad), ($a8,$b9,$2d,$b6), ($a5,$b2,$23,$bf), 
+    ($86,$83,$09,$80), ($8b,$88,$07,$89), ($9c,$95,$15,$92), ($91,$9e,$1b,$9b), 
+    ($0a,$47,$a1,$7c), ($07,$4c,$af,$75), ($10,$51,$bd,$6e), ($1d,$5a,$b3,$67), 
+    ($3e,$6b,$99,$58), ($33,$60,$97,$51), ($24,$7d,$85,$4a), ($29,$76,$8b,$43), 
+    ($62,$1f,$d1,$34), ($6f,$14,$df,$3d), ($78,$09,$cd,$26), ($75,$02,$c3,$2f), 
     ($56,$33,$e9,$10), ($5b,$38,$e7,$19), ($4c,$25,$f5,$02), ($41,$2e,$fb,$0b),
     ($61,$8c,$9a,$d7), ($6c,$87,$94,$de), ($7b,$9a,$86,$c5), ($76,$91,$88,$cc),
     ($55,$a0,$a2,$f3), ($58,$ab,$ac,$fa), ($4f,$b6,$be,$e1), ($42,$bd,$b0,$e8),
-    ($09,$d4,$ea,$9f), ($04,$DF,$e4,$96), ($13,$c2,$f6,$8d), ($1e,$c9,$f8,$84),
-    ($3d,$f8,$d2,$bb), ($30,$f3,$dc,$b2), ($27,$EE,$ce,$a9), ($2a,$e5,$c0,$a0),
-    ($b1,$3c,$7a,$47), ($bc,$37,$74,$4e), ($ab,$2a,$66,$55), ($a6,$21,$68,$5c),
+    ($09,$d4,$ea,$9f), ($04,$df,$e4,$96), ($13,$c2,$f6,$8d), ($1e,$c9,$f8,$84),
+    ($3d,$f8,$d2,$bb), ($30,$f3,$dc,$b2), ($27,$ee,$ce,$a9), ($2a,$e5,$c0,$a0), 
+    ($b1,$3c,$7a,$47), ($bc,$37,$74,$4e), ($ab,$2a,$66,$55), ($a6,$21,$68,$5c), 
     ($85,$10,$42,$63), ($88,$1b,$4c,$6a), ($9f,$06,$5e,$71), ($92,$0d,$50,$78),
     ($d9,$64,$0a,$0f), ($d4,$6f,$04,$06), ($c3,$72,$16,$1d), ($ce,$79,$18,$14),
-    ($ED,$48,$32,$2b), ($e0,$43,$3c,$22), ($f7,$5e,$2e,$39), ($fa,$55,$20,$30),
-    ($b7,$01,$EC,$9a), ($ba,$0a,$e2,$93), ($ad,$17,$f0,$88), ($a0,$1c,$fe,$81),
+    ($ed,$48,$32,$2b), ($e0,$43,$3c,$22), ($f7,$5e,$2e,$39), ($fa,$55,$20,$30),
+    ($b7,$01,$ec,$9a), ($ba,$0a,$e2,$93), ($ad,$17,$f0,$88), ($a0,$1c,$fe,$81),
     ($83,$2d,$d4,$be), ($8e,$26,$da,$b7), ($99,$3b,$c8,$ac), ($94,$30,$c6,$a5),
-    ($DF,$59,$9c,$d2), ($d2,$52,$92,$db), ($c5,$4f,$80,$c0), ($c8,$44,$8e,$c9),
-    ($eb,$75,$a4,$f6), ($e6,$7e,$aa,$ff), ($f1,$63,$b8,$e4), ($fc,$68,$b6,$ED),
+    ($df,$59,$9c,$d2), ($d2,$52,$92,$db), ($c5,$4f,$80,$c0), ($c8,$44,$8e,$c9),
+    ($eb,$75,$a4,$f6), ($e6,$7e,$aa,$ff), ($f1,$63,$b8,$e4), ($fc,$68,$b6,$ed),
     ($67,$b1,$0c,$0a), ($6a,$ba,$02,$03), ($7d,$a7,$10,$18), ($70,$ac,$1e,$11),
     ($53,$9d,$34,$2e), ($5e,$96,$3a,$27), ($49,$8b,$28,$3c), ($44,$80,$26,$35),
     ($0f,$e9,$7c,$42), ($02,$e2,$72,$4b), ($15,$ff,$60,$50), ($18,$f4,$6e,$59),
@@ -1277,9 +1277,9 @@ CONST
     ($0c,$7a,$37,$a1), ($01,$71,$39,$a8), ($16,$6c,$2b,$b3), ($1b,$67,$25,$ba),
     ($38,$56,$0f,$85), ($35,$5d,$01,$8c), ($22,$40,$13,$97), ($2f,$4b,$1d,$9e),
     ($64,$22,$47,$e9), ($69,$29,$49,$e0), ($7e,$34,$5b,$fb), ($73,$3f,$55,$f2),
-    ($50,$0e,$7f,$cd), ($5d,$05,$71,$c4), ($4a,$18,$63,$DF), ($47,$13,$6d,$d6),
+    ($50,$0e,$7f,$cd), ($5d,$05,$71,$c4), ($4a,$18,$63,$df), ($47,$13,$6d,$d6),
     ($dc,$ca,$d7,$31), ($d1,$c1,$d9,$38), ($c6,$dc,$cb,$23), ($cb,$d7,$c5,$2a),
-    ($e8,$e6,$EF,$15), ($e5,$ED,$e1,$1c), ($f2,$f0,$f3,$07), ($ff,$fb,$fd,$0e),
+    ($e8,$e6,$ef,$15), ($e5,$ed,$e1,$1c), ($f2,$f0,$f3,$07), ($ff,$fb,$fd,$0e),
     ($b4,$92,$a7,$79), ($b9,$99,$a9,$70), ($ae,$84,$bb,$6b), ($a3,$8f,$b5,$62),
     ($80,$be,$9f,$5d), ($8d,$b5,$91,$54), ($9a,$a8,$83,$4f), ($97,$a3,$8d,$46));
   U4: array[0..255,0..3] of byte= (
@@ -1287,54 +1287,54 @@ CONST
     ($24,$34,$2c,$38), ($2d,$39,$27,$36), ($36,$2e,$3a,$24), ($3f,$23,$31,$2a),
     ($48,$68,$58,$70), ($41,$65,$53,$7e), ($5a,$72,$4e,$6c), ($53,$7f,$45,$62),
     ($6c,$5c,$74,$48), ($65,$51,$7f,$46), ($7e,$46,$62,$54), ($77,$4b,$69,$5a),
-    ($90,$d0,$b0,$e0), ($99,$dd,$bb,$EE), ($82,$ca,$a6,$fc), ($8b,$c7,$ad,$f2),
+    ($90,$d0,$b0,$e0), ($99,$dd,$bb,$ee), ($82,$ca,$a6,$fc), ($8b,$c7,$ad,$f2),
     ($b4,$e4,$9c,$d8), ($bd,$e9,$97,$d6), ($a6,$fe,$8a,$c4), ($af,$f3,$81,$ca),
     ($d8,$b8,$e8,$90), ($d1,$b5,$e3,$9e), ($ca,$a2,$fe,$8c), ($c3,$af,$f5,$82),
-    ($fc,$8c,$c4,$a8), ($f5,$81,$cf,$a6), ($EE,$96,$d2,$b4), ($e7,$9b,$d9,$ba),
+    ($fc,$8c,$c4,$a8), ($f5,$81,$cf,$a6), ($ee,$96,$d2,$b4), ($e7,$9b,$d9,$ba),
     ($3b,$bb,$7b,$db), ($32,$b6,$70,$d5), ($29,$a1,$6d,$c7), ($20,$ac,$66,$c9),
-    ($1f,$8f,$57,$e3), ($16,$82,$5c,$ED), ($0d,$95,$41,$ff), ($04,$98,$4a,$f1),
-    ($73,$d3,$23,$ab), ($7a,$de,$28,$a5), ($61,$c9,$35,$b7), ($68,$c4,$3e,$b9),
+    ($1f,$8f,$57,$e3), ($16,$82,$5c,$ed), ($0d,$95,$41,$ff), ($04,$98,$4a,$f1), 
+    ($73,$d3,$23,$ab), ($7a,$de,$28,$a5), ($61,$c9,$35,$b7), ($68,$c4,$3e,$b9), 
     ($57,$e7,$0f,$93), ($5e,$ea,$04,$9d), ($45,$fd,$19,$8f), ($4c,$f0,$12,$81),
     ($ab,$6b,$cb,$3b), ($a2,$66,$c0,$35), ($b9,$71,$dd,$27), ($b0,$7c,$d6,$29),
-    ($8f,$5f,$e7,$03), ($86,$52,$EC,$0d), ($9d,$45,$f1,$1f), ($94,$48,$fa,$11),
-    ($e3,$03,$93,$4b), ($ea,$0e,$98,$45), ($f1,$19,$85,$57), ($f8,$14,$8e,$59),
-    ($c7,$37,$BF,$73), ($ce,$3a,$b4,$7d), ($d5,$2d,$a9,$6f), ($dc,$20,$a2,$61),
-    ($76,$6d,$f6,$ad), ($7f,$60,$fd,$a3), ($64,$77,$e0,$b1), ($6d,$7a,$eb,$BF),
+    ($8f,$5f,$e7,$03), ($86,$52,$ec,$0d), ($9d,$45,$f1,$1f), ($94,$48,$fa,$11), 
+    ($e3,$03,$93,$4b), ($ea,$0e,$98,$45), ($f1,$19,$85,$57), ($f8,$14,$8e,$59), 
+    ($c7,$37,$bf,$73), ($ce,$3a,$b4,$7d), ($d5,$2d,$a9,$6f), ($dc,$20,$a2,$61),
+    ($76,$6d,$f6,$ad), ($7f,$60,$fd,$a3), ($64,$77,$e0,$b1), ($6d,$7a,$eb,$bf), 
     ($52,$59,$da,$95), ($5b,$54,$d1,$9b), ($40,$43,$cc,$89), ($49,$4e,$c7,$87),
     ($3e,$05,$ae,$dd), ($37,$08,$a5,$d3), ($2c,$1f,$b8,$c1), ($25,$12,$b3,$cf),
     ($1a,$31,$82,$e5), ($13,$3c,$89,$eb), ($08,$2b,$94,$f9), ($01,$26,$9f,$f7),
-    ($e6,$bd,$46,$4d), ($EF,$b0,$4d,$43), ($f4,$a7,$50,$51), ($fd,$aa,$5b,$5f),
+    ($e6,$bd,$46,$4d), ($ef,$b0,$4d,$43), ($f4,$a7,$50,$51), ($fd,$aa,$5b,$5f),
     ($c2,$89,$6a,$75), ($cb,$84,$61,$7b), ($d0,$93,$7c,$69), ($d9,$9e,$77,$67),
-    ($ae,$d5,$1e,$3d), ($a7,$d8,$15,$33), ($bc,$cf,$08,$21), ($b5,$c2,$03,$2f),
-    ($8a,$e1,$32,$05), ($83,$EC,$39,$0b), ($98,$fb,$24,$19), ($91,$f6,$2f,$17),
-    ($4d,$d6,$8d,$76), ($44,$db,$86,$78), ($5f,$cc,$9b,$6a), ($56,$c1,$90,$64),
-    ($69,$e2,$a1,$4e), ($60,$EF,$aa,$40), ($7b,$f8,$b7,$52), ($72,$f5,$bc,$5c),
-    ($05,$be,$d5,$06), ($0c,$b3,$de,$08), ($17,$a4,$c3,$1a), ($1e,$a9,$c8,$14),
-    ($21,$8a,$f9,$3e), ($28,$87,$f2,$30), ($33,$90,$EF,$22), ($3a,$9d,$e4,$2c),
+    ($ae,$d5,$1e,$3d), ($a7,$d8,$15,$33), ($bc,$cf,$08,$21), ($b5,$c2,$03,$2f), 
+    ($8a,$e1,$32,$05), ($83,$ec,$39,$0b), ($98,$fb,$24,$19), ($91,$f6,$2f,$17),
+    ($4d,$d6,$8d,$76), ($44,$db,$86,$78), ($5f,$cc,$9b,$6a), ($56,$c1,$90,$64), 
+    ($69,$e2,$a1,$4e), ($60,$ef,$aa,$40), ($7b,$f8,$b7,$52), ($72,$f5,$bc,$5c), 
+    ($05,$be,$d5,$06), ($0c,$b3,$de,$08), ($17,$a4,$c3,$1a), ($1e,$a9,$c8,$14), 
+    ($21,$8a,$f9,$3e), ($28,$87,$f2,$30), ($33,$90,$ef,$22), ($3a,$9d,$e4,$2c), 
     ($dd,$06,$3d,$96), ($d4,$0b,$36,$98), ($cf,$1c,$2b,$8a), ($c6,$11,$20,$84),
-    ($f9,$32,$11,$ae), ($f0,$3f,$1a,$a0), ($eb,$28,$07,$b2), ($e2,$25,$0c,$bc),
-    ($95,$6e,$65,$e6), ($9c,$63,$6e,$e8), ($87,$74,$73,$fa), ($8e,$79,$78,$f4),
+    ($f9,$32,$11,$ae), ($f0,$3f,$1a,$a0), ($eb,$28,$07,$b2), ($e2,$25,$0c,$bc), 
+    ($95,$6e,$65,$e6), ($9c,$63,$6e,$e8), ($87,$74,$73,$fa), ($8e,$79,$78,$f4), 
     ($b1,$5a,$49,$de), ($b8,$57,$42,$d0), ($a3,$40,$5f,$c2), ($aa,$4d,$54,$cc),
-    ($EC,$da,$f7,$41), ($e5,$d7,$fc,$4f), ($fe,$c0,$e1,$5d), ($f7,$cd,$ea,$53),
-    ($c8,$EE,$db,$79), ($c1,$e3,$d0,$77), ($da,$f4,$cd,$65), ($d3,$f9,$c6,$6b),
-    ($a4,$b2,$af,$31), ($ad,$BF,$a4,$3f), ($b6,$a8,$b9,$2d), ($BF,$a5,$b2,$23),
+    ($ec,$da,$f7,$41), ($e5,$d7,$fc,$4f), ($fe,$c0,$e1,$5d), ($f7,$cd,$ea,$53), 
+    ($c8,$ee,$db,$79), ($c1,$e3,$d0,$77), ($da,$f4,$cd,$65), ($d3,$f9,$c6,$6b), 
+    ($a4,$b2,$af,$31), ($ad,$bf,$a4,$3f), ($b6,$a8,$b9,$2d), ($bf,$a5,$b2,$23), 
     ($80,$86,$83,$09), ($89,$8b,$88,$07), ($92,$9c,$95,$15), ($9b,$91,$9e,$1b),
-    ($7c,$0a,$47,$a1), ($75,$07,$4c,$af), ($6e,$10,$51,$bd), ($67,$1d,$5a,$b3),
+    ($7c,$0a,$47,$a1), ($75,$07,$4c,$af), ($6e,$10,$51,$bd), ($67,$1d,$5a,$b3), 
     ($58,$3e,$6b,$99), ($51,$33,$60,$97), ($4a,$24,$7d,$85), ($43,$29,$76,$8b),
-    ($34,$62,$1f,$d1), ($3d,$6f,$14,$DF), ($26,$78,$09,$cd), ($2f,$75,$02,$c3),
-    ($10,$56,$33,$e9), ($19,$5b,$38,$e7), ($02,$4c,$25,$f5), ($0b,$41,$2e,$fb),
+    ($34,$62,$1f,$d1), ($3d,$6f,$14,$df), ($26,$78,$09,$cd), ($2f,$75,$02,$c3), 
+    ($10,$56,$33,$e9), ($19,$5b,$38,$e7), ($02,$4c,$25,$f5), ($0b,$41,$2e,$fb), 
     ($d7,$61,$8c,$9a), ($de,$6c,$87,$94), ($c5,$7b,$9a,$86), ($cc,$76,$91,$88),
     ($f3,$55,$a0,$a2), ($fa,$58,$ab,$ac), ($e1,$4f,$b6,$be), ($e8,$42,$bd,$b0),
-    ($9f,$09,$d4,$ea), ($96,$04,$DF,$e4), ($8d,$13,$c2,$f6), ($84,$1e,$c9,$f8),
-    ($bb,$3d,$f8,$d2), ($b2,$30,$f3,$dc), ($a9,$27,$EE,$ce), ($a0,$2a,$e5,$c0),
+    ($9f,$09,$d4,$ea), ($96,$04,$df,$e4), ($8d,$13,$c2,$f6), ($84,$1e,$c9,$f8),
+    ($bb,$3d,$f8,$d2), ($b2,$30,$f3,$dc), ($a9,$27,$ee,$ce), ($a0,$2a,$e5,$c0),
     ($47,$b1,$3c,$7a), ($4e,$bc,$37,$74), ($55,$ab,$2a,$66), ($5c,$a6,$21,$68),
-    ($63,$85,$10,$42), ($6a,$88,$1b,$4c), ($71,$9f,$06,$5e), ($78,$92,$0d,$50),
+    ($63,$85,$10,$42), ($6a,$88,$1b,$4c), ($71,$9f,$06,$5e), ($78,$92,$0d,$50), 
     ($0f,$d9,$64,$0a), ($06,$d4,$6f,$04), ($1d,$c3,$72,$16), ($14,$ce,$79,$18),
-    ($2b,$ED,$48,$32), ($22,$e0,$43,$3c), ($39,$f7,$5e,$2e), ($30,$fa,$55,$20),
-    ($9a,$b7,$01,$EC), ($93,$ba,$0a,$e2), ($88,$ad,$17,$f0), ($81,$a0,$1c,$fe),
+    ($2b,$ed,$48,$32), ($22,$e0,$43,$3c), ($39,$f7,$5e,$2e), ($30,$fa,$55,$20),
+    ($9a,$b7,$01,$ec), ($93,$ba,$0a,$e2), ($88,$ad,$17,$f0), ($81,$a0,$1c,$fe),
     ($be,$83,$2d,$d4), ($b7,$8e,$26,$da), ($ac,$99,$3b,$c8), ($a5,$94,$30,$c6),
-    ($d2,$DF,$59,$9c), ($db,$d2,$52,$92), ($c0,$c5,$4f,$80), ($c9,$c8,$44,$8e),
-    ($f6,$eb,$75,$a4), ($ff,$e6,$7e,$aa), ($e4,$f1,$63,$b8), ($ED,$fc,$68,$b6),
+    ($d2,$df,$59,$9c), ($db,$d2,$52,$92), ($c0,$c5,$4f,$80), ($c9,$c8,$44,$8e),
+    ($f6,$eb,$75,$a4), ($ff,$e6,$7e,$aa), ($e4,$f1,$63,$b8), ($ed,$fc,$68,$b6),
     ($0a,$67,$b1,$0c), ($03,$6a,$ba,$02), ($18,$7d,$a7,$10), ($11,$70,$ac,$1e),
     ($2e,$53,$9d,$34), ($27,$5e,$96,$3a), ($3c,$49,$8b,$28), ($35,$44,$80,$26),
     ($42,$0f,$e9,$7c), ($4b,$02,$e2,$72), ($50,$15,$ff,$60), ($59,$18,$f4,$6e),
@@ -1342,27 +1342,27 @@ CONST
     ($a1,$0c,$7a,$37), ($a8,$01,$71,$39), ($b3,$16,$6c,$2b), ($ba,$1b,$67,$25),
     ($85,$38,$56,$0f), ($8c,$35,$5d,$01), ($97,$22,$40,$13), ($9e,$2f,$4b,$1d),
     ($e9,$64,$22,$47), ($e0,$69,$29,$49), ($fb,$7e,$34,$5b), ($f2,$73,$3f,$55),
-    ($cd,$50,$0e,$7f), ($c4,$5d,$05,$71), ($DF,$4a,$18,$63), ($d6,$47,$13,$6d),
+    ($cd,$50,$0e,$7f), ($c4,$5d,$05,$71), ($df,$4a,$18,$63), ($d6,$47,$13,$6d),
     ($31,$dc,$ca,$d7), ($38,$d1,$c1,$d9), ($23,$c6,$dc,$cb), ($2a,$cb,$d7,$c5),
-    ($15,$e8,$e6,$EF), ($1c,$e5,$ED,$e1), ($07,$f2,$f0,$f3), ($0e,$ff,$fb,$fd),
+    ($15,$e8,$e6,$ef), ($1c,$e5,$ed,$e1), ($07,$f2,$f0,$f3), ($0e,$ff,$fb,$fd),
     ($79,$b4,$92,$a7), ($70,$b9,$99,$a9), ($6b,$ae,$84,$bb), ($62,$a3,$8f,$b5),
     ($5d,$80,$be,$9f), ($54,$8d,$b5,$91), ($4f,$9a,$a8,$83), ($46,$97,$a3,$8d));
 
-  rcon: array[0..29] of Cardinal= (
+  rcon: array[0..29] of cardinal= (
     $01, $02, $04, $08, $10, $20, $40, $80, $1b, $36, $6c, $d8, $ab, $4d, $9a,
-    $2f, $5e, $bc, $63, $c6, $97, $35, $6a, $d4, $b3, $7d, $fa, $EF, $c5, $91);
+    $2f, $5e, $bc, $63, $c6, $97, $35, $6a, $d4, $b3, $7d, $fa, $ef, $c5, $91);
 
 {==============================================================================}
-TYPE
-  PDWord = ^Longword;
+type
+  PDWord = ^LongWord;
 
-PROCEDURE hperm_op(VAR a, t: integer; n, m: integer);
+procedure hperm_op(var a, t: integer; n, m: integer);
 begin
   t:= ((a shl (16 - n)) xor a) and m;
   a:= a xor t xor (t shr (16 - n));
 end;
 
-PROCEDURE perm_op(VAR a, b, t: integer; n, m: integer);
+procedure perm_op(var a, b, t: integer; n, m: integer);
 begin
   t:= ((a shr n) xor b) and m;
   b:= b xor t;
@@ -1370,63 +1370,63 @@ begin
 end;
 
 {==============================================================================}
-FUNCTION TSynaBlockCipher.GetSize: byte;
+function TSynaBlockCipher.GetSize: byte;
 begin
-  result := 8;
+  Result := 8;
 end;
 
-PROCEDURE TSynaBlockCipher.IncCounter;
-VAR
+procedure TSynaBlockCipher.IncCounter;
+var
   i: integer;
 begin
-  inc(CV[GetSize]);
+  Inc(CV[GetSize]);
   i:= GetSize -1;
   while (i> 0) and (CV[i + 1] = #0) do
   begin
-    inc(CV[i]);
-    dec(i);
+    Inc(CV[i]);
+    Dec(i);
   end;
 end;
 
-PROCEDURE TSynaBlockCipher.reset;
+procedure TSynaBlockCipher.Reset;
 begin
-  CV := iv;
+  CV := IV;
 end;
 
-PROCEDURE TSynaBlockCipher.InitKey(key: ansistring);
+procedure TSynaBlockCipher.InitKey(Key: AnsiString);
 begin
 end;
 
-PROCEDURE TSynaBlockCipher.SetIV(CONST value: ansistring);
+procedure TSynaBlockCipher.SetIV(const Value: AnsiString);
 begin
-  iv := PadString(value, GetSize, #0);
-  reset;
+  IV := PadString(Value, GetSize, #0);
+  Reset;
 end;
 
-FUNCTION TSynaBlockCipher.GetIV: ansistring;
+function TSynaBlockCipher.GetIV: AnsiString;
 begin
-  result := CV;
+  Result := CV;
 end;
 
-FUNCTION TSynaBlockCipher.EncryptECB(CONST InData: ansistring): ansistring;
+function TSynaBlockCipher.EncryptECB(const InData: AnsiString): AnsiString;
 begin
-  result := InData;
+  Result := InData;
 end;
 
-FUNCTION TSynaBlockCipher.DecryptECB(CONST InData: ansistring): ansistring;
+function TSynaBlockCipher.DecryptECB(const InData: AnsiString): AnsiString;
 begin
-  result := InData;
+  Result := InData;
 end;
 
-FUNCTION TSynaBlockCipher.EncryptCBC(CONST Indata: ansistring): ansistring;
-VAR
+function TSynaBlockCipher.EncryptCBC(const Indata: AnsiString): AnsiString;
+var
   i: integer;
   s: ansistring;
   l: integer;
   bs: byte;
 begin
-  result := '';
-  l := length(InData);
+  Result := '';
+  l := Length(InData);
   bs := GetSize;
   for i:= 1 to (l div bs) do
   begin
@@ -1434,26 +1434,26 @@ begin
     s := XorString(s, CV);
     s := EncryptECB(s);
     CV := s;
-    result := result + s;
+    Result := Result + s;
   end;
   if (l mod bs)<> 0 then
   begin
     CV := EncryptECB(CV);
     s := copy(Indata, (l div bs) * bs + 1, l mod bs);
     s := XorString(s, CV);
-    result := result + s;
+    Result := Result + s;
   end;
 end;
 
-FUNCTION TSynaBlockCipher.DecryptCBC(CONST Indata: ansistring): ansistring;
-VAR
+function TSynaBlockCipher.DecryptCBC(const Indata: AnsiString): AnsiString;
+var
   i: integer;
   s, temp: ansistring;
   l: integer;
   bs: byte;
 begin
-  result := '';
-  l := length(InData);
+  Result := '';
+  l := Length(InData);
   bs := GetSize;
   for i:= 1 to (l div bs) do
   begin
@@ -1461,68 +1461,68 @@ begin
     temp := s;
     s := DecryptECB(s);
     s := XorString(s, CV);
-    result := result + s;
-    CV := temp;
+    Result := Result + s;
+    CV := Temp;
   end;
   if (l mod bs)<> 0 then
   begin
     CV := EncryptECB(CV);
     s := copy(Indata, (l div bs) * bs + 1, l mod bs);
     s := XorString(s, CV);
-    result := result + s;
+    Result := Result + s;
   end;
 end;
 
-FUNCTION TSynaBlockCipher.EncryptCFB8bit(CONST Indata: ansistring): ansistring;
-VAR
+function TSynaBlockCipher.EncryptCFB8bit(const Indata: AnsiString): AnsiString;
+var
   i: integer;
-  temp: ansistring;
+  Temp: AnsiString;
   c: AnsiChar;
 begin
-  result := '';
-  for i:= 1 to length(Indata) do
+  Result := '';
+  for i:= 1 to Length(Indata) do
   begin
-    temp := EncryptECB(CV);
+    Temp := EncryptECB(CV);
     c := AnsiChar(ord(InData[i]) xor ord(temp[1]));
-    result := result + c;
+    Result := Result + c;
     Delete(CV, 1, 1);
     CV := CV + c;
   end;
 end;
 
-FUNCTION TSynaBlockCipher.DecryptCFB8bit(CONST Indata: ansistring): ansistring;
-VAR
+function TSynaBlockCipher.DecryptCFB8bit(const Indata: AnsiString): AnsiString;
+var
   i: integer;
-  temp: ansistring;
+  Temp: AnsiString;
   c: AnsiChar;
 begin
-  result := '';
+  Result := '';
   for i:= 1 to length(Indata) do
   begin
     c:= Indata[i];
-    temp := EncryptECB(CV);
-    result := result + AnsiChar(ord(InData[i]) xor ord(temp[1]));
+    Temp := EncryptECB(CV);
+    Result := Result + AnsiChar(ord(InData[i]) xor ord(temp[1]));
     Delete(CV, 1, 1);
     CV := CV + c;
   end;
 end;
 
-FUNCTION TSynaBlockCipher.EncryptCFBblock(CONST Indata: ansistring): ansistring;
-VAR
+function TSynaBlockCipher.EncryptCFBblock(const Indata: AnsiString): AnsiString;
+var
   i: integer;
-  s: ansistring;
+  s: AnsiString;
   l: integer;
   bs: byte;
 begin
-  result := '';
-  l := length(InData);
+  Result := '';
+  l := Length(InData);
   bs := GetSize;
   for i:= 1 to (l div bs) do
   begin
     CV := EncryptECB(CV);
     s := copy(Indata, (i - 1) * bs + 1, bs);
     s := XorString(s, CV);
-    result := result + s;
+    Result := Result + s;
     CV := s;
   end;
   if (l mod bs)<> 0 then
@@ -1530,27 +1530,27 @@ begin
     CV := EncryptECB(CV);
     s := copy(Indata, (l div bs) * bs + 1, l mod bs);
     s := XorString(s, CV);
-    result := result + s;
+    Result := Result + s;
   end;
 end;
 
-FUNCTION TSynaBlockCipher.DecryptCFBblock(CONST Indata: ansistring): ansistring;
-VAR
+function TSynaBlockCipher.DecryptCFBblock(const Indata: AnsiString): AnsiString;
+var
   i: integer;
-  S, temp: ansistring;
+  S, Temp: AnsiString;
   l: integer;
   bs: byte;
 begin
-  result := '';
-  l := length(InData);
+  Result := '';
+  l := Length(InData);
   bs := GetSize;
   for i:= 1 to (l div bs) do
   begin
     s := copy(Indata, (i - 1) * bs + 1, bs);
-    temp := s;
+    Temp := s;
     CV := EncryptECB(CV);
     s := XorString(s, CV);
-    result := result + s;
+    Result := result + s;
     CV := temp;
   end;
   if (l mod bs)<> 0 then
@@ -1558,72 +1558,72 @@ begin
     CV := EncryptECB(CV);
     s := copy(Indata, (l div bs) * bs + 1, l mod bs);
     s := XorString(s, CV);
-    result := result + s;
+    Result := Result + s;
   end;
 end;
 
-FUNCTION TSynaBlockCipher.EncryptOFB(CONST Indata: ansistring): ansistring;
-VAR
+function TSynaBlockCipher.EncryptOFB(const Indata: AnsiString): AnsiString;
+var
   i: integer;
-  s: ansistring;
+  s: AnsiString;
   l: integer;
   bs: byte;
 begin
-  result := '';
-  l := length(InData);
+  Result := '';
+  l := Length(InData);
   bs := GetSize;
   for i:= 1 to (l div bs) do
   begin
     CV := EncryptECB(CV);
     s := copy(Indata, (i - 1) * bs + 1, bs);
     s := XorString(s, CV);
-    result := result + s;
+    Result := Result + s;
   end;
   if (l mod bs)<> 0 then
   begin
     CV := EncryptECB(CV);
     s := copy(Indata, (l div bs) * bs + 1, l mod bs);
     s := XorString(s, CV);
-    result := result + s;
+    Result := Result + s;
   end;
 end;
 
-FUNCTION TSynaBlockCipher.DecryptOFB(CONST Indata: ansistring): ansistring;
-VAR
+function TSynaBlockCipher.DecryptOFB(const Indata: AnsiString): AnsiString;
+var
   i: integer;
-  s: ansistring;
+  s: AnsiString;
   l: integer;
   bs: byte;
 begin
-  result := '';
-  l := length(InData);
+  Result := '';
+  l := Length(InData);
   bs := GetSize;
   for i:= 1 to (l div bs) do
   begin
     Cv := EncryptECB(CV);
     s := copy(Indata, (i - 1) * bs + 1, bs);
     s := XorString(s, CV);
-    result := result + s;
+    Result := Result + s;
   end;
   if (l mod bs)<> 0 then
   begin
     CV := EncryptECB(CV);
     s := copy(Indata, (l div bs) * bs + 1, l mod bs);
     s := XorString(s, CV);
-    result := result + s;
+    Result := Result + s;
   end;
 end;
 
-FUNCTION TSynaBlockCipher.EncryptCTR(CONST Indata: ansistring): ansistring;
-VAR
-  temp: ansistring;
+function TSynaBlockCipher.EncryptCTR(const Indata: AnsiString): AnsiString;
+var
+  temp: AnsiString;
   i: integer;
-  s: ansistring;
+  s: AnsiString;
   l: integer;
   bs: byte;
 begin
-  result := '';
-  l := length(InData);
+  Result := '';
+  l := Length(InData);
   bs := GetSize;
   for i:= 1 to (l div bs) do
   begin
@@ -1631,7 +1631,7 @@ begin
     IncCounter;
     s := copy(Indata, (i - 1) * bs + 1, bs);
     s := XorString(s, temp);
-    result := result + s;
+    Result := Result + s;
   end;
   if (l mod bs)<> 0 then
   begin
@@ -1639,20 +1639,20 @@ begin
     IncCounter;
     s := copy(Indata, (l div bs) * bs + 1, l mod bs);
     s := XorString(s, temp);
-    result := result + s;
+    Result := Result + s;
   end;
 end;
 
-FUNCTION TSynaBlockCipher.DecryptCTR(CONST Indata: ansistring): ansistring;
-VAR
-  temp: ansistring;
-  s: ansistring;
+function TSynaBlockCipher.DecryptCTR(const Indata: AnsiString): AnsiString;
+var
+  temp: AnsiString;
+  s: AnsiString;
   i: integer;
   l: integer;
   bs: byte;
 begin
-  result := '';
-  l := length(InData);
+  Result := '';
+  l := Length(InData);
   bs := GetSize;
   for i:= 1 to (l div bs) do
   begin
@@ -1660,7 +1660,7 @@ begin
     IncCounter;
     s := copy(Indata, (i - 1) * bs + 1, bs);
     s := XorString(s, temp);
-    result := result + s;
+    Result := Result + s;
   end;
   if (l mod bs)<> 0 then
   begin
@@ -1668,23 +1668,23 @@ begin
     IncCounter;
     s := copy(Indata, (l div bs) * bs + 1, l mod bs);
     s := XorString(s, temp);
-    result := result + s;
+    Result := Result + s;
   end;
 end;
 
-CONSTRUCTOR TSynaBlockCipher.create(key: ansistring);
+constructor TSynaBlockCipher.Create(Key: AnsiString);
 begin
-  inherited create;
-  InitKey(key);
-  iv := StringOfChar(#0, GetSize);
-  iv := EncryptECB(iv);
-  reset;
+  inherited Create;
+  InitKey(Key);
+  IV := StringOfChar(#0, GetSize);
+  IV := EncryptECB(IV);
+  Reset;
 end;
 
 {==============================================================================}
 
-PROCEDURE TSynaCustomDes.DoInit(KeyB: ansistring; VAR KeyData: TDesKeyData);
-VAR
+procedure TSynaCustomDes.DoInit(KeyB: AnsiString; var KeyData: TDesKeyData);
+var
   c, d, t, s, t2, i: integer;
 begin
   KeyB := PadString(KeyB, 8, #0);
@@ -1696,7 +1696,7 @@ begin
   perm_op(d,c,t,1,integer($55555555));
   perm_op(c,d,t,8,integer($00ff00ff));
   perm_op(d,c,t,1,integer($55555555));
-  d:= ((d and $ff) shl 16) or (d and $ff00) or ((d and $FF0000) shr 16) or
+  d:= ((d and $ff) shl 16) or (d and $ff00) or ((d and $ff0000) shr 16) or
         ((c and integer($f0000000)) shr 4);
   c:= c and $fffffff;
   for i:= 0 to 15 do
@@ -1721,15 +1721,15 @@ begin
         des_skb[5,((d shr  7) and $03) or ((d shr  8) and $3c)] or
         des_skb[6, (d shr 15) and $3f                         ] or
         des_skb[7,((d shr 21) and $0f) or ((d shr 22) and $30)];
-    t2:= ((t shl 16) or (s and $FFFF));
+    t2:= ((t shl 16) or (s and $ffff));
     KeyData[(i shl 1)]:= ((t2 shl 2) or (t2 shr 30));
     t2:= ((s shr 16) or (t and integer($ffff0000)));
     KeyData[(i shl 1)+1]:= ((t2 shl 6) or (t2 shr 26));
   end;
 end;
 
-FUNCTION TSynaCustomDes.EncryptBlock(CONST InData: ansistring; VAR KeyData: TDesKeyData): ansistring;
-VAR
+function TSynaCustomDes.EncryptBlock(const InData: AnsiString; var KeyData: TDesKeyData): AnsiString;
+var
   l, r, t, u: integer;
   i: longint;
 begin
@@ -1738,7 +1738,7 @@ begin
   t:= ((l shr 4) xor r) and $0f0f0f0f;
   r:= r xor t;
   l:= l xor (t shl 4);
-  t:= ((r shr 16) xor l) and $0000FFFF;
+  t:= ((r shr 16) xor l) and $0000ffff;
   l:= l xor t;
   r:= r xor (t shl 16);
   t:= ((l shr 2) xor r) and $33333333;
@@ -1799,7 +1799,7 @@ begin
               des_SPtrans[3,(t shr 10) and $3f] xor
               des_SPtrans[5,(t shr 18) and $3f] xor
               des_SPtrans[7,(t shr 26) and $3f];
-    inc(i,8);
+    Inc(i,8);
   end;
   r:= (r shr 3) or (r shl 29);
   l:= (l shr 3) or (l shl 29);
@@ -1812,17 +1812,17 @@ begin
   t:= ((r shr 2) xor l) and $33333333;
   l:= l xor t;
   r:= r xor (t shl 2);
-  t:= ((l shr 16) xor r) and $0000FFFF;
+  t:= ((l shr 16) xor r) and $0000ffff;
   r:= r xor t;
   l:= l xor (t shl 16);
   t:= ((r shr 4) xor l) and $0f0f0f0f;
   l:= l xor t;
   r:= r xor (t shl 4);
-  result := CodeLongInt(Swapbytes(l)) + CodeLongInt(Swapbytes(r));
+  Result := CodeLongInt(Swapbytes(l)) + CodeLongInt(Swapbytes(r));
 end;
 
-FUNCTION TSynaCustomDes.DecryptBlock(CONST InData: ansistring; VAR KeyData: TDesKeyData): ansistring;
-VAR
+function TSynaCustomDes.DecryptBlock(const InData: AnsiString; var KeyData: TDesKeyData): AnsiString;
+var
   l, r, t, u: integer;
   i: longint;
 begin
@@ -1831,7 +1831,7 @@ begin
   t:= ((l shr 4) xor r) and $0f0f0f0f;
   r:= r xor t;
   l:= l xor (t shl 4);
-  t:= ((r shr 16) xor l) and $0000FFFF;
+  t:= ((r shr 16) xor l) and $0000ffff;
   l:= l xor t;
   r:= r xor (t shl 16);
   t:= ((l shr 2) xor r) and $33333333;
@@ -1892,7 +1892,7 @@ begin
               des_SPtrans[3,(t shr 10) and $3f] xor
               des_SPtrans[5,(t shr 18) and $3f] xor
               des_SPtrans[7,(t shr 26) and $3f];
-    dec(i,8);
+    Dec(i,8);
   end;
   r:= (r shr 3) or (r shl 29);
   l:= (l shr 3) or (l shl 29);
@@ -1905,70 +1905,70 @@ begin
   t:= ((r shr 2) xor l) and $33333333;
   l:= l xor t;
   r:= r xor (t shl 2);
-  t:= ((l shr 16) xor r) and $0000FFFF;
+  t:= ((l shr 16) xor r) and $0000ffff;
   r:= r xor t;
   l:= l xor (t shl 16);
   t:= ((r shr 4) xor l) and $0f0f0f0f;
   l:= l xor t;
   r:= r xor (t shl 4);
-  result := CodeLongInt(Swapbytes(l)) + CodeLongInt(Swapbytes(r));
+  Result := CodeLongInt(Swapbytes(l)) + CodeLongInt(Swapbytes(r));
 end;
 
 {==============================================================================}
 
-PROCEDURE TSynaDes.InitKey(key: ansistring);
+procedure TSynaDes.InitKey(Key: AnsiString);
 begin
-  key := PadString(key, 8, #0);
-  DoInit(key,KeyData);
+  Key := PadString(Key, 8, #0);
+  DoInit(Key,KeyData);
 end;
 
-FUNCTION TSynaDes.EncryptECB(CONST InData: ansistring): ansistring;
+function TSynaDes.EncryptECB(const InData: AnsiString): AnsiString;
 begin
-  result := EncryptBlock(InData,KeyData);
+  Result := EncryptBlock(InData,KeyData);
 end;
 
-FUNCTION TSynaDes.DecryptECB(CONST InData: ansistring): ansistring;
+function TSynaDes.DecryptECB(const InData: AnsiString): AnsiString;
 begin
-  result := DecryptBlock(Indata,KeyData);
+  Result := DecryptBlock(Indata,KeyData);
 end;
 
 {==============================================================================}
 
-PROCEDURE TSyna3Des.InitKey(key: ansistring);
-VAR
-  size: integer;
+procedure TSyna3Des.InitKey(Key: AnsiString);
+var
+  Size: integer;
   n: integer;
 begin
-  size := length(key);
+  Size := length(Key);
   key := PadString(key, 3 * 8, #0);
-  DoInit(copy(key, 1, 8),KeyData[0]);
-  DoInit(copy(key, 9, 8),KeyData[1]);
-  if size > 16 then
-    DoInit(copy(key, 17, 8),KeyData[2])
+  DoInit(Copy(key, 1, 8),KeyData[0]);
+  DoInit(Copy(key, 9, 8),KeyData[1]);
+  if Size > 16 then
+    DoInit(Copy(key, 17, 8),KeyData[2])
   else
     for n := 0 to high(KeyData[0]) do
       KeyData[2][n] := Keydata[0][n];
 end;
 
-FUNCTION TSyna3Des.EncryptECB(CONST InData: ansistring): ansistring;
+function TSyna3Des.EncryptECB(const InData: AnsiString): AnsiString;
 begin
-  result := EncryptBlock(Indata,KeyData[0]);
-  result := DecryptBlock(result,KeyData[1]);
-  result := EncryptBlock(result,KeyData[2]);
+  Result := EncryptBlock(Indata,KeyData[0]);
+  Result := DecryptBlock(Result,KeyData[1]);
+  Result := EncryptBlock(Result,KeyData[2]);
 end;
 
-FUNCTION TSyna3Des.DecryptECB(CONST InData: ansistring): ansistring;
+function TSyna3Des.DecryptECB(const InData: AnsiString): AnsiString;
 begin
-  result := DecryptBlock(InData,KeyData[2]);
-  result := EncryptBlock(result,KeyData[1]);
-  result := DecryptBlock(result,KeyData[0]);
+  Result := DecryptBlock(InData,KeyData[2]);
+  Result := EncryptBlock(Result,KeyData[1]);
+  Result := DecryptBlock(Result,KeyData[0]);
 end;
 
 {==============================================================================}
 
-PROCEDURE InvMixColumn(a: PByteArray; BC: byte);
-VAR
-  j: Longword;
+procedure InvMixColumn(a: PByteArray; BC: byte);
+var
+  j: longword;
 begin
   for j:= 0 to (BC-1) do
     PDWord(@(a^[j*4]))^:= PDWord(@U1[a^[j*4+0]])^
@@ -1979,32 +1979,32 @@ end;
 
 {==============================================================================}
 
-FUNCTION TSynaAes.GetSize: byte;
+function TSynaAes.GetSize: byte;
 begin
-  result := 16;
+  Result := 16;
 end;
 
-PROCEDURE TSynaAes.InitKey(key: ansistring);
-VAR
-  size: integer;
-  KC, ROUNDS, j, r, t, rconpointer: Longword;
+procedure TSynaAes.InitKey(Key: AnsiString);
+var
+  Size: integer;
+  KC, ROUNDS, j, r, t, rconpointer: longword;
   tk: array[0..MAXKC-1,0..3] of byte;
   n: integer;
 begin
-  FillChar(tk,sizeOf(tk),0);
+  FillChar(tk,Sizeof(tk),0);
   //key must have at least 128 bits and max 256 bits
   if length(key) < 16 then
     key := PadString(key, 16, #0);
   if length(key) > 32 then
-    Delete(key, 33, MAXINT);
-  size := length(key);
-  move(PAnsiChar(key)^, tk, size);
-  if size<= 16 then
+    delete(key, 33, maxint);
+  Size := length(Key);
+  Move(PAnsiChar(Key)^, tk, Size);
+  if Size<= 16 then
   begin
     KC:= 4;
     Rounds:= 10;
   end
-  else if size<= 24 then
+  else if Size<= 24 then
   begin
     KC:= 6;
     Rounds:= 12;
@@ -2023,13 +2023,13 @@ begin
     while (j< KC) and (t< BC) do
     begin
       rk[r,t]:= PDWord(@tk[j])^;
-      inc(j);
-      inc(t);
+      Inc(j);
+      Inc(t);
     end;
     if t= BC then
     begin
       t:= 0;
-      inc(r);
+      Inc(r);
     end;
   end;
   rconpointer:= 0;
@@ -2040,7 +2040,7 @@ begin
     tk[0,2]:= tk[0,2] xor S[tk[KC-1,3]];
     tk[0,3]:= tk[0,3] xor S[tk[KC-1,0]];
     tk[0,0]:= tk[0,0] xor rcon[rconpointer];
-    inc(rconpointer);
+    Inc(rconpointer);
     if KC<> 8 then
     begin
       for j:= 1 to (KC-1) do
@@ -2063,24 +2063,24 @@ begin
       while (j< KC) and (t< BC) do
       begin
         rk[r,t]:= PDWord(@tk[j])^;
-        inc(j);
-        inc(t);
+        Inc(j);
+        Inc(t);
       end;
       if t= BC then
       begin
-        inc(r);
+        Inc(r);
         t:= 0;
       end;
     end;
   end;
-  move(rk,drk,sizeOf(rk));
+  Move(rk,drk,Sizeof(rk));
   for r:= 1 to (numrounds-1) do
     InvMixColumn(@drk[r],BC);
 end;
 
-FUNCTION TSynaAes.EncryptECB(CONST InData: ansistring): ansistring;
-VAR
-  r: Longword;
+function TSynaAes.EncryptECB(const InData: AnsiString): AnsiString;
+var
+  r: longword;
   tempb: array[0..MAXBC-1,0..3] of byte;
   a: array[0..MAXBC,0..3] of byte;
   p: pointer;
@@ -2135,13 +2135,13 @@ begin
   PDWord(@a[2])^:= PDWord(@a[2])^ xor rk[numrounds,2];
   PDWord(@a[3])^:= PDWord(@a[3])^ xor rk[numrounds,3];
 
-  result := StringOfChar(#0, 16);
-  move(p^, pointer(result)^, 16);
+  Result := StringOfChar(#0, 16);
+  move(p^, pointer(Result)^, 16);
 end;
 
-FUNCTION TSynaAes.DecryptECB(CONST InData: ansistring): ansistring;
-VAR
-  r: Longword;
+function TSynaAes.DecryptECB(const InData: AnsiString): AnsiString;
+var
+  r: longword;
   tempb: array[0..MAXBC-1,0..3] of byte;
   a: array[0..MAXBC,0..3] of byte;
   p: pointer;
@@ -2195,23 +2195,23 @@ begin
   PDWord(@a[1])^:= PDWord(@a[1])^ xor drk[0,1];
   PDWord(@a[2])^:= PDWord(@a[2])^ xor drk[0,2];
   PDWord(@a[3])^:= PDWord(@a[3])^ xor drk[0,3];
-  result := StringOfChar(#0, 16);
-  move(p^, pointer(result)^, 16);
+  Result := StringOfChar(#0, 16);
+  move(p^, pointer(Result)^, 16);
 end;
 
 {==============================================================================}
 
-FUNCTION TestDes: boolean;
-VAR
+function TestDes: boolean;
+var
   des: TSynaDes;
   s, t: string;
-CONST
+const
   key = '01234567';
   data1= '01234567';
   data2= '0123456789abcdefghij';
 begin
   //ECB
-  des := TSynaDes.create(key);
+  des := TSynaDes.Create(key);
   try
     s := des.EncryptECB(data1);
     t := strtohex(s);
@@ -2222,60 +2222,60 @@ begin
     des.free;
   end;
   //CBC
-  des := TSynaDes.create(key);
+  des := TSynaDes.Create(key);
   try
     s := des.EncryptCBC(data2);
     t := strtohex(s);
     result := result and (t = 'eec50f6353115ad6dee90a22ed1b6a88a0926e35');
-    des.reset;
+    des.Reset;
     s := des.DecryptCBC(s);
     result := result and (data2 = s);
   finally
     des.free;
   end;
   //CFB-8bit
-  des := TSynaDes.create(key);
+  des := TSynaDes.Create(key);
   try
     s := des.EncryptCFB8bit(data2);
     t := strtohex(s);
     result := result and (t = 'eb6aa12c2f0ff634b4dfb6da6cb2af8f9c5c1452');
-    des.reset;
+    des.Reset;
     s := des.DecryptCFB8bit(s);
     result := result and (data2 = s);
   finally
     des.free;
   end;
   //CFB-block
-  des := TSynaDes.create(key);
+  des := TSynaDes.Create(key);
   try
     s := des.EncryptCFBblock(data2);
     t := strtohex(s);
     result := result and (t = 'ebdbbaa7f9286cdec28605e07f9b7f3be1053257');
-    des.reset;
+    des.Reset;
     s := des.DecryptCFBblock(s);
     result := result and (data2 = s);
   finally
     des.free;
   end;
   //OFB
-  des := TSynaDes.create(key);
+  des := TSynaDes.Create(key);
   try
     s := des.EncryptOFB(data2);
     t := strtohex(s);
     result := result and (t = 'ebdbbaa7f9286cdee0b8b3798c4c34baac87dbdc');
-    des.reset;
+    des.Reset;
     s := des.DecryptOFB(s);
     result := result and (data2 = s);
   finally
     des.free;
   end;
   //CTR
-  des := TSynaDes.create(key);
+  des := TSynaDes.Create(key);
   try
     s := des.EncryptCTR(data2);
     t := strtohex(s);
     result := result and (t = 'ebdbbaa7f9286cde0dd20b45f3afd9aa1b91b87e');
-    des.reset;
+    des.Reset;
     s := des.DecryptCTR(s);
     result := result and (data2 = s);
   finally
@@ -2283,17 +2283,17 @@ begin
   end;
 end;
 
-FUNCTION Test3Des: boolean;
-VAR
+function Test3Des: boolean;
+var
   des: TSyna3Des;
   s, t: string;
-CONST
+const
   key = '0123456789abcdefghijklmn';
   data1= '01234567';
   data2= '0123456789abcdefghij';
 begin
   //ECB
-  des := TSyna3Des.create(key);
+  des := TSyna3Des.Create(key);
   try
     s := des.EncryptECB(data1);
     t := strtohex(s);
@@ -2304,60 +2304,60 @@ begin
     des.free;
   end;
   //CBC
-  des := TSyna3Des.create(key);
+  des := TSyna3Des.Create(key);
   try
     s := des.EncryptCBC(data2);
     t := strtohex(s);
     result := result and (t = 'ee844a2a4f49c01b91a1599b8eba29128c1ad87a');
-    des.reset;
+    des.Reset;
     s := des.DecryptCBC(s);
     result := result and (data2 = s);
   finally
     des.free;
   end;
   //CFB-8bit
-  des := TSyna3Des.create(key);
+  des := TSyna3Des.Create(key);
   try
     s := des.EncryptCFB8bit(data2);
     t := strtohex(s);
     result := result and (t = '935bbf5210c32cfa1faf61f91e8dc02dfa0ff1e8');
-    des.reset;
+    des.Reset;
     s := des.DecryptCFB8bit(s);
     result := result and (data2 = s);
   finally
     des.free;
   end;
   //CFB-block
-  des := TSyna3Des.create(key);
+  des := TSyna3Des.Create(key);
   try
     s := des.EncryptCFBblock(data2);
     t := strtohex(s);
     result := result and (t = '93754e3d54828fbf4bd81f1739419e8d2cfe1671');
-    des.reset;
+    des.Reset;
     s := des.DecryptCFBblock(s);
     result := result and (data2 = s);
   finally
     des.free;
   end;
   //OFB
-  des := TSyna3Des.create(key);
+  des := TSyna3Des.Create(key);
   try
     s := des.EncryptOFB(data2);
     t := strtohex(s);
     result := result and (t = '93754e3d54828fbf04ef0a5efc926ebdf2d95f20');
-    des.reset;
+    des.Reset;
     s := des.DecryptOFB(s);
     result := result and (data2 = s);
   finally
     des.free;
   end;
   //CTR
-  des := TSyna3Des.create(key);
+  des := TSyna3Des.Create(key);
   try
     s := des.EncryptCTR(data2);
     t := strtohex(s);
     result := result and (t = '93754e3d54828fbf1c51a121d2c93f989e70b3ad');
-    des.reset;
+    des.Reset;
     s := des.DecryptCTR(s);
     result := result and (data2 = s);
   finally
@@ -2365,20 +2365,20 @@ begin
   end;
 end;
 
-FUNCTION TestAes: boolean;
-VAR
+function TestAes: boolean;
+var
   aes: TSynaAes;
   s, t: string;
-CONST
+const
   key1 = #$00#$01#$02#$03#$05#$06#$07#$08#$0A#$0B#$0C#$0D#$0F#$10#$11#$12;
   data1= #$50#$68#$12#$A4#$5F#$08#$C8#$89#$B9#$7F#$59#$80#$03#$8B#$83#$59;
-  key2 = #$A0#$A1#$A2#$A3#$A5#$A6#$A7#$A8#$AA#$AB#$AC#$ad#$AF#$B0#$B1#$B2#$B4#$B5#$B6#$B7#$B9#$BA#$BB#$BC;
+  key2 = #$A0#$A1#$A2#$A3#$A5#$A6#$A7#$A8#$AA#$AB#$AC#$AD#$AF#$B0#$B1#$B2#$B4#$B5#$B6#$B7#$B9#$BA#$BB#$BC;
   data2= #$4F#$1C#$76#$9D#$1E#$5B#$05#$52#$C7#$EC#$A8#$4D#$EA#$26#$A5#$49;
   key3 = #$00#$01#$02#$03#$05#$06#$07#$08#$0A#$0B#$0C#$0D#$0F#$10#$11#$12#$14#$15#$16#$17#$19#$1A#$1B#$1C#$1E#$1F#$20#$21#$23#$24#$25#$26;
-  data3= #$5E#$25#$ca#$78#$F0#$DE#$55#$80#$25#$24#$D3#$8D#$A3#$FE#$44#$56;
+  data3= #$5E#$25#$CA#$78#$F0#$DE#$55#$80#$25#$24#$D3#$8D#$A3#$FE#$44#$56;
 begin
   //ECB
-  aes := TSynaAes.create(key1);
+  aes := TSynaAes.Create(key1);
   try
     t := aes.EncryptECB(data1);
     result := t = #$D8#$F5#$32#$53#$82#$89#$EF#$7D#$06#$B5#$06#$A4#$FD#$5B#$E9#$C9;
@@ -2387,7 +2387,7 @@ begin
   finally
     aes.free;
   end;
-  aes := TSynaAes.create(key2);
+  aes := TSynaAes.Create(key2);
   try
     t := aes.EncryptECB(data2);
     result := result and (t = #$F3#$84#$72#$10#$D5#$39#$1E#$23#$60#$60#$8E#$5A#$CB#$56#$05#$81);
@@ -2396,10 +2396,10 @@ begin
   finally
     aes.free;
   end;
-  aes := TSynaAes.create(key3);
+  aes := TSynaAes.Create(key3);
   try
     t := aes.EncryptECB(data3);
-    result := result and (t = #$E8#$B7#$2B#$4E#$8B#$E2#$43#$43#$8C#$9F#$ff#$1F#$0E#$20#$58#$72);
+    result := result and (t = #$E8#$B7#$2B#$4E#$8B#$E2#$43#$43#$8C#$9F#$FF#$1F#$0E#$20#$58#$72);
     s := aes.DecryptECB(t);
     result := result and (data3 = s);
   finally

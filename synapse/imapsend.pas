@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 002.005.003 |
+| Project : Ararat Synapse                                       | 002.005.003 |
 |==============================================================================|
-| content: IMAP4rev1 Client                                                    |
+| Content: IMAP4rev1 client                                                    |
 |==============================================================================|
 | Copyright (c)1999-2012, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,31 +20,31 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2001-2012.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(IMAP4 rev1 protocol client)
 
-used RFC: RFC-2060, RFC-2595
+Used RFC: RFC-2060, RFC-2595
 }
 
 {$IFDEF FPC}
@@ -57,23 +57,23 @@ used RFC: RFC-2060, RFC-2595
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT imapsend;
+unit imapsend;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes,
+uses
+  SysUtils, Classes,
   blcksock, synautil;
 
-CONST
+const
   cIMAPProtocol = '143';
 
-TYPE
+type
   {:@abstract(Implementation of IMAP4 protocol.)
    Note: Are you missing properties for setting Username and Password? Look to
    parent @link(TSynaClient) object!
 
-   Are you missing properties for specify Server address and port? Look to
+   Are you missing properties for specify server address and port? Look to
    parent @link(TSynaClient) too!}
   TIMAPSend = class(TSynaClient)
   protected
@@ -82,200 +82,200 @@ TYPE
     FResultString: string;
     FFullResult: TStringList;
     FIMAPcap: TStringList;
-    FAuthDone: boolean;
+    FAuthDone: Boolean;
     FSelectedFolder: string;
     FSelectedCount: integer;
     FSelectedRecent: integer;
     FSelectedUIDvalidity: integer;
-    FUID: boolean;
-    FAutoTLS: boolean;
-    FFullSSL: boolean;
-    FUNCTION ReadResult: string;
-    FUNCTION AuthLogin: boolean;
-    FUNCTION Connect: boolean;
-    PROCEDURE ParseMess(value:TStrings);
-    PROCEDURE ParseFolderList(value:TStrings);
-    PROCEDURE ParseSelect;
-    PROCEDURE ParseSearch(value:TStrings);
-    PROCEDURE ProcessLiterals;
+    FUID: Boolean;
+    FAutoTLS: Boolean;
+    FFullSSL: Boolean;
+    function ReadResult: string;
+    function AuthLogin: Boolean;
+    function Connect: Boolean;
+    procedure ParseMess(Value:TStrings);
+    procedure ParseFolderList(Value:TStrings);
+    procedure ParseSelect;
+    procedure ParseSearch(Value:TStrings);
+    procedure ProcessLiterals;
   public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
+    constructor Create;
+    destructor Destroy; override;
 
     {:By this function you can call any IMAP command. Result of this command is
      in adequate properties.}
-    FUNCTION IMAPcommand(value: string): string;
+    function IMAPcommand(Value: string): string;
 
     {:By this function you can call any IMAP command what need upload any data.
-     result of this command is in adequate properties.}
-    FUNCTION IMAPuploadCommand(value: string; CONST data:TStrings): string;
+     Result of this command is in adequate properties.}
+    function IMAPuploadCommand(Value: string; const Data:TStrings): string;
 
     {:Call CAPABILITY command and fill IMAPcap property by new values.}
-    FUNCTION Capability: boolean;
+    function Capability: Boolean;
 
     {:Connect to IMAP server and do login to this server. This command begin
      session.}
-    FUNCTION Login: boolean;
+    function Login: Boolean;
 
     {:Disconnect from IMAP server and terminate session session. If exists some
      deleted and non-purged messages, these messages are not deleted!}
-    FUNCTION Logout: boolean;
+    function Logout: Boolean;
 
     {:Do NOOP. It is for prevent disconnect by timeout.}
-    FUNCTION NoOp: boolean;
+    function NoOp: Boolean;
 
     {:Lists folder names. You may specify level of listing. If you specify
      FromFolder as empty string, return is all folders in system.}
-    FUNCTION list(FromFolder: string; CONST FolderList: TStrings): boolean;
+    function List(FromFolder: string; const FolderList: TStrings): Boolean;
 
     {:Lists folder names what match search criteria. You may specify level of
-     listing. if you specify FromFolder as empty string, return is all folders
+     listing. If you specify FromFolder as empty string, return is all folders
      in system.}
-    FUNCTION ListSearch(FromFolder, Search: string; CONST FolderList: TStrings): boolean;
+    function ListSearch(FromFolder, Search: string; const FolderList: TStrings): Boolean;
 
     {:Lists subscribed folder names. You may specify level of listing. If you
      specify FromFolder as empty string, return is all subscribed folders in
      system.}
-    FUNCTION ListSubscribed(FromFolder: string; CONST FolderList: TStrings): boolean;
+    function ListSubscribed(FromFolder: string; const FolderList: TStrings): Boolean;
 
     {:Lists subscribed folder names what matching search criteria. You may
-     specify level of listing. if you specify FromFolder as empty string, return
+     specify level of listing. If you specify FromFolder as empty string, return
      is all subscribed folders in system.}
-    FUNCTION ListSearchSubscribed(FromFolder, Search: string; CONST FolderList: TStrings): boolean;
+    function ListSearchSubscribed(FromFolder, Search: string; const FolderList: TStrings): Boolean;
 
     {:Create a new folder.}
-    FUNCTION CreateFolder(FolderName: string): boolean;
+    function CreateFolder(FolderName: string): Boolean;
 
     {:Delete a folder.}
-    FUNCTION DeleteFolder(FolderName: string): boolean;
+    function DeleteFolder(FolderName: string): Boolean;
 
     {:Rename folder names.}
-    FUNCTION RenameFolder(FolderName, NewFolderName: string): boolean;
+    function RenameFolder(FolderName, NewFolderName: string): Boolean;
 
     {:Subscribe folder.}
-    FUNCTION SubscribeFolder(FolderName: string): boolean;
+    function SubscribeFolder(FolderName: string): Boolean;
 
     {:Unsubscribe folder.}
-    FUNCTION UnsubscribeFolder(FolderName: string): boolean;
+    function UnsubscribeFolder(FolderName: string): Boolean;
 
     {:Select folder.}
-    FUNCTION SelectFolder(FolderName: string): boolean;
+    function SelectFolder(FolderName: string): Boolean;
 
     {:Select folder, but only for reading. Any changes are not allowed!}
-    FUNCTION SelectROFolder(FolderName: string): boolean;
+    function SelectROFolder(FolderName: string): Boolean;
 
     {:Close a folder. (end of Selected state)}
-    FUNCTION CloseFolder: boolean;
+    function CloseFolder: Boolean;
 
     {:Ask for given status of folder. I.e. if you specify as value 'UNSEEN',
-     result is number of unseen messages in folder. for another status
+     result is number of unseen messages in folder. For another status
      indentificator check IMAP documentation and documentation of your IMAP
-     Server (each IMAP Server can have their own statuses.)}
-    FUNCTION StatusFolder(FolderName, value: string): integer;
+     server (each IMAP server can have their own statuses.)}
+    function StatusFolder(FolderName, Value: string): integer;
 
     {:Hardly delete all messages marked as 'deleted' in current selected folder.}
-    FUNCTION ExpungeFolder: boolean;
+    function ExpungeFolder: Boolean;
 
     {:Touch to folder. (use as update status of folder, etc.)}
-    FUNCTION CheckFolder: boolean;
+    function CheckFolder: Boolean;
 
     {:Append given message to specified folder.}
-    FUNCTION AppendMess(ToFolder: string; CONST Mess: TStrings): boolean;
+    function AppendMess(ToFolder: string; const Mess: TStrings): Boolean;
 
     {:'Delete' message from current selected folder. It mark message as Deleted.
      Real deleting will be done after sucessfull @link(CloseFolder) or
      @link(ExpungeFolder)}
-    FUNCTION DeleteMess(MessID: integer): boolean;
+    function DeleteMess(MessID: integer): boolean;
 
     {:Get full message from specified message in selected folder.}
-    FUNCTION FetchMess(MessID: integer; CONST Mess: TStrings): boolean;
+    function FetchMess(MessID: integer; const Mess: TStrings): Boolean;
 
     {:Get message headers only from specified message in selected folder.}
-    FUNCTION FetchHeader(MessID: integer; CONST Headers: TStrings): boolean;
+    function FetchHeader(MessID: integer; const Headers: TStrings): Boolean;
 
     {:Return message size of specified message from current selected folder.}
-    FUNCTION MessageSize(MessID: integer): integer;
+    function MessageSize(MessID: integer): integer;
 
     {:Copy message from current selected folder to another folder.}
-    FUNCTION CopyMess(MessID: integer; ToFolder: string): boolean;
+    function CopyMess(MessID: integer; ToFolder: string): Boolean;
 
     {:Return message numbers from currently selected folder as result
      of searching. Search criteria is very complex language (see to IMAP
      specification) similar to SQL (but not same syntax!).}
-    FUNCTION SearchMess(Criteria: string; CONST FoundMess: TStrings): boolean;
+    function SearchMess(Criteria: string; const FoundMess: TStrings): Boolean;
 
     {:Sets flags of message from current selected folder.}
-    FUNCTION SetFlagsMess(MessID: integer; Flags: string): boolean;
+    function SetFlagsMess(MessID: integer; Flags: string): Boolean;
 
     {:Gets flags of message from current selected folder.}
-    FUNCTION GetFlagsMess(MessID: integer; VAR Flags: string): boolean;
+    function GetFlagsMess(MessID: integer; var Flags: string): Boolean;
 
     {:Add flags to message's flags.}
-    FUNCTION AddFlagsMess(MessID: integer; Flags: string): boolean;
+    function AddFlagsMess(MessID: integer; Flags: string): Boolean;
 
     {:Remove flags from message's flags.}
-    FUNCTION DelFlagsMess(MessID: integer; Flags: string): boolean;
+    function DelFlagsMess(MessID: integer; Flags: string): Boolean;
 
     {:Call STARTTLS command for upgrade connection to SSL/TLS mode.}
-    FUNCTION StartTLS: boolean;
+    function StartTLS: Boolean;
 
     {:return UID of requested message ID.}
-    FUNCTION GetUID(MessID: integer; VAR uid : integer): boolean;
+    function GetUID(MessID: integer; var UID : Integer): Boolean;
 
     {:Try to find given capabily in capabilty string returned from IMAP server.}
-    FUNCTION FindCap(CONST value: string): string;
-  Published
+    function FindCap(const Value: string): string;
+  published
     {:Status line with result of last operation.}
-    PROPERTY resultString: string read FResultString;
+    property ResultString: string read FResultString;
 
     {:Full result of last IMAP operation.}
-    PROPERTY FullResult: TStringList read FFullResult;
+    property FullResult: TStringList read FFullResult;
 
     {:List of server capabilites.}
-    PROPERTY IMAPcap: TStringList read FIMAPcap;
+    property IMAPcap: TStringList read FIMAPcap;
 
     {:Authorization is successful done.}
-    PROPERTY AuthDone: boolean read FAuthDone;
+    property AuthDone: Boolean read FAuthDone;
 
     {:Turn on or off usage of UID (unicate identificator) of messages instead
      only sequence numbers.}
-    PROPERTY uid: boolean read FUID write FUID;
+    property UID: Boolean read FUID Write FUID;
 
     {:Name of currently selected folder.}
-    PROPERTY SelectedFolder: string read FSelectedFolder;
+    property SelectedFolder: string read FSelectedFolder;
 
     {:Count of messages in currently selected folder.}
-    PROPERTY SelectedCount: integer read FSelectedCount;
+    property SelectedCount: integer read FSelectedCount;
 
     {:Count of not-visited messages in currently selected folder.}
-    PROPERTY SelectedRecent: integer read FSelectedRecent;
+    property SelectedRecent: integer read FSelectedRecent;
 
     {:This number with name of folder is unique indentificator of folder.
-     (if someone Delete folder and next create new folder with exactly same name
+     (If someone delete folder and next create new folder with exactly same name
      of folder, this number is must be different!)}
-    PROPERTY SelectedUIDvalidity: integer read FSelectedUIDvalidity;
+    property SelectedUIDvalidity: integer read FSelectedUIDvalidity;
 
     {:If is set to true, then upgrade to SSL/TLS mode if remote server support it.}
-    PROPERTY AutoTLS: boolean read FAutoTLS write FAutoTLS;
+    property AutoTLS: Boolean read FAutoTLS Write FAutoTLS;
 
     {:SSL/TLS mode is used from first contact to server. Servers with full
      SSL/TLS mode usualy using non-standard TCP port!}
-    PROPERTY FullSSL: boolean read FFullSSL write FFullSSL;
+    property FullSSL: Boolean read FFullSSL Write FFullSSL;
 
     {:Socket object used for TCP/IP operation. Good for seting OnStatus hook, etc.}
-    PROPERTY Sock: TTCPBlockSocket read FSock;
+    property Sock: TTCPBlockSocket read FSock;
   end;
 
-IMPLEMENTATION
+implementation
 
-CONSTRUCTOR TIMAPSend.create;
+constructor TIMAPSend.Create;
 begin
-  inherited create;
-  FFullResult := TStringList.create;
-  FIMAPcap := TStringList.create;
-  FSock := TTCPBlockSocket.create;
+  inherited Create;
+  FFullResult := TStringList.Create;
+  FIMAPcap := TStringList.Create;
+  FSock := TTCPBlockSocket.Create;
   FSock.Owner := self;
-  FSock.ConvertLineEnd := true;
+  FSock.ConvertLineEnd := True;
   FSock.SizeRecvBuffer := 32768;
   FSock.SizeSendBuffer := 32768;
   FTimeout := 60000;
@@ -285,154 +285,154 @@ begin
   FSelectedCount := 0;
   FSelectedRecent := 0;
   FSelectedUIDvalidity := 0;
-  FUID := false;
-  FAutoTLS := false;
-  FFullSSL := false;
+  FUID := False;
+  FAutoTLS := False;
+  FFullSSL := False;
 end;
 
-DESTRUCTOR TIMAPSend.destroy;
+destructor TIMAPSend.Destroy;
 begin
-  FSock.free;
-  FIMAPcap.free;
-  FFullResult.free;
-  inherited destroy;
+  FSock.Free;
+  FIMAPcap.Free;
+  FFullResult.Free;
+  inherited Destroy;
 end;
 
 
-FUNCTION TIMAPSend.ReadResult: string;
-VAR
+function TIMAPSend.ReadResult: string;
+var
   s: string;
   x, l: integer;
 begin
-  result := '';
-  FFullResult.clear;
+  Result := '';
+  FFullResult.Clear;
   FResultString := '';
   repeat
     s := FSock.RecvString(FTimeout);
-    if pos('S' + intToStr(FTagCommand) + ' ', s) = 1 then
+    if Pos('S' + IntToStr(FTagCommand) + ' ', s) = 1 then
     begin
       FResultString := s;
       break;
     end
     else
-      FFullResult.add(s);
-    if (s <> '') and (s[length(s)]='}') then
+      FFullResult.Add(s);
+    if (s <> '') and (s[Length(s)]='}') then
     begin
-      s := copy(s, 1, length(s) - 1);
+      s := Copy(s, 1, Length(s) - 1);
       x := RPos('{', s);
-      s := copy(s, x + 1, length(s) - x);
-      l := strToIntDef(s, -1);
+      s := Copy(s, x + 1, Length(s) - x);
+      l := StrToIntDef(s, -1);
       if l <> -1 then
       begin
         s := FSock.RecvBufferStr(l, FTimeout);
-        FFullResult.add(s);
+        FFullResult.Add(s);
       end;
     end;
   until FSock.LastError <> 0;
-  s := trim(separateright(FResultString, ' '));
-  result:=uppercase(trim(separateleft(s, ' ')));
+  s := Trim(separateright(FResultString, ' '));
+  Result:=uppercase(Trim(separateleft(s, ' ')));
 end;
 
-PROCEDURE TIMAPSend.ProcessLiterals;
-VAR
+procedure TIMAPSend.ProcessLiterals;
+var
   l: TStringList;
   n, x: integer;
   b: integer;
   s: string;
 begin
-  l := TStringList.create;
+  l := TStringList.Create;
   try
-    l.assign(FFullResult);
-    FFullResult.clear;
+    l.Assign(FFullResult);
+    FFullResult.Clear;
     b := 0;
-    for n := 0 to l.count - 1 do
+    for n := 0 to l.Count - 1 do
     begin
       s := l[n];
       if b > 0 then
       begin
-        FFullResult[FFullresult.count - 1] :=
-          FFullResult[FFullresult.count - 1] + s;
+        FFullResult[FFullresult.Count - 1] :=
+          FFullResult[FFullresult.Count - 1] + s;
         inc(b);
         if b > 2 then
           b := 0;
       end
       else
       begin
-        if (s <> '') and (s[length(s)]='}') then
+        if (s <> '') and (s[Length(s)]='}') then
         begin
           x := RPos('{', s);
-          Delete(s, x, length(s) - x + 1);
+          Delete(s, x, Length(s) - x + 1);
           b := 1;
         end
         else
           b := 0;
-        FFullResult.add(s);
+        FFullResult.Add(s);
       end;
     end;
   finally
-    l.free;
+    l.Free;
   end;
 end;
 
-FUNCTION TIMAPSend.IMAPcommand(value: string): string;
+function TIMAPSend.IMAPcommand(Value: string): string;
 begin
-  inc(FTagCommand);
-  FSock.SendString('S' + intToStr(FTagCommand) + ' ' + value + CRLF);
-  result := ReadResult;
+  Inc(FTagCommand);
+  FSock.SendString('S' + IntToStr(FTagCommand) + ' ' + Value + CRLF);
+  Result := ReadResult;
 end;
 
-FUNCTION TIMAPSend.IMAPuploadCommand(value: string; CONST data:TStrings): string;
-VAR
+function TIMAPSend.IMAPuploadCommand(Value: string; const Data:TStrings): string;
+var
   l: integer;
 begin
-  inc(FTagCommand);
-  l := length(data.text);
-  FSock.SendString('S' + intToStr(FTagCommand) + ' ' + value + ' {'+ intToStr(l) + '}' + CRLF);
+  Inc(FTagCommand);
+  l := Length(Data.Text);
+  FSock.SendString('S' + IntToStr(FTagCommand) + ' ' + Value + ' {'+ IntToStr(l) + '}' + CRLF);
   FSock.RecvString(FTimeout);
-  FSock.SendString(data.text + CRLF);
-  result := ReadResult;
+  FSock.SendString(Data.Text + CRLF);
+  Result := ReadResult;
 end;
 
-PROCEDURE TIMAPSend.ParseMess(value:TStrings);
-VAR
+procedure TIMAPSend.ParseMess(Value:TStrings);
+var
   n: integer;
 begin
-  value.clear;
-  for n := 0 to FFullResult.count - 2 do
-    if (length(FFullResult[n]) > 0) and (FFullResult[n][length(FFullResult[n])] = '}') then
+  Value.Clear;
+  for n := 0 to FFullResult.Count - 2 do
+    if (length(FFullResult[n]) > 0) and (FFullResult[n][Length(FFullResult[n])] = '}') then
     begin
-      value.text := FFullResult[n + 1];
-      break;
+      Value.Text := FFullResult[n + 1];
+      Break;
     end;
 end;
 
-PROCEDURE TIMAPSend.ParseFolderList(value:TStrings);
-VAR
+procedure TIMAPSend.ParseFolderList(Value:TStrings);
+var
   n, x: integer;
   s: string;
 begin
   ProcessLiterals;
-  value.clear;
-  for n := 0 to FFullResult.count - 1 do
+  Value.Clear;
+  for n := 0 to FFullResult.Count - 1 do
   begin
     s := FFullResult[n];
-    if (s <> '') and (pos('\NOSELECT', uppercase(s)) = 0) then
+    if (s <> '') and (Pos('\NOSELECT', UpperCase(s)) = 0) then
     begin
-      if s[length(s)] = '"' then
+      if s[Length(s)] = '"' then
       begin
-        Delete(s, length(s), 1);
+        Delete(s, Length(s), 1);
         x := RPos('"', s);
       end
       else
         x := RPos(' ', s);
       if (x > 0) then
-        value.add(copy(s, x + 1, length(s) - x));
+        Value.Add(Copy(s, x + 1, Length(s) - x));
     end;
   end;
 end;
 
-PROCEDURE TIMAPSend.ParseSelect;
-VAR
+procedure TIMAPSend.ParseSelect;
+var
   n: integer;
   s, t: string;
 begin
@@ -440,70 +440,70 @@ begin
   FSelectedCount := 0;
   FSelectedRecent := 0;
   FSelectedUIDvalidity := 0;
-  for n := 0 to FFullResult.count - 1 do
+  for n := 0 to FFullResult.Count - 1 do
   begin
     s := uppercase(FFullResult[n]);
-    if pos(' EXISTS', s) > 0 then
+    if Pos(' EXISTS', s) > 0 then
     begin
-      t := trim(separateleft(s, ' EXISTS'));
-      t := trim(separateright(t, '* '));
-      FSelectedCount := strToIntDef(t, 0);
+      t := Trim(separateleft(s, ' EXISTS'));
+      t := Trim(separateright(t, '* '));
+      FSelectedCount := StrToIntDef(t, 0);
     end;
-    if pos(' RECENT', s) > 0 then
+    if Pos(' RECENT', s) > 0 then
     begin
-      t := trim(separateleft(s, ' RECENT'));
-      t := trim(separateright(t, '* '));
-      FSelectedRecent := strToIntDef(t, 0);
+      t := Trim(separateleft(s, ' RECENT'));
+      t := Trim(separateright(t, '* '));
+      FSelectedRecent := StrToIntDef(t, 0);
     end;
-    if pos('UIDVALIDITY', s) > 0 then
+    if Pos('UIDVALIDITY', s) > 0 then
     begin
-      t := trim(separateright(s, 'UIDVALIDITY '));
-      t := trim(separateleft(t, ']'));
-      FSelectedUIDvalidity := strToIntDef(t, 0);
+      t := Trim(separateright(s, 'UIDVALIDITY '));
+      t := Trim(separateleft(t, ']'));
+      FSelectedUIDvalidity := StrToIntDef(t, 0);
     end;
   end;
 end;
 
-PROCEDURE TIMAPSend.ParseSearch(value:TStrings);
-VAR
+procedure TIMAPSend.ParseSearch(Value:TStrings);
+var
   n: integer;
   s: string;
 begin
   ProcessLiterals;
-  value.clear;
-  for n := 0 to FFullResult.count - 1 do
+  Value.Clear;
+  for n := 0 to FFullResult.Count - 1 do
   begin
     s := uppercase(FFullResult[n]);
-    if pos('* SEARCH', s) = 1 then
+    if Pos('* SEARCH', s) = 1 then
     begin
-      s := trim(SeparateRight(s, '* SEARCH'));
+      s := Trim(SeparateRight(s, '* SEARCH'));
       while s <> '' do
-        value.add(Fetch(s, ' '));
+        Value.Add(Fetch(s, ' '));
     end;
   end;
 end;
 
-FUNCTION TIMAPSend.FindCap(CONST value: string): string;
-VAR
-  n: integer;
+function TIMAPSend.FindCap(const Value: string): string;
+var
+  n: Integer;
   s: string;
 begin
-  s := uppercase(value);
-  result := '';
-  for n := 0 to FIMAPcap.count - 1 do
-    if pos(s, uppercase(FIMAPcap[n])) = 1 then
+  s := UpperCase(Value);
+  Result := '';
+  for n := 0 to FIMAPcap.Count - 1 do
+    if Pos(s, UpperCase(FIMAPcap[n])) = 1 then
     begin
-      result := FIMAPcap[n];
-      break;
+      Result := FIMAPcap[n];
+      Break;
     end;
 end;
 
-FUNCTION TIMAPSend.AuthLogin: boolean;
+function TIMAPSend.AuthLogin: Boolean;
 begin
-  result := IMAPcommand('LOGIN "' + FUsername + '" "' + FPassword + '"') = 'OK';
+  Result := IMAPcommand('LOGIN "' + FUsername + '" "' + FPassword + '"') = 'OK';
 end;
 
-FUNCTION TIMAPSend.Connect: boolean;
+function TIMAPSend.Connect: Boolean;
 begin
   FSock.CloseSocket;
   FSock.Bind(FIPInterface, cAnyPort);
@@ -512,356 +512,356 @@ begin
   if FSock.LastError = 0 then
     if FFullSSL then
       FSock.SSLDoConnect;
-  result := FSock.LastError = 0;
+  Result := FSock.LastError = 0;
 end;
 
-FUNCTION TIMAPSend.Capability: boolean;
-VAR
-  n: integer;
+function TIMAPSend.Capability: Boolean;
+var
+  n: Integer;
   s, t: string;
 begin
-  result := false;
-  FIMAPcap.clear;
+  Result := False;
+  FIMAPcap.Clear;
   s := IMAPcommand('CAPABILITY');
   if s = 'OK' then
   begin
     ProcessLiterals;
-    for n := 0 to FFullResult.count - 1 do
-      if pos('* CAPABILITY ', FFullResult[n]) = 1 then
+    for n := 0 to FFullResult.Count - 1 do
+      if Pos('* CAPABILITY ', FFullResult[n]) = 1 then
       begin
-        s := trim(SeparateRight(FFullResult[n], '* CAPABILITY '));
+        s := Trim(SeparateRight(FFullResult[n], '* CAPABILITY '));
         while not (s = '') do
         begin
-          t := trim(separateleft(s, ' '));
-          s := trim(separateright(s, ' '));
+          t := Trim(separateleft(s, ' '));
+          s := Trim(separateright(s, ' '));
           if s = t then
             s := '';
-          FIMAPcap.add(t);
+          FIMAPcap.Add(t);
         end;
       end;
-    result := true;
+    Result := True;
   end;
 end;
 
-FUNCTION TIMAPSend.Login: boolean;
-VAR
+function TIMAPSend.Login: Boolean;
+var
   s: string;
 begin
   FSelectedFolder := '';
   FSelectedCount := 0;
   FSelectedRecent := 0;
   FSelectedUIDvalidity := 0;
-  result := false;
-  FAuthDone := false;
+  Result := False;
+  FAuthDone := False;
   if not Connect then
-    exit;
+    Exit;
   s := FSock.RecvString(FTimeout);
-  if pos('* PREAUTH', s) = 1 then
-    FAuthDone := true
+  if Pos('* PREAUTH', s) = 1 then
+    FAuthDone := True
   else
-    if pos('* OK', s) = 1 then
-      FAuthDone := false
+    if Pos('* OK', s) = 1 then
+      FAuthDone := False
     else
-      exit;
+      Exit;
   if Capability then
   begin
     if Findcap('IMAP4rev1') = '' then
-      exit;
+      Exit;
     if FAutoTLS and (Findcap('STARTTLS') <> '') then
       if StartTLS then
         Capability;
   end;
-  result := AuthLogin;
+  Result := AuthLogin;
 end;
 
-FUNCTION TIMAPSend.Logout: boolean;
+function TIMAPSend.Logout: Boolean;
 begin
-  result := IMAPcommand('LOGOUT') = 'OK';
+  Result := IMAPcommand('LOGOUT') = 'OK';
   FSelectedFolder := '';
   FSock.CloseSocket;
 end;
 
-FUNCTION TIMAPSend.NoOp: boolean;
+function TIMAPSend.NoOp: Boolean;
 begin
-  result := IMAPcommand('NOOP') = 'OK';
+  Result := IMAPcommand('NOOP') = 'OK';
 end;
 
-FUNCTION TIMAPSend.list(FromFolder: string; CONST FolderList: TStrings): boolean;
+function TIMAPSend.List(FromFolder: string; const FolderList: TStrings): Boolean;
 begin
-  result := IMAPcommand('LIST "' + FromFolder + '" *') = 'OK';
+  Result := IMAPcommand('LIST "' + FromFolder + '" *') = 'OK';
   ParseFolderList(FolderList);
 end;
 
-FUNCTION TIMAPSend.ListSearch(FromFolder, Search: string; CONST FolderList: TStrings): boolean;
+function TIMAPSend.ListSearch(FromFolder, Search: string; const FolderList: TStrings): Boolean;
 begin
-  result := IMAPcommand('LIST "' + FromFolder + '" "' + Search +'"') = 'OK';
+  Result := IMAPcommand('LIST "' + FromFolder + '" "' + Search +'"') = 'OK';
   ParseFolderList(FolderList);
 end;
 
-FUNCTION TIMAPSend.ListSubscribed(FromFolder: string; CONST FolderList: TStrings): boolean;
+function TIMAPSend.ListSubscribed(FromFolder: string; const FolderList: TStrings): Boolean;
 begin
-  result := IMAPcommand('LSUB "' + FromFolder + '" *') = 'OK';
+  Result := IMAPcommand('LSUB "' + FromFolder + '" *') = 'OK';
   ParseFolderList(FolderList);
 end;
 
-FUNCTION TIMAPSend.ListSearchSubscribed(FromFolder, Search: string; CONST FolderList: TStrings): boolean;
+function TIMAPSend.ListSearchSubscribed(FromFolder, Search: string; const FolderList: TStrings): Boolean;
 begin
-  result := IMAPcommand('LSUB "' + FromFolder + '" "' + Search +'"') = 'OK';
+  Result := IMAPcommand('LSUB "' + FromFolder + '" "' + Search +'"') = 'OK';
   ParseFolderList(FolderList);
 end;
 
-FUNCTION TIMAPSend.CreateFolder(FolderName: string): boolean;
+function TIMAPSend.CreateFolder(FolderName: string): Boolean;
 begin
-  result := IMAPcommand('CREATE "' + FolderName + '"') = 'OK';
+  Result := IMAPcommand('CREATE "' + FolderName + '"') = 'OK';
 end;
 
-FUNCTION TIMAPSend.DeleteFolder(FolderName: string): boolean;
+function TIMAPSend.DeleteFolder(FolderName: string): Boolean;
 begin
-  result := IMAPcommand('DELETE "' + FolderName + '"') = 'OK';
+  Result := IMAPcommand('DELETE "' + FolderName + '"') = 'OK';
 end;
 
-FUNCTION TIMAPSend.RenameFolder(FolderName, NewFolderName: string): boolean;
+function TIMAPSend.RenameFolder(FolderName, NewFolderName: string): Boolean;
 begin
-  result := IMAPcommand('RENAME "' + FolderName + '" "' + NewFolderName + '"') = 'OK';
+  Result := IMAPcommand('RENAME "' + FolderName + '" "' + NewFolderName + '"') = 'OK';
 end;
 
-FUNCTION TIMAPSend.SubscribeFolder(FolderName: string): boolean;
+function TIMAPSend.SubscribeFolder(FolderName: string): Boolean;
 begin
-  result := IMAPcommand('SUBSCRIBE "' + FolderName + '"') = 'OK';
+  Result := IMAPcommand('SUBSCRIBE "' + FolderName + '"') = 'OK';
 end;
 
-FUNCTION TIMAPSend.UnsubscribeFolder(FolderName: string): boolean;
+function TIMAPSend.UnsubscribeFolder(FolderName: string): Boolean;
 begin
-  result := IMAPcommand('UNSUBSCRIBE "' + FolderName + '"') = 'OK';
+  Result := IMAPcommand('UNSUBSCRIBE "' + FolderName + '"') = 'OK';
 end;
 
-FUNCTION TIMAPSend.SelectFolder(FolderName: string): boolean;
+function TIMAPSend.SelectFolder(FolderName: string): Boolean;
 begin
-  result := IMAPcommand('SELECT "' + FolderName + '"') = 'OK';
+  Result := IMAPcommand('SELECT "' + FolderName + '"') = 'OK';
   FSelectedFolder := FolderName;
   ParseSelect;
 end;
 
-FUNCTION TIMAPSend.SelectROFolder(FolderName: string): boolean;
+function TIMAPSend.SelectROFolder(FolderName: string): Boolean;
 begin
-  result := IMAPcommand('EXAMINE "' + FolderName + '"') = 'OK';
+  Result := IMAPcommand('EXAMINE "' + FolderName + '"') = 'OK';
   FSelectedFolder := FolderName;
   ParseSelect;
 end;
 
-FUNCTION TIMAPSend.CloseFolder: boolean;
+function TIMAPSend.CloseFolder: Boolean;
 begin
-  result := IMAPcommand('CLOSE') = 'OK';
+  Result := IMAPcommand('CLOSE') = 'OK';
   FSelectedFolder := '';
 end;
 
-FUNCTION TIMAPSend.StatusFolder(FolderName, value: string): integer;
-VAR
+function TIMAPSend.StatusFolder(FolderName, Value: string): integer;
+var
   n: integer;
   s, t: string;
 begin
-  result := -1;
-  value := uppercase(value);
-  if IMAPcommand('STATUS "' + FolderName + '" (' + value + ')' ) = 'OK' then
+  Result := -1;
+  Value := Uppercase(Value);
+  if IMAPcommand('STATUS "' + FolderName + '" (' + Value + ')' ) = 'OK' then
   begin
     ProcessLiterals;
-    for n := 0 to FFullResult.count - 1 do
+    for n := 0 to FFullResult.Count - 1 do
     begin
       s := FFullResult[n];
 //      s := UpperCase(FFullResult[n]);
-      if (pos('* ', s) = 1) and (pos(FolderName, s) >= 1) and (pos(value, s) > 0 ) then
+      if (Pos('* ', s) = 1) and (Pos(FolderName, s) >= 1) and (Pos(Value, s) > 0 ) then
       begin
-        t := SeparateRight(s, value);
+        t := SeparateRight(s, Value);
         t := SeparateLeft(t, ')');
         t := trim(t);
-        result := strToIntDef(t, -1);
-        break;
+        Result := StrToIntDef(t, -1);
+        Break;
       end;
     end;
   end;
 end;
 
-FUNCTION TIMAPSend.ExpungeFolder: boolean;
+function TIMAPSend.ExpungeFolder: Boolean;
 begin
-  result := IMAPcommand('EXPUNGE') = 'OK';
+  Result := IMAPcommand('EXPUNGE') = 'OK';
 end;
 
-FUNCTION TIMAPSend.CheckFolder: boolean;
+function TIMAPSend.CheckFolder: Boolean;
 begin
-  result := IMAPcommand('CHECK') = 'OK';
+  Result := IMAPcommand('CHECK') = 'OK';
 end;
 
-FUNCTION TIMAPSend.AppendMess(ToFolder: string; CONST Mess: TStrings): boolean;
+function TIMAPSend.AppendMess(ToFolder: string; const Mess: TStrings): Boolean;
 begin
-  result := IMAPuploadCommand('APPEND "' + ToFolder + '"', Mess) = 'OK';
+  Result := IMAPuploadCommand('APPEND "' + ToFolder + '"', Mess) = 'OK';
 end;
 
-FUNCTION TIMAPSend.DeleteMess(MessID: integer): boolean;
-VAR
+function TIMAPSend.DeleteMess(MessID: integer): boolean;
+var
   s: string;
 begin
-  s := 'STORE ' + intToStr(MessID) + ' +FLAGS.SILENT (\Deleted)';
+  s := 'STORE ' + IntToStr(MessID) + ' +FLAGS.SILENT (\Deleted)';
   if FUID then
     s := 'UID ' + s;
-  result := IMAPcommand(s) = 'OK';
+  Result := IMAPcommand(s) = 'OK';
 end;
 
-FUNCTION TIMAPSend.FetchMess(MessID: integer; CONST Mess: TStrings): boolean;
-VAR
+function TIMAPSend.FetchMess(MessID: integer; const Mess: TStrings): Boolean;
+var
   s: string;
 begin
-  s := 'FETCH ' + intToStr(MessID) + ' (RFC822)';
+  s := 'FETCH ' + IntToStr(MessID) + ' (RFC822)';
   if FUID then
     s := 'UID ' + s;
-  result := IMAPcommand(s) = 'OK';
+  Result := IMAPcommand(s) = 'OK';
   ParseMess(Mess);
 end;
 
-FUNCTION TIMAPSend.FetchHeader(MessID: integer; CONST Headers: TStrings): boolean;
-VAR
+function TIMAPSend.FetchHeader(MessID: integer; const Headers: TStrings): Boolean;
+var
   s: string;
 begin
-  s := 'FETCH ' + intToStr(MessID) + ' (RFC822.HEADER)';
+  s := 'FETCH ' + IntToStr(MessID) + ' (RFC822.HEADER)';
   if FUID then
     s := 'UID ' + s;
-  result := IMAPcommand(s) = 'OK';
+  Result := IMAPcommand(s) = 'OK';
   ParseMess(Headers);
 end;
 
-FUNCTION TIMAPSend.MessageSize(MessID: integer): integer;
-VAR
+function TIMAPSend.MessageSize(MessID: integer): integer;
+var
   n: integer;
   s, t: string;
 begin
-  result := -1;
-  s := 'FETCH ' + intToStr(MessID) + ' (RFC822.SIZE)';
+  Result := -1;
+  s := 'FETCH ' + IntToStr(MessID) + ' (RFC822.SIZE)';
   if FUID then
     s := 'UID ' + s;
   if IMAPcommand(s) = 'OK' then
   begin
     ProcessLiterals;
-    for n := 0 to FFullResult.count - 1 do
+    for n := 0 to FFullResult.Count - 1 do
     begin
-      s := uppercase(FFullResult[n]);
-      if (pos('* ', s) = 1) and (pos('RFC822.SIZE', s) > 0 ) then
+      s := UpperCase(FFullResult[n]);
+      if (Pos('* ', s) = 1) and (Pos('RFC822.SIZE', s) > 0 ) then
       begin
         t := SeparateRight(s, 'RFC822.SIZE ');
-        t := trim(SeparateLeft(t, ')'));
-        t := trim(SeparateLeft(t, ' '));
-        result := strToIntDef(t, -1);
-        break;
+        t := Trim(SeparateLeft(t, ')'));
+        t := Trim(SeparateLeft(t, ' '));
+        Result := StrToIntDef(t, -1);
+        Break;
       end;
     end;
   end;
 end;
 
-FUNCTION TIMAPSend.CopyMess(MessID: integer; ToFolder: string): boolean;
-VAR
+function TIMAPSend.CopyMess(MessID: integer; ToFolder: string): Boolean;
+var
   s: string;
 begin
-  s := 'COPY ' + intToStr(MessID) + ' "' + ToFolder + '"';
+  s := 'COPY ' + IntToStr(MessID) + ' "' + ToFolder + '"';
   if FUID then
     s := 'UID ' + s;
-  result := IMAPcommand(s) = 'OK';
+  Result := IMAPcommand(s) = 'OK';
 end;
 
-FUNCTION TIMAPSend.SearchMess(Criteria: string; CONST FoundMess: TStrings): boolean;
-VAR
+function TIMAPSend.SearchMess(Criteria: string; const FoundMess: TStrings): Boolean;
+var
   s: string;
 begin
   s := 'SEARCH ' + Criteria;
   if FUID then
     s := 'UID ' + s;
-  result := IMAPcommand(s) = 'OK';
+  Result := IMAPcommand(s) = 'OK';
   ParseSearch(FoundMess);
 end;
 
-FUNCTION TIMAPSend.SetFlagsMess(MessID: integer; Flags: string): boolean;
-VAR
+function TIMAPSend.SetFlagsMess(MessID: integer; Flags: string): Boolean;
+var
   s: string;
 begin
-  s := 'STORE ' + intToStr(MessID) + ' FLAGS.SILENT (' + Flags + ')';
+  s := 'STORE ' + IntToStr(MessID) + ' FLAGS.SILENT (' + Flags + ')';
   if FUID then
     s := 'UID ' + s;
-  result := IMAPcommand(s) = 'OK';
+  Result := IMAPcommand(s) = 'OK';
 end;
 
-FUNCTION TIMAPSend.AddFlagsMess(MessID: integer; Flags: string): boolean;
-VAR
+function TIMAPSend.AddFlagsMess(MessID: integer; Flags: string): Boolean;
+var
   s: string;
 begin
-  s := 'STORE ' + intToStr(MessID) + ' +FLAGS.SILENT (' + Flags + ')';
+  s := 'STORE ' + IntToStr(MessID) + ' +FLAGS.SILENT (' + Flags + ')';
   if FUID then
     s := 'UID ' + s;
-  result := IMAPcommand(s) = 'OK';
+  Result := IMAPcommand(s) = 'OK';
 end;
 
-FUNCTION TIMAPSend.DelFlagsMess(MessID: integer; Flags: string): boolean;
-VAR
+function TIMAPSend.DelFlagsMess(MessID: integer; Flags: string): Boolean;
+var
   s: string;
 begin
-  s := 'STORE ' + intToStr(MessID) + ' -FLAGS.SILENT (' + Flags + ')';
+  s := 'STORE ' + IntToStr(MessID) + ' -FLAGS.SILENT (' + Flags + ')';
   if FUID then
     s := 'UID ' + s;
-  result := IMAPcommand(s) = 'OK';
+  Result := IMAPcommand(s) = 'OK';
 end;
 
-FUNCTION TIMAPSend.GetFlagsMess(MessID: integer; VAR Flags: string): boolean;
-VAR
+function TIMAPSend.GetFlagsMess(MessID: integer; var Flags: string): Boolean;
+var
   s: string;
   n: integer;
 begin
   Flags := '';
-  s := 'FETCH ' + intToStr(MessID) + ' (FLAGS)';
+  s := 'FETCH ' + IntToStr(MessID) + ' (FLAGS)';
   if FUID then
     s := 'UID ' + s;
-  result := IMAPcommand(s) = 'OK';
+  Result := IMAPcommand(s) = 'OK';
   ProcessLiterals;
-  for n := 0 to FFullResult.count - 1 do
+  for n := 0 to FFullResult.Count - 1 do
   begin
     s := uppercase(FFullResult[n]);
-    if (pos('* ', s) = 1) and (pos('FLAGS', s) > 0 ) then
+    if (Pos('* ', s) = 1) and (Pos('FLAGS', s) > 0 ) then
     begin
       s := SeparateRight(s, 'FLAGS');
       s := Separateright(s, '(');
-      Flags := trim(SeparateLeft(s, ')'));
+      Flags := Trim(SeparateLeft(s, ')'));
     end;
   end;
 end;
 
-FUNCTION TIMAPSend.StartTLS: boolean;
+function TIMAPSend.StartTLS: Boolean;
 begin
-  result := false;
+  Result := False;
   if FindCap('STARTTLS') <> '' then
   begin
     if IMAPcommand('STARTTLS') = 'OK' then
     begin
       Fsock.SSLDoConnect;
-      result := FSock.LastError = 0;
+      Result := FSock.LastError = 0;
     end;
   end;
 end;
 
 //Paul Buskermolen <p.buskermolen@pinkroccade.com>
-FUNCTION TIMAPSend.GetUID(MessID: integer; VAR uid : integer): boolean;
-VAR
+function TIMAPSend.GetUID(MessID: integer; var UID : Integer): boolean;
+var
   s, sUid: string;
   n: integer;
 begin
   sUID := '';
-  s := 'FETCH ' + intToStr(MessID) + ' UID';
-  result := IMAPcommand(s) = 'OK';
+  s := 'FETCH ' + IntToStr(MessID) + ' UID';
+  Result := IMAPcommand(s) = 'OK';
   ProcessLiterals;
-  for n := 0 to FFullResult.count - 1 do
+  for n := 0 to FFullResult.Count - 1 do
   begin
     s := uppercase(FFullResult[n]);
-    if pos('FETCH (UID', s) >= 1 then
+    if Pos('FETCH (UID', s) >= 1 then
     begin
       s := Separateright(s, '(UID ');
-      sUID := trim(SeparateLeft(s, ')'));
+      sUID := Trim(SeparateLeft(s, ')'));
     end;
   end;
-  uid := strToIntDef(sUID, 0);
+  UID := StrToIntDef(sUID, 0);
 end;
 
 {==============================================================================}

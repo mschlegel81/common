@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.001.011 |
+| Project : Ararat Synapse                                       | 001.001.011 |
 |==============================================================================|
-| content: inline MIME support procedures and functions                        |
+| Content: Inline MIME support procedures and functions                        |
 |==============================================================================|
 | Copyright (c)1999-2006, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,32 +20,32 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2000-2006.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(Utilities for inline MIME)
-Support for inline MIME encoding and decoding.
+Support for Inline MIME encoding and decoding.
 
-used RFC: RFC-2047, RFC-2231
+Used RFC: RFC-2047, RFC-2231
 }
 
 {$IFDEF FPC}
@@ -58,91 +58,91 @@ used RFC: RFC-2047, RFC-2231
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT mimeinln;
+unit mimeinln;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes,
+uses
+  SysUtils, Classes,
   synachar, synacode, synautil;
 
 {:Decodes mime inline encoding (i.e. in headers) uses target characterset "CP".}
-FUNCTION InlineDecode(CONST value: string; CP: TMimeChar): string;
+function InlineDecode(const Value: string; CP: TMimeChar): string;
 
 {:Encodes string to MIME inline encoding. The source characterset is "CP", and
- the target charSet is "MimeP".}
-FUNCTION InlineEncode(CONST value: string; CP, MimeP: TMimeChar): string;
+ the target charset is "MimeP".}
+function InlineEncode(const Value: string; CP, MimeP: TMimeChar): string;
 
 {:Returns @true, if "Value" contains characters needed for inline coding.}
-FUNCTION NeedInline(CONST value: ansistring): boolean;
+function NeedInline(const Value: AnsiString): boolean;
 
 {:Inline mime encoding similar to @link(InlineEncode), but you can specify
- Source charSet, and the target characterset is automatically assigned.}
-FUNCTION InlineCodeEx(CONST value: string; FromCP: TMimeChar): string;
+ source charset, and the target characterset is automatically assigned.}
+function InlineCodeEx(const Value: string; FromCP: TMimeChar): string;
 
 {:Inline MIME encoding similar to @link(InlineEncode), but the source charset
- is automatically set to the system default charSet, and the target charSet is
+ is automatically set to the system default charset, and the target charset is
  automatically assigned from set of allowed encoding for MIME.}
-FUNCTION InlineCode(CONST value: string): string;
+function InlineCode(const Value: string): string;
 
 {:Converts e-mail address to canonical mime form. You can specify source charset.}
-FUNCTION InlineEmailEx(CONST value: string; FromCP: TMimeChar): string;
+function InlineEmailEx(const Value: string; FromCP: TMimeChar): string;
 
 {:Converts e-mail address to canonical mime form. Source charser it system
- default charSet.}
-FUNCTION InlineEmail(CONST value: string): string;
+ default charset.}
+function InlineEmail(const Value: string): string;
 
-IMPLEMENTATION
+implementation
 
 {==============================================================================}
 
-FUNCTION InlineDecode(CONST value: string; CP: TMimeChar): string;
-VAR
+function InlineDecode(const Value: string; CP: TMimeChar): string;
+var
   s, su, v: string;
-  x, y, z, n: integer;
+  x, y, z, n: Integer;
   ichar: TMimeChar;
-  c: char;
+  c: Char;
 
-  FUNCTION SearchEndInline(CONST value: string; be: integer): integer;
-  VAR
-    n, q: integer;
+  function SearchEndInline(const Value: string; be: Integer): Integer;
+  var
+    n, q: Integer;
   begin
     q := 0;
-    result := 0;
-    for n := be + 2 to length(value) - 1 do
-      if value[n] = '?' then
+    Result := 0;
+    for n := be + 2 to Length(Value) - 1 do
+      if Value[n] = '?' then
       begin
-        inc(q);
-        if (q > 2) and (value[n + 1] = '=') then
+        Inc(q);
+        if (q > 2) and (Value[n + 1] = '=') then
         begin
-          result := n;
-          break;
+          Result := n;
+          Break;
         end;
       end;
   end;
 
 begin
-  result := '';
-  v := value;
-  x := pos('=?', v);
+  Result := '';
+  v := Value;
+  x := Pos('=?', v);
   y := SearchEndInline(v, x);
   //fix for broken coding with begin, but not with end.
   if (x > 0) and (y <= 0) then
-    y := length(result);
+    y := Length(Result);
   while (y > x) and (x > 0) do
   begin
-    s := copy(v, 1, x - 1);
-    if trim(s) <> '' then
-      result := result + s;
-    s := copy(v, x, y - x + 2);
+    s := Copy(v, 1, x - 1);
+    if Trim(s) <> '' then
+      Result := Result + s;
+    s := Copy(v, x, y - x + 2);
     Delete(v, 1, y + 1);
-    su := copy(s, 3, length(s) - 4);
-    z := pos('?', su);
-    if (length(su) >= (z + 2)) and (su[z + 2] = '?') then
+    su := Copy(s, 3, Length(s) - 4);
+    z := Pos('?', su);
+    if (Length(su) >= (z + 2)) and (su[z + 2] = '?') then
     begin
-      ichar := GetCPFromID(SeparateLeft(copy(su, 1, z - 1), '*'));
-      c := uppercase(su)[z + 1];
-      su := copy(su, z + 3, length(su) - z - 2);
+      ichar := GetCPFromID(SeparateLeft(Copy(su, 1, z - 1), '*'));
+      c := UpperCase(su)[z + 1];
+      su := Copy(su, z + 3, Length(su) - z - 2);
       if c = 'B' then
       begin
         s := DecodeBase64(su);
@@ -151,7 +151,7 @@ begin
       if c = 'Q' then
       begin
         s := '';
-        for n := 1 to length(su) do
+        for n := 1 to Length(su) do
           if su[n] = '_' then
             s := s + ' '
           else
@@ -160,35 +160,35 @@ begin
         s := CharsetConversion(s, ichar, CP);
       end;
     end;
-    result := result + s;
-    x := pos('=?', v);
+    Result := Result + s;
+    x := Pos('=?', v);
     y := SearchEndInline(v, x);
   end;
-  result := result + v;
+  Result := Result + v;
 end;
 
 {==============================================================================}
 
-FUNCTION InlineEncode(CONST value: string; CP, MimeP: TMimeChar): string;
-VAR
+function InlineEncode(const Value: string; CP, MimeP: TMimeChar): string;
+var
   s, s1, e: string;
-  n: integer;
+  n: Integer;
 begin
-  s := CharsetConversion(value, CP, MimeP);
+  s := CharsetConversion(Value, CP, MimeP);
   s := EncodeSafeQuotedPrintable(s);
   e := GetIdFromCP(MimeP);
   s1 := '';
-  result := '';
-  for n := 1 to length(s) do
+  Result := '';
+  for n := 1 to Length(s) do
     if s[n] = ' ' then
     begin
 //      s1 := s1 + '=20';
       s1 := s1 + '_';
-      if length(s1) > 32 then
+      if Length(s1) > 32 then
       begin
-        if result <> '' then
-          result := result + ' ';
-        result := result + '=?' + e + '?Q?' + s1 + '?=';
+        if Result <> '' then
+          Result := Result + ' ';
+        Result := Result + '=?' + e + '?Q?' + s1 + '?=';
         s1 := '';
       end;
     end
@@ -196,68 +196,68 @@ begin
       s1 := s1 + s[n];
   if s1 <> '' then
   begin
-    if result <> '' then
-      result := result + ' ';
-    result := result + '=?' + e + '?Q?' + s1 + '?=';
+    if Result <> '' then
+      Result := Result + ' ';
+    Result := Result + '=?' + e + '?Q?' + s1 + '?=';
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION NeedInline(CONST value: ansistring): boolean;
-VAR
-  n: integer;
+function NeedInline(const Value: AnsiString): boolean;
+var
+  n: Integer;
 begin
-  result := false;
-  for n := 1 to length(value) do
-    if value[n] in (SpecialChar + NonAsciiChar - ['_']) then
+  Result := False;
+  for n := 1 to Length(Value) do
+    if Value[n] in (SpecialChar + NonAsciiChar - ['_']) then
     begin
-      result := true;
-      break;
+      Result := True;
+      Break;
     end;
 end;
 
 {==============================================================================}
 
-FUNCTION InlineCodeEx(CONST value: string; FromCP: TMimeChar): string;
-VAR
+function InlineCodeEx(const Value: string; FromCP: TMimeChar): string;
+var
   c: TMimeChar;
 begin
-  if NeedInline(value) then
+  if NeedInline(Value) then
   begin
-    c := IdealCharsetCoding(value, FromCP, IdealCharsets);
-    result := InlineEncode(value, FromCP, c);
+    c := IdealCharsetCoding(Value, FromCP, IdealCharsets);
+    Result := InlineEncode(Value, FromCP, c);
   end
   else
-    result := value;
+    Result := Value;
 end;
 
 {==============================================================================}
 
-FUNCTION InlineCode(CONST value: string): string;
+function InlineCode(const Value: string): string;
 begin
-  result := InlineCodeEx(value, GetCurCP);
+  Result := InlineCodeEx(Value, GetCurCP);
 end;
 
 {==============================================================================}
 
-FUNCTION InlineEmailEx(CONST value: string; FromCP: TMimeChar): string;
-VAR
-  sd, SE: string;
+function InlineEmailEx(const Value: string; FromCP: TMimeChar): string;
+var
+  sd, se: string;
 begin
-  sd := GetEmailDesc(value);
-  SE := GetEmailAddr(value);
+  sd := GetEmailDesc(Value);
+  se := GetEmailAddr(Value);
   if sd = '' then
-    result := SE
+    Result := se
   else
-    result := '"' + InlineCodeEx(sd, FromCP) + '" <' + SE + '>';
+    Result := '"' + InlineCodeEx(sd, FromCP) + '" <' + se + '>';
 end;
 
 {==============================================================================}
 
-FUNCTION InlineEmail(CONST value: string): string;
+function InlineEmail(const Value: string): string;
 begin
-  result := InlineEmailEx(value, GetCurCP);
+  Result := InlineEmailEx(Value, GetCurCP);
 end;
 
 end.

@@ -14,7 +14,7 @@ TYPE
       CONSTRUCTOR create(CONST ip,port:string);
       DESTRUCTOR destroy;
       FUNCTION getRequest(CONST timeOutInMilliseconds:longint=100):ansistring;
-      PROCEDURE sendString(CONST s:ansistring);
+      PROCEDURE SendString(CONST s:ansistring);
       FUNCTION toString:ansistring;
   end;
 
@@ -23,7 +23,7 @@ TYPE
   P_customSocketListener=^T_customSocketListener;
   T_customSocketListener=object
     private
-      Socket:T_socketPair;
+      socket:T_socketPair;
       requestToResponseMapper:F_stringToString;
       killSignalled:boolean;
     public
@@ -96,7 +96,7 @@ FUNCTION customSocketListenerThread(p:pointer):ptrint;
 
 CONSTRUCTOR T_customSocketListener.create(CONST ipAndPort: string; CONST requestToResponseMapper_: F_stringToString);
   begin
-    Socket.create(ipAndPort);
+    socket.create(ipAndPort);
     requestToResponseMapper:=requestToResponseMapper_;
     killSignalled:=false;
     beginThread(@customSocketListenerThread,@self);
@@ -104,7 +104,7 @@ CONSTRUCTOR T_customSocketListener.create(CONST ipAndPort: string; CONST request
 
 DESTRUCTOR T_customSocketListener.destroy;
   begin
-    Socket.destroy;
+    socket.destroy;
   end;
 
 PROCEDURE T_customSocketListener.attend;
@@ -114,9 +114,9 @@ PROCEDURE T_customSocketListener.attend;
       sleepTime:longint=minSleepTime;
   begin
     repeat
-      request:=Socket.getRequest;
+      request:=socket.getRequest;
       if request<>'' then begin
-        Socket.SendString(requestToResponseMapper(request));
+        socket.SendString(requestToResponseMapper(request));
         sleepTime:=minSleepTime;
       end else begin
         sleep(sleepTime);
@@ -160,9 +160,9 @@ DESTRUCTOR T_socketPair.destroy;
 FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint): ansistring;
   VAR s:string;
   begin
-    if acceptingRequest then sendString(HTTP_404_RESPONSE);
+    if acceptingRequest then SendString(HTTP_404_RESPONSE);
     if not(ListenerSocket.canread(timeOutInMilliseconds)) then exit('');
-    ConnectionSocket.Socket := ListenerSocket.accept;
+    ConnectionSocket.socket := ListenerSocket.accept;
     acceptingRequest:=true;
     s := ConnectionSocket.RecvString(timeOutInMilliseconds);
     if s='' then exit('/');
@@ -174,7 +174,7 @@ FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint): ansistri
     until s = '';
   end;
 
-PROCEDURE T_socketPair.sendString(CONST s: ansistring);
+PROCEDURE T_socketPair.SendString(CONST s: ansistring);
   begin
     ConnectionSocket.SendString(s);
     ConnectionSocket.CloseSocket;

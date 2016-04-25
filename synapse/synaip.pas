@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.002.001 |
+| Project : Ararat Synapse                                       | 001.002.001 |
 |==============================================================================|
-| content: IP address support procedures and functions                         |
+| Content: IP address support procedures and functions                         |
 |==============================================================================|
 | Copyright (c)2006-2010, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,26 +20,26 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c) 2006-2010.               |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(IP adress support procedures and functions)}
@@ -57,195 +57,195 @@
   {$WARN SUSPICIOUS_TYPECAST OFF}
 {$ENDIF}
 
-UNIT synaip;
+unit synaip;
 
-INTERFACE
+interface
 
-USES
-  sysutils, SynaUtil;
+uses
+  SysUtils, SynaUtil;
 
-TYPE
+type
 {:binary form of IPv6 adress (for string conversion routines)}
-  TIp6Bytes = array [0..15] of byte;
+  TIp6Bytes = array [0..15] of Byte;
 {:binary form of IPv6 adress (for string conversion routines)}
-  TIp6Words = array [0..7] of word;
+  TIp6Words = array [0..7] of Word;
 
 {:Returns @TRUE, if "Value" is a valid IPv4 address. Cannot be a symbolic Name!}
-FUNCTION IsIP(CONST value: string): boolean;
+function IsIP(const Value: string): Boolean;
 
 {:Returns @TRUE, if "Value" is a valid IPv6 address. Cannot be a symbolic Name!}
-FUNCTION IsIP6(CONST value: string): boolean;
+function IsIP6(const Value: string): Boolean;
 
 {:Returns a string with the "Host" ip address converted to binary form.}
-FUNCTION IPToID(Host: string): ansistring;
+function IPToID(Host: string): Ansistring;
 
 {:Convert IPv6 address from their string form to binary byte array.}
-FUNCTION StrToIp6(value: string): TIp6Bytes;
+function StrToIp6(value: string): TIp6Bytes;
 
 {:Convert IPv6 address from binary byte array to string form.}
-FUNCTION Ip6ToStr(value: TIp6Bytes): string;
+function Ip6ToStr(value: TIp6Bytes): string;
 
 {:Convert IPv4 address from their string form to binary.}
-FUNCTION StrToIp(value: string): integer;
+function StrToIp(value: string): integer;
 
 {:Convert IPv4 address from binary to string form.}
-FUNCTION IpToStr(value: integer): string;
+function IpToStr(value: integer): string;
 
 {:Convert IPv4 address to reverse form.}
-FUNCTION ReverseIP(value: ansistring): ansistring;
+function ReverseIP(Value: AnsiString): AnsiString;
 
 {:Convert IPv6 address to reverse form.}
-FUNCTION ReverseIP6(value: ansistring): ansistring;
+function ReverseIP6(Value: AnsiString): AnsiString;
 
 {:Expand short form of IPv6 address to long form.}
-FUNCTION ExpandIP6(value: ansistring): ansistring;
+function ExpandIP6(Value: AnsiString): AnsiString;
 
 
-IMPLEMENTATION
+implementation
 
 {==============================================================================}
 
-FUNCTION IsIP(CONST value: string): boolean;
-VAR
+function IsIP(const Value: string): Boolean;
+var
   TempIP: string;
-  FUNCTION ByteIsOk(CONST value: string): boolean;
-  VAR
+  function ByteIsOk(const Value: string): Boolean;
+  var
     x, n: integer;
   begin
-    x := strToIntDef(value, -1);
-    result := (x >= 0) and (x < 256);
+    x := StrToIntDef(Value, -1);
+    Result := (x >= 0) and (x < 256);
     // X may be in correct range, but value still may not be correct value!
     // i.e. "$80"
-    if result then
-      for n := 1 to length(value) do
-        if not (AnsiChar(value[n]) in ['0'..'9']) then
+    if Result then
+      for n := 1 to length(Value) do
+        if not (AnsiChar(Value[n]) in ['0'..'9']) then
         begin
-          result := false;
-          break;
+          Result := False;
+          Break;
         end;
   end;
 begin
-  TempIP := value;
-  result := false;
+  TempIP := Value;
+  Result := False;
   if not ByteIsOk(Fetch(TempIP, '.')) then
-    exit;
+    Exit;
   if not ByteIsOk(Fetch(TempIP, '.')) then
-    exit;
+    Exit;
   if not ByteIsOk(Fetch(TempIP, '.')) then
-    exit;
+    Exit;
   if ByteIsOk(TempIP) then
-    result := true;
+    Result := True;
 end;
 
 {==============================================================================}
 
-FUNCTION IsIP6(CONST value: string): boolean;
-VAR
+function IsIP6(const Value: string): Boolean;
+var
   TempIP: string;
   s,t: string;
   x: integer;
   partcount: integer;
   zerocount: integer;
-  first: boolean;
+  First: Boolean;
 begin
-  TempIP := value;
-  result := false;
-  if value = '::' then
+  TempIP := Value;
+  Result := False;
+  if Value = '::' then
   begin
-    result := true;
-    exit;
+    Result := True;
+    Exit;
   end;
   partcount := 0;
   zerocount := 0;
-  first := true;
+  First := True;
   while tempIP <> '' do
   begin
     s := fetch(TempIP, ':');
-    if not(first) and (s = '') then
-      inc(zerocount);
-    first := false;
+    if not(First) and (s = '') then
+      Inc(zerocount);
+    First := False;
     if zerocount > 1 then
       break;
-    inc(partCount);
+    Inc(partCount);
     if s = '' then
-      continue;
+      Continue;
     if partCount > 8 then
       break;
     if tempIP = '' then
     begin
       t := SeparateRight(s, '%');
       s := SeparateLeft(s, '%');
-      x := strToIntDef('$' + t, -1);
-      if (x < 0) or (x > $FFFF) then
+      x := StrToIntDef('$' + t, -1);
+      if (x < 0) or (x > $ffff) then
         break;
     end;
-    x := strToIntDef('$' + s, -1);
-    if (x < 0) or (x > $FFFF) then
+    x := StrToIntDef('$' + s, -1);
+    if (x < 0) or (x > $ffff) then
       break;
     if tempIP = '' then
       if not((PartCount = 1) and (ZeroCount = 0)) then
-        result := true;
+        Result := True;
   end;
 end;
 
 {==============================================================================}
-FUNCTION IPToID(Host: string): ansistring;
-VAR
+function IPToID(Host: string): Ansistring;
+var
   s: string;
-  i, x: integer;
+  i, x: Integer;
 begin
-  result := '';
+  Result := '';
   for x := 0 to 3 do
   begin
     s := Fetch(Host, '.');
-    i := strToIntDef(s, 0);
-    result := result + AnsiChar(i);
+    i := StrToIntDef(s, 0);
+    Result := Result + AnsiChar(i);
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION StrToIp(value: string): integer;
-VAR
+function StrToIp(value: string): integer;
+var
   s: string;
-  i, x: integer;
+  i, x: Integer;
 begin
-  result := 0;
+  Result := 0;
   for x := 0 to 3 do
   begin
     s := Fetch(value, '.');
-    i := strToIntDef(s, 0);
-    result := (256 * result) + i;
+    i := StrToIntDef(s, 0);
+    Result := (256 * Result) + i;
   end;
 end;
 
 {==============================================================================}
 
-FUNCTION IpToStr(value: integer): string;
-VAR
+function IpToStr(value: integer): string;
+var
   x1, x2: word;
   y1, y2: byte;
 begin
-  result := '';
+  Result := '';
   x1 := value shr 16;
   x2 := value and $FFFF;
   y1 := x1 div $100;
   y2 := x1 mod $100;
-  result := intToStr(y1) + '.' + intToStr(y2) + '.';
+  Result := inttostr(y1) + '.' + inttostr(y2) + '.';
   y1 := x2 div $100;
   y2 := x2 mod $100;
-  result := result + intToStr(y1) + '.' + intToStr(y2);
+  Result := Result + inttostr(y1) + '.' + inttostr(y2);
 end;
 
 {==============================================================================}
 
-FUNCTION ExpandIP6(value: ansistring): ansistring;
-VAR
+function ExpandIP6(Value: AnsiString): AnsiString;
+var
  n: integer;
  s: ansistring;
  x: integer;
 begin
-  result := '';
+  Result := '';
   if value = '' then
     exit;
   x := countofchar(value, ':');
@@ -260,60 +260,60 @@ begin
   for n := 1 to x do
     s := s + ':0';
   s := s + ':';
-  result := replacestring(value, '::', s);
+  Result := replacestring(value, '::', s);
 end;
 {==============================================================================}
 
-FUNCTION StrToIp6(value: string): TIp6Bytes;
-VAR
+function StrToIp6(Value: string): TIp6Bytes;
+var
  IPv6: TIp6Words;
- index: integer;
+ Index: Integer;
  n: integer;
  b1, b2: byte;
  s: string;
  x: integer;
 begin
   for n := 0 to 15 do
-    result[n] := 0;
+    Result[n] := 0;
   for n := 0 to 7 do
     Ipv6[n] := 0;
-  index := 0;
-  value := ExpandIP6(value);
+  Index := 0;
+  Value := ExpandIP6(value);
   if value = '' then
     exit;
-  while value <> '' do
+  while Value <> '' do
   begin
-    if index > 7 then
-      exit;
+    if Index > 7 then
+      Exit;
     s := fetch(value, ':');
     if s = '@' then
       break;
     if s = '' then
     begin
-      IPv6[index] := 0;
+      IPv6[Index] := 0;
     end
     else
     begin
-      x := strToIntDef('$' + s, -1);
+      x := StrToIntDef('$' + s, -1);
       if (x > 65535) or (x < 0) then
-        exit;
-      IPv6[index] := x;
+        Exit;
+      IPv6[Index] := x;
     end;
-    inc(index);
+    Inc(Index);
   end;
   for n := 0 to 7 do
   begin
     b1 := ipv6[n] div 256;
     b2 := ipv6[n] mod 256;
-    result[n * 2] := b1;
-    result[(n * 2) + 1] := b2;
+    Result[n * 2] := b1;
+    Result[(n * 2) + 1] := b2;
   end;
 end;
 
 {==============================================================================}
 //based on routine by the Free Pascal development team
-FUNCTION Ip6ToStr(value: TIp6Bytes): string;
-VAR
+function Ip6ToStr(value: TIp6Bytes): string;
+var
   i, x: byte;
   zr1,zr2: set of byte;
   zc1,zc2: byte;
@@ -348,8 +348,8 @@ begin
   begin
     zr1 := zr2;
   end;
-  setLength(result, 8*5-1);
-  setLength(result, 0);
+  SetLength(Result, 8*5-1);
+  SetLength(Result, 0);
   have_skipped := false;
   for i := 0 to 7 do
   begin
@@ -357,13 +357,13 @@ begin
     begin
       if have_skipped then
       begin
-        if result = '' then
-          result := '::'
+        if Result = '' then
+          Result := '::'
         else
-          result := result + ':';
+          Result := Result + ':';
         have_skipped := false;
       end;
-      result := result + IntToHex(Ip6w[i], 1) + ':';
+      Result := Result + IntToHex(Ip6w[i], 1) + ':';
     end
     else
     begin
@@ -371,50 +371,50 @@ begin
     end;
   end;
   if have_skipped then
-    if result = '' then
-      result := '::0'
+    if Result = '' then
+      Result := '::0'
     else
-      result := result + ':';
+      Result := Result + ':';
 
-  if result = '' then
-    result := '::0';
+  if Result = '' then
+    Result := '::0';
   if not (7 in zr1) then
-    setLength(result, length(result)-1);
-  result := lowercase(result);
+    SetLength(Result, Length(Result)-1);
+  Result := LowerCase(result);
 end;
 
 {==============================================================================}
-FUNCTION ReverseIP(value: ansistring): ansistring;
-VAR
-  x: integer;
+function ReverseIP(Value: AnsiString): AnsiString;
+var
+  x: Integer;
 begin
-  result := '';
+  Result := '';
   repeat
-    x := LastDelimiter('.', value);
-    result := result + '.' + copy(value, x + 1, length(value) - x);
-    Delete(value, x, length(value) - x + 1);
+    x := LastDelimiter('.', Value);
+    Result := Result + '.' + Copy(Value, x + 1, Length(Value) - x);
+    Delete(Value, x, Length(Value) - x + 1);
   until x < 1;
-  if length(result) > 0 then
-    if result[1] = '.' then
-      Delete(result, 1, 1);
+  if Length(Result) > 0 then
+    if Result[1] = '.' then
+      Delete(Result, 1, 1);
 end;
 
 {==============================================================================}
-FUNCTION ReverseIP6(value: ansistring): ansistring;
-VAR
+function ReverseIP6(Value: AnsiString): AnsiString;
+var
   ip6: TIp6bytes;
   n: integer;
   x, y: integer;
 begin
-  ip6 := StrToIP6(value);
+  ip6 := StrToIP6(Value);
   x := ip6[15] div 16;
   y := ip6[15] mod 16;
-  result := IntToHex(y, 1) + '.' + IntToHex(x, 1);
+  Result := IntToHex(y, 1) + '.' + IntToHex(x, 1);
   for n := 14 downto 0 do
   begin
     x := ip6[n] div 16;
     y := ip6[n] mod 16;
-    result := result + '.' + IntToHex(y, 1) + '.' + IntToHex(x, 1);
+    Result := Result + '.' + IntToHex(y, 1) + '.' + IntToHex(x, 1);
   end;
 end;
 

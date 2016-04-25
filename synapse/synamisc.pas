@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.003.001 |
+| Project : Ararat Synapse                                       | 001.003.001 |
 |==============================================================================|
-| content: misc. procedures and functions                                      |
+| Content: misc. procedures and functions                                      |
 |==============================================================================|
 | Copyright (c)1999-2010, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,26 +20,26 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c) 2002-2010.               |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(Misc. network based utilities)}
@@ -64,9 +64,9 @@
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT synamisc;
+unit synamisc;
 
-INTERFACE
+interface
 
 {$IFDEF VER125}
   {$DEFINE BCB}
@@ -76,18 +76,18 @@ INTERFACE
   {$HPPEMIT '#pragma comment( lib , "wininet.lib" )'}
 {$ENDIF}
 
-USES
-  synautil, blcksock, sysutils, Classes
+uses
+  synautil, blcksock, SysUtils, Classes
 {$IFDEF UNIX}
   {$IFNDEF FPC}
   , Libc
   {$ENDIF}
 {$ELSE}
-  , windows
+  , Windows
 {$ENDIF}
 ;
 
-TYPE
+Type
   {:@abstract(This record contains information about proxy setting.)}
   TProxySetting = record
     Host: string;
@@ -97,60 +97,60 @@ TYPE
 
 {:By this function you can turn-on computer on network, if this computer
  supporting Wake-on-lan feature. You need MAC number (network card indentifier)
- of computer for turn-on. You can also assign target IP addres. if you not
+ of computer for turn-on. You can also assign target IP addres. If you not
  specify it, then is used broadcast for delivery magic wake-on packet. However
  broadcasts workinh only on your local network. When you need to wake-up
  computer on another network, you must specify any existing IP addres on same
  network segment as targeting computer.}
-PROCEDURE WakeOnLan(MAC, IP: string);
+procedure WakeOnLan(MAC, IP: string);
 
 {:Autodetect current DNS servers used by system. If is defined more then one DNS
- Server, then result is comma-delimited.}
-FUNCTION GetDNS: string;
+ server, then result is comma-delimited.}
+function GetDNS: string;
 
 {:Autodetect InternetExplorer proxy setting for given protocol. This function
 working only on windows!}
-FUNCTION GetIEProxy(protocol: string): TProxySetting;
+function GetIEProxy(protocol: string): TProxySetting;
 
 {:Return all known IP addresses on local system. Addresses are divided by comma.}
-FUNCTION GetLocalIPs: string;
+function GetLocalIPs: string;
 
-IMPLEMENTATION
+implementation
 
 {==============================================================================}
-PROCEDURE WakeOnLan(MAC, IP: string);
-VAR
+procedure WakeOnLan(MAC, IP: string);
+var
   sock: TUDPBlockSocket;
-  HexMac: ansistring;
-  data: ansistring;
+  HexMac: Ansistring;
+  data: Ansistring;
   n: integer;
-  b: byte;
+  b: Byte;
 begin
   if MAC <> '' then
   begin
     MAC := ReplaceString(MAC, '-', '');
     MAC := ReplaceString(MAC, ':', '');
-    if length(MAC) < 12 then
-      exit;
+    if Length(MAC) < 12 then
+      Exit;
     HexMac := '';
     for n := 0 to 5 do
     begin
-      b := strToIntDef('$' + MAC[n * 2 + 1] + MAC[n * 2 + 2], 0);
+      b := StrToIntDef('$' + MAC[n * 2 + 1] + MAC[n * 2 + 2], 0);
       HexMac := HexMac + char(b);
     end;
     if IP = '' then
       IP := cBroadcast;
-    sock := TUDPBlockSocket.create;
+    sock := TUDPBlockSocket.Create;
     try
       sock.CreateSocket;
       sock.EnableBroadcast(true);
       sock.Connect(IP, '9');
-      data := #$ff + #$ff + #$ff + #$ff + #$ff + #$ff;
+      data := #$FF + #$FF + #$FF + #$FF + #$FF + #$FF;
       for n := 1 to 16 do
         data := data + HexMac;
       sock.SendString(data);
     finally
-      sock.free;
+      sock.Free;
     end;
   end;
 end;
@@ -158,16 +158,16 @@ end;
 {==============================================================================}
 
 {$IFNDEF UNIX}
-FUNCTION GetDNSbyIpHlp: string;
-TYPE
+function GetDNSbyIpHlp: string;
+type
   PTIP_ADDRESS_STRING = ^TIP_ADDRESS_STRING;
   TIP_ADDRESS_STRING = array[0..15] of Ansichar;
   PTIP_ADDR_STRING = ^TIP_ADDR_STRING;
   TIP_ADDR_STRING = packed record
-    next: PTIP_ADDR_STRING;
+    Next: PTIP_ADDR_STRING;
     IpAddress: TIP_ADDRESS_STRING;
     IpMask: TIP_ADDRESS_STRING;
-    context: dword;
+    Context: DWORD;
   end;
   PTFixedInfo = ^TFixedInfo;
   TFixedInfo = packed record
@@ -181,197 +181,197 @@ TYPE
     EnableProxy: UINT;
     EnableDNS: UINT;
   end;
-CONST
+const
   IpHlpDLL = 'IPHLPAPI.DLL';
-VAR
+var
   IpHlpModule: THandle;
   FixedInfo: PTFixedInfo;
-  InfoSize: longint;
+  InfoSize: Longint;
   PDnsServer: PTIP_ADDR_STRING;
   err: integer;
-  GetNetworkParams: FUNCTION(FixedInfo: PTFixedInfo; pOutPutLen: PULONG): dword; stdcall;
+  GetNetworkParams: function(FixedInfo: PTFixedInfo; pOutPutLen: PULONG): DWORD; stdcall;
 begin
   InfoSize := 0;
-  result := '...';
+  Result := '...';
   IpHlpModule := LoadLibrary(IpHlpDLL);
   if IpHlpModule = 0 then
     exit;
   try
-    GetNetworkParams := GetProcAddress(IpHlpModule,PAnsiChar(ansistring('GetNetworkParams')));
+    GetNetworkParams := GetProcAddress(IpHlpModule,PAnsiChar(AnsiString('GetNetworkParams')));
     if @GetNetworkParams = nil then
-      exit;
-    err := GetNetworkParams(nil, @InfoSize);
+      Exit;
+    err := GetNetworkParams(Nil, @InfoSize);
     if err <> ERROR_BUFFER_OVERFLOW then
-      exit;
-    result := '';
-    getMem (FixedInfo, InfoSize);
+      Exit;
+    Result := '';
+    GetMem (FixedInfo, InfoSize);
     try
       err := GetNetworkParams(FixedInfo, @InfoSize);
       if err <> ERROR_SUCCESS then
         exit;
       with FixedInfo^ do
       begin
-        result := DnsServerList.IpAddress;
-        PDnsServer := DnsServerList.next;
-        while PDnsServer <> nil do
+        Result := DnsServerList.IpAddress;
+        PDnsServer := DnsServerList.Next;
+        while PDnsServer <> Nil do
         begin
-          if result <> '' then
-            result := result + ',';
-          result := result + PDnsServer^.IPAddress;
-          PDnsServer := PDnsServer.next;
+          if Result <> '' then
+            Result := Result + ',';
+          Result := Result + PDnsServer^.IPAddress;
+          PDnsServer := PDnsServer.Next;
         end;
     end;
     finally
-      freeMem(FixedInfo);
+      FreeMem(FixedInfo);
     end;
   finally
     FreeLibrary(IpHlpModule);
   end;
 end;
 
-FUNCTION ReadReg(SubKey, Vn: PChar): string;
-VAR
+function ReadReg(SubKey, Vn: PChar): string;
+var
  OpenKey: HKEY;
  DataType, DataSize: integer;
- temp: array [0..2048] of char;
+ Temp: array [0..2048] of char;
 begin
-  result := '';
+  Result := '';
   if RegOpenKeyEx(HKEY_LOCAL_MACHINE, SubKey, REG_OPTION_NON_VOLATILE,
     KEY_READ, OpenKey) = ERROR_SUCCESS then
   begin
     DataType := REG_SZ;
-    DataSize := sizeOf(temp);
-    if RegQueryValueEx(OpenKey, Vn, nil, @DataType, @temp, @DataSize) = ERROR_SUCCESS then
-      SetString(result, temp, DataSize div sizeOf(char) - 1);
+    DataSize := SizeOf(Temp);
+    if RegQueryValueEx(OpenKey, Vn, nil, @DataType, @Temp, @DataSize) = ERROR_SUCCESS then
+      SetString(Result, Temp, DataSize div SizeOf(Char) - 1);
     RegCloseKey(OpenKey);
    end;
 end ;
 {$ENDIF}
 
-FUNCTION GetDNS: string;
+function GetDNS: string;
 {$IFDEF UNIX}
-VAR
+var
   l: TStringList;
   n: integer;
 begin
-  result := '';
-  l := TStringList.create;
+  Result := '';
+  l := TStringList.Create;
   try
-    l.loadFromFile('/etc/resolv.conf');
-    for n := 0 to l.count - 1 do
-      if pos('NAMESERVER', uppercase(l[n])) = 1 then
+    l.LoadFromFile('/etc/resolv.conf');
+    for n := 0 to l.Count - 1 do
+      if Pos('NAMESERVER', uppercase(l[n])) = 1 then
       begin
-        if result <> '' then
-          result := result + ',';
-        result := result + SeparateRight(l[n], ' ');
+        if Result <> '' then
+          Result := Result + ',';
+        Result := Result + SeparateRight(l[n], ' ');
       end;
   finally
-    l.free;
+    l.Free;
   end;
 end;
 {$ELSE}
-CONST
+const
   NTdyn = 'System\CurrentControlSet\Services\Tcpip\Parameters\Temporary';
   NTfix = 'System\CurrentControlSet\Services\Tcpip\Parameters';
   W9xfix = 'System\CurrentControlSet\Services\MSTCP';
 begin
-  result := GetDNSbyIpHlp;
-  if result = '...' then
+  Result := GetDNSbyIpHlp;
+  if Result = '...' then
   begin
     if Win32Platform = VER_PLATFORM_WIN32_NT then
     begin
-      result := ReadReg(NTdyn, 'NameServer');
+      Result := ReadReg(NTdyn, 'NameServer');
       if result = '' then
-        result := ReadReg(NTfix, 'NameServer');
+        Result := ReadReg(NTfix, 'NameServer');
       if result = '' then
-        result := ReadReg(NTfix, 'DhcpNameServer');
+        Result := ReadReg(NTfix, 'DhcpNameServer');
     end
     else
-      result := ReadReg(W9xfix, 'NameServer');
-    result := ReplaceString(trim(result), ' ', ',');
+      Result := ReadReg(W9xfix, 'NameServer');
+    Result := ReplaceString(trim(Result), ' ', ',');
   end;
 end;
 {$ENDIF}
 
 {==============================================================================}
 
-FUNCTION GetIEProxy(protocol: string): TProxySetting;
+function GetIEProxy(protocol: string): TProxySetting;
 {$IFDEF UNIX}
 begin
-  result.Host := '';
-  result.Port := '';
-  result.Bypass := '';
+  Result.Host := '';
+  Result.Port := '';
+  Result.Bypass := '';
 end;
 {$ELSE}
-TYPE
+type
   PInternetProxyInfo = ^TInternetProxyInfo;
   TInternetProxyInfo = packed record
-    dwAccessType: dword;
+    dwAccessType: DWORD;
     lpszProxy: LPCSTR;
     lpszProxyBypass: LPCSTR;
   end;
-CONST
+const
   INTERNET_OPTION_PROXY = 38;
   INTERNET_OPEN_TYPE_PROXY = 3;
   WininetDLL = 'WININET.DLL';
-VAR
+var
   WininetModule: THandle;
   ProxyInfo: PInternetProxyInfo;
-  Err: boolean;
-  len: dword;
+  Err: Boolean;
+  Len: DWORD;
   Proxy: string;
   DefProxy: string;
   ProxyList: TStringList;
   n: integer;
-  InternetQueryOption: FUNCTION (hInet: pointer; dwOption: dword;
-    lpBuffer: pointer; VAR lpdwBufferLength: dword): BOOL; stdcall;
+  InternetQueryOption: function (hInet: Pointer; dwOption: DWORD;
+    lpBuffer: Pointer; var lpdwBufferLength: DWORD): BOOL; stdcall;
 begin
-  result.Host := '';
-  result.Port := '';
-  result.Bypass := '';
+  Result.Host := '';
+  Result.Port := '';
+  Result.Bypass := '';
   WininetModule := LoadLibrary(WininetDLL);
   if WininetModule = 0 then
     exit;
   try
-    InternetQueryOption := GetProcAddress(WininetModule,PAnsiChar(ansistring('InternetQueryOptionA')));
+    InternetQueryOption := GetProcAddress(WininetModule,PAnsiChar(AnsiString('InternetQueryOptionA')));
     if @InternetQueryOption = nil then
-      exit;
+      Exit;
 
     if protocol = '' then
       protocol := 'http';
-    len := 4096;
-    getMem(ProxyInfo, len);
-    ProxyList := TStringList.create;
+    Len := 4096;
+    GetMem(ProxyInfo, Len);
+    ProxyList := TStringList.Create;
     try
-      Err := InternetQueryOption(nil, INTERNET_OPTION_PROXY, ProxyInfo, len);
+      Err := InternetQueryOption(nil, INTERNET_OPTION_PROXY, ProxyInfo, Len);
       if Err then
         if ProxyInfo^.dwAccessType = INTERNET_OPEN_TYPE_PROXY then
         begin
           ProxyList.CommaText := ReplaceString(ProxyInfo^.lpszProxy, ' ', ',');
           Proxy := '';
           DefProxy := '';
-          for n := 0 to ProxyList.count -1 do
+          for n := 0 to ProxyList.Count -1 do
           begin
-            if pos(lowercase(protocol) + '=', lowercase(ProxyList[n])) = 1 then
+            if Pos(lowercase(protocol) + '=', lowercase(ProxyList[n])) = 1 then
             begin
               Proxy := SeparateRight(ProxyList[n], '=');
               break;
             end;
-            if pos('=', ProxyList[n]) < 1 then
+            if Pos('=', ProxyList[n]) < 1 then
               DefProxy := ProxyList[n];
           end;
           if Proxy = '' then
             Proxy := DefProxy;
           if Proxy <> '' then
           begin
-            result.Host := trim(SeparateLeft(Proxy, ':'));
-            result.Port := trim(SeparateRight(Proxy, ':'));
+            Result.Host := Trim(SeparateLeft(Proxy, ':'));
+            Result.Port := Trim(SeparateRight(Proxy, ':'));
           end;
-          result.Bypass := ReplaceString(ProxyInfo^.lpszProxyBypass, ' ', ',');
+          Result.Bypass := ReplaceString(ProxyInfo^.lpszProxyBypass, ' ', ',');
         end;
     finally
-      ProxyList.free;
-      freeMem(ProxyInfo);
+      ProxyList.Free;
+      FreeMem(ProxyInfo);
     end;
   finally
     FreeLibrary(WininetModule);
@@ -381,23 +381,23 @@ end;
 
 {==============================================================================}
 
-FUNCTION GetLocalIPs: string;
-VAR
+function GetLocalIPs: string;
+var
   TcpSock: TTCPBlockSocket;
   ipList: TStringList;
 begin
-  result := '';
-  ipList := TStringList.create;
+  Result := '';
+  ipList := TStringList.Create;
   try
     TcpSock := TTCPBlockSocket.create;
     try
       TcpSock.ResolveNameToIP(TcpSock.LocalName, ipList);
-      result := ipList.CommaText;
+      Result := ipList.CommaText;
     finally
-      TcpSock.free;
+      TcpSock.Free;
     end;
   finally
-    ipList.free;
+    ipList.Free;
   end;
 end;
 

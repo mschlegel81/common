@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.000.006 |
+| Project : Ararat Synapse                                       | 001.000.006 |
 |==============================================================================|
-| content: SSL support by StreamSecII                                          |
+| Content: SSL support by StreamSecII                                          |
 |==============================================================================|
 | Copyright (c)1999-2005, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,48 +20,48 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2005.                     |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
-|   Henrick Hellström <henrick@streamsec.SE>                                   |
+|   Henrick Hellström <henrick@streamsec.se>                                   |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(SSL plugin for StreamSecII or OpenStreamSecII)
 
 StreamSecII is native pascal library, you not need any external libraries!
 
-You can tune lot of StreamSecII properties by using your GlobalServer. if you not
+You can tune lot of StreamSecII properties by using your GlobalServer. If you not
 using your GlobalServer, then this plugin create own TSimpleTLSInternalServer
 instance for each TCP connection. Formore information about GlobalServer usage
 refer StreamSecII documentation.
 
-if you are not using key and certificate by GlobalServer, then you can use
+If you are not using key and certificate by GlobalServer, then you can use
 properties of this plugin instead, but this have limited features and
 @link(TCustomSSL.KeyPassword) not working properly yet!
 
-for handling keys and certificates you can use this properties:
+For handling keys and certificates you can use this properties:
 @link(TCustomSSL.CertCAFile), @link(TCustomSSL.CertCA),
 @link(TCustomSSL.TrustCertificateFile), @link(TCustomSSL.TrustCertificate),
 @link(TCustomSSL.PrivateKeyFile), @link(TCustomSSL.PrivateKey),
 @link(TCustomSSL.CertificateFile), @link(TCustomSSL.Certificate),
-@link(TCustomSSL.PFXFile). for usage of this properties and for possible formats
+@link(TCustomSSL.PFXFile). For usage of this properties and for possible formats
 of keys and certificates refer to StreamSecII documentation.
 }
 
@@ -70,126 +70,126 @@ of keys and certificates refer to StreamSecII documentation.
 {$ENDIF}
 {$H+}
 
-UNIT ssl_streamsec;
+unit ssl_streamsec;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes,
+uses
+  SysUtils, Classes,
   blcksock, synsock, synautil, synacode,
   TlsInternalServer, TlsSynaSock, TlsConst, StreamSecII, Asn1, X509Base,
   SecUtils;
 
-TYPE
+type
   {:@exclude}
   TMyTLSSynSockSlave = class(TTLSSynSockSlave)
   protected
-    PROCEDURE SetMyTLSServer(CONST value: TCustomTLSInternalServer);
-    FUNCTION GetMyTLSServer: TCustomTLSInternalServer;
-  Published
-    PROPERTY MyTLSServer: TCustomTLSInternalServer read GetMyTLSServer write SetMyTLSServer;
+    procedure SetMyTLSServer(const Value: TCustomTLSInternalServer);
+    function GetMyTLSServer: TCustomTLSInternalServer;
+  published
+    property MyTLSServer: TCustomTLSInternalServer read GetMyTLSServer write SetMyTLSServer;
   end;
 
   {:@abstract(class implementing StreamSecII SSL plugin.)
-   instance of this class will be created for each @link(TTCPBlockSocket).
+   Instance of this class will be created for each @link(TTCPBlockSocket).
    You not need to create instance of this class, all is done by Synapse itself!}
   TSSLStreamSec = class(TCustomSSL)
   protected
     FSlave: TMyTLSSynSockSlave;
-    FIsServer: boolean;
+    FIsServer: Boolean;
     FTLSServer: TCustomTLSInternalServer;
-    FServerCreated: boolean;
-    FUNCTION SSLCheck: boolean;
-    FUNCTION init(Server:boolean): boolean;
-    FUNCTION DeInit: boolean;
-    FUNCTION Prepare(Server:boolean): boolean;
-    PROCEDURE NotTrustEvent(Sender: TObject; Cert: TASN1Struct; VAR ExplicitTrust: boolean);
-    FUNCTION X500StrToStr(CONST prefix: string; CONST value: TX500String): string;
-    FUNCTION X501NameToStr(CONST value: TX501Name): string;
-    FUNCTION GetCert: PASN1Struct;
+    FServerCreated: Boolean;
+    function SSLCheck: Boolean;
+    function Init(server:Boolean): Boolean;
+    function DeInit: Boolean;
+    function Prepare(server:Boolean): Boolean;
+    procedure NotTrustEvent(Sender: TObject; Cert: TASN1Struct; var ExplicitTrust: Boolean);
+    function X500StrToStr(const Prefix: string; const Value: TX500String): string;
+    function X501NameToStr(const Value: TX501Name): string;
+    function GetCert: PASN1Struct;
   public
-    CONSTRUCTOR create(CONST value: TTCPBlockSocket); override;
-    DESTRUCTOR destroy; override;
+    constructor Create(const Value: TTCPBlockSocket); override;
+    destructor Destroy; override;
     {:See @inherited}
-    FUNCTION LibVersion: string; override;
+    function LibVersion: String; override;
     {:See @inherited}
-    FUNCTION LibName: string; override;
+    function LibName: String; override;
     {:See @inherited and @link(ssl_streamsec) for more details.}
-    FUNCTION Connect: boolean; override;
+    function Connect: boolean; override;
     {:See @inherited and @link(ssl_streamsec) for more details.}
-    FUNCTION accept: boolean; override;
+    function Accept: boolean; override;
     {:See @inherited}
-    FUNCTION Shutdown: boolean; override;
+    function Shutdown: boolean; override;
     {:See @inherited}
-    FUNCTION BiShutdown: boolean; override;
+    function BiShutdown: boolean; override;
     {:See @inherited}
-    FUNCTION SendBuffer(buffer: TMemory; len: integer): integer; override;
+    function SendBuffer(Buffer: TMemory; Len: Integer): Integer; override;
     {:See @inherited}
-    FUNCTION RecvBuffer(buffer: TMemory; len: integer): integer; override;
+    function RecvBuffer(Buffer: TMemory; Len: Integer): Integer; override;
     {:See @inherited}
-    FUNCTION WaitingData: integer; override;
+    function WaitingData: Integer; override;
     {:See @inherited}
-    FUNCTION GetSSLVersion: string; override;
+    function GetSSLVersion: string; override;
     {:See @inherited}
-    FUNCTION GetPeerSubject: string; override;
+    function GetPeerSubject: string; override;
     {:See @inherited}
-    FUNCTION GetPeerIssuer: string; override;
+    function GetPeerIssuer: string; override;
     {:See @inherited}
-    FUNCTION GetPeerName: string; override;
+    function GetPeerName: string; override;
     {:See @inherited}
-    FUNCTION GetPeerFingerprint: string; override;
+    function GetPeerFingerprint: string; override;
     {:See @inherited}
-    FUNCTION GetCertInfo: string; override;
-  Published
+    function GetCertInfo: string; override;
+  published
     {:TLS server for tuning of StreamSecII.}
-    PROPERTY TLSServer: TCustomTLSInternalServer read FTLSServer write FTLSServer;
+    property TLSServer: TCustomTLSInternalServer read FTLSServer write FTLSServer;
   end;
 
-IMPLEMENTATION
+implementation
 
 {==============================================================================}
-PROCEDURE TMyTLSSynSockSlave.SetMyTLSServer(CONST value: TCustomTLSInternalServer);
+procedure TMyTLSSynSockSlave.SetMyTLSServer(const Value: TCustomTLSInternalServer);
 begin
-  TLSServer := value;
+  TLSServer := Value;
 end;
 
-FUNCTION TMyTLSSynSockSlave.GetMyTLSServer: TCustomTLSInternalServer;
+function TMyTLSSynSockSlave.GetMyTLSServer: TCustomTLSInternalServer;
 begin
-  result := TLSServer;
+  Result := TLSServer;
 end;
 
 {==============================================================================}
 
-CONSTRUCTOR TSSLStreamSec.create(CONST value: TTCPBlockSocket);
+constructor TSSLStreamSec.Create(const Value: TTCPBlockSocket);
 begin
-  inherited create(value);
+  inherited Create(Value);
   FSlave := nil;
-  FIsServer := false;
+  FIsServer := False;
   FTLSServer := nil;
 end;
 
-DESTRUCTOR TSSLStreamSec.destroy;
+destructor TSSLStreamSec.Destroy;
 begin
   DeInit;
-  inherited destroy;
+  inherited Destroy;
 end;
 
-FUNCTION TSSLStreamSec.LibVersion: string;
+function TSSLStreamSec.LibVersion: String;
 begin
-  result := 'StreamSecII';
+  Result := 'StreamSecII';
 end;
 
-FUNCTION TSSLStreamSec.LibName: string;
+function TSSLStreamSec.LibName: String;
 begin
-  result := 'ssl_streamsec';
+  Result := 'ssl_streamsec';
 end;
 
-FUNCTION TSSLStreamSec.SSLCheck: boolean;
+function TSSLStreamSec.SSLCheck: Boolean;
 begin
-  result := true;
+  Result := true;
   FLastErrorDesc := '';
   if not Assigned(FSlave) then
-    exit;
+    Exit;
   FLastError := FSlave.ErrorCode;
   if FLastError <> 0 then
   begin
@@ -197,18 +197,18 @@ begin
   end;
 end;
 
-PROCEDURE TSSLStreamSec.NotTrustEvent(Sender: TObject; Cert: TASN1Struct; VAR ExplicitTrust: boolean);
+procedure TSSLStreamSec.NotTrustEvent(Sender: TObject; Cert: TASN1Struct; var ExplicitTrust: Boolean);
 begin
   ExplicitTrust := true;
 end;
 
-FUNCTION TSSLStreamSec.init(Server:boolean): boolean;
-VAR
+function TSSLStreamSec.Init(server:Boolean): Boolean;
+var
   st: TMemoryStream;
   pass: ISecretKey;
   ws: WideString;
 begin
-  result := false;
+  Result := False;
   ws := FKeyPassword;
   pass := TSecretKey.CreateBmpStr(PWideChar(ws), length(ws));
   try
@@ -220,10 +220,10 @@ begin
       if Assigned(TLSInternalServer.GlobalServer) then
         FSlave.MyTLSServer := TLSInternalServer.GlobalServer
       else begin
-        FSlave.MyTLSServer := TSimpleTLSInternalServer.create(nil);
-        FServerCreated := true;
+        FSlave.MyTLSServer := TSimpleTLSInternalServer.Create(nil);
+        FServerCreated := True;
       end;
-    if Server then
+    if server then
       FSlave.MyTLSServer.ClientOrServer := cosServerSide
     else
       FSlave.MyTLSServer.ClientOrServer := cosClientSide;
@@ -231,21 +231,21 @@ begin
     begin
       FSlave.MyTLSServer.OnCertNotTrusted := NotTrustEvent;
     end;
-    FSlave.MyTLSServer.options.VerifyServerName := [];
-    FSlave.MyTLSServer.options.Export40Bit := prAllowed;
-    FSlave.MyTLSServer.options.Export56Bit := prAllowed;
-    FSlave.MyTLSServer.options.RequestClientCertificate := false;
-    FSlave.MyTLSServer.options.RequireClientCertificate := false;
-    if Server and FVerifyCert then
+    FSlave.MyTLSServer.Options.VerifyServerName := [];
+    FSlave.MyTLSServer.Options.Export40Bit := prAllowed;
+    FSlave.MyTLSServer.Options.Export56Bit := prAllowed;
+    FSlave.MyTLSServer.Options.RequestClientCertificate := False;
+    FSlave.MyTLSServer.Options.RequireClientCertificate := False;
+    if server and FVerifyCert then
     begin
-      FSlave.MyTLSServer.options.RequestClientCertificate := true;
-      FSlave.MyTLSServer.options.RequireClientCertificate := true;
+      FSlave.MyTLSServer.Options.RequestClientCertificate := True;
+      FSlave.MyTLSServer.Options.RequireClientCertificate := True;
     end;
     if FCertCAFile <> '' then
       FSlave.MyTLSServer.LoadRootCertsFromFile(CertCAFile);
     if FCertCA <> '' then
     begin
-      st := TMemoryStream.create;
+      st := TMemoryStream.Create;
       try
         WriteStrToStream(st, FCertCA);
         st.Seek(0, soFromBeginning);
@@ -258,7 +258,7 @@ begin
       FSlave.MyTLSServer.LoadTrustedCertsFromFile(FTrustCertificateFile);
     if FTrustCertificate <> '' then
     begin
-      st := TMemoryStream.create;
+      st := TMemoryStream.Create;
       try
         WriteStrToStream(st, FTrustCertificate);
         st.Seek(0, soFromBeginning);
@@ -272,7 +272,7 @@ begin
 //      FSlave.MyTLSServer.PrivateKeyRing.LoadPrivateKeyFromFile(FPrivateKeyFile, pass);
     if FPrivateKey <> '' then
     begin
-      st := TMemoryStream.create;
+      st := TMemoryStream.Create;
       try
         WriteStrToStream(st, FPrivateKey);
         st.Seek(0, soFromBeginning);
@@ -285,7 +285,7 @@ begin
       FSlave.MyTLSServer.LoadMyCertsFromFile(FCertificateFile);
     if FCertificate <> '' then
     begin
-      st := TMemoryStream.create;
+      st := TMemoryStream.Create;
       try
         WriteStrToStream(st, FCertificate);
         st.Seek(0, soFromBeginning);
@@ -296,243 +296,243 @@ begin
     end;
     if FPFXfile <> '' then
       FSlave.MyTLSServer.ImportFromPFX(FPFXfile, pass);
-    if Server and FServerCreated then
+    if server and FServerCreated then
     begin
-      FSlave.MyTLSServer.options.BulkCipherAES128 := prPrefer;
-      FSlave.MyTLSServer.options.BulkCipherAES256 := prAllowed;
-      FSlave.MyTLSServer.options.EphemeralECDHKeySize := ecs256;
-      FSlave.MyTLSServer.options.SignatureRSA := prPrefer;
-      FSlave.MyTLSServer.options.KeyAgreementRSA := prAllowed;
-      FSlave.MyTLSServer.options.KeyAgreementECDHE := prAllowed;
-      FSlave.MyTLSServer.options.KeyAgreementDHE := prPrefer;
+      FSlave.MyTLSServer.Options.BulkCipherAES128 := prPrefer;
+      FSlave.MyTLSServer.Options.BulkCipherAES256 := prAllowed;
+      FSlave.MyTLSServer.Options.EphemeralECDHKeySize := ecs256;
+      FSlave.MyTLSServer.Options.SignatureRSA := prPrefer;
+      FSlave.MyTLSServer.Options.KeyAgreementRSA := prAllowed;
+      FSlave.MyTLSServer.Options.KeyAgreementECDHE := prAllowed;
+      FSlave.MyTLSServer.Options.KeyAgreementDHE := prPrefer;
       FSlave.MyTLSServer.TLSSetupServer;
     end;
-    result := true;
+    Result := true;
   finally
     pass := nil;
   end;
 end;
 
-FUNCTION TSSLStreamSec.DeInit: boolean;
-VAR
+function TSSLStreamSec.DeInit: Boolean;
+var
   obj: TObject;
 begin
-  result := true;
+  Result := True;
   if assigned(FSlave) then
   begin
-    FSlave.close;
+    FSlave.Close;
     if FServerCreated then
       obj := FSlave.TLSServer
     else
       obj := nil;
-    FSlave.free;
-    obj.free;
+    FSlave.Free;
+    obj.Free;
     FSlave := nil;
   end;
   FSSLEnabled := false;
 end;
 
-FUNCTION TSSLStreamSec.Prepare(Server:boolean): boolean;
+function TSSLStreamSec.Prepare(server:Boolean): Boolean;
 begin
-  result := false;
+  Result := false;
   DeInit;
-  if init(Server) then
-    result := true
+  if Init(server) then
+    Result := true
   else
     DeInit;
 end;
 
-FUNCTION TSSLStreamSec.Connect: boolean;
+function TSSLStreamSec.Connect: boolean;
 begin
-  result := false;
+  Result := False;
   if FSocket.Socket = INVALID_SOCKET then
-    exit;
+    Exit;
   if Prepare(false) then
   begin
     FSlave.Open;
     SSLCheck;
     if FLastError <> 0 then
-      exit;
-    FSSLEnabled := true;
-    result := true;
+      Exit;
+    FSSLEnabled := True;
+    Result := True;
   end;
 end;
 
-FUNCTION TSSLStreamSec.accept: boolean;
+function TSSLStreamSec.Accept: boolean;
 begin
-  result := false;
+  Result := False;
   if FSocket.Socket = INVALID_SOCKET then
-    exit;
+    Exit;
   if Prepare(true) then
   begin
     FSlave.DoConnect;
     SSLCheck;
     if FLastError <> 0 then
-      exit;
-    FSSLEnabled := true;
-    result := true;
+      Exit;
+    FSSLEnabled := True;
+    Result := True;
   end;
 end;
 
-FUNCTION TSSLStreamSec.Shutdown: boolean;
+function TSSLStreamSec.Shutdown: boolean;
 begin
-  result := BiShutdown;
+  Result := BiShutdown;
 end;
 
-FUNCTION TSSLStreamSec.BiShutdown: boolean;
+function TSSLStreamSec.BiShutdown: boolean;
 begin
   DeInit;
-  result := true;
+  Result := True;
 end;
 
-FUNCTION TSSLStreamSec.SendBuffer(buffer: TMemory; len: integer): integer;
-VAR
+function TSSLStreamSec.SendBuffer(Buffer: TMemory; Len: Integer): Integer;
+var
   l: integer;
 begin
   l := len;
-  FSlave.SendBuf(buffer^, l, true);
-  result := l;
+  FSlave.SendBuf(Buffer^, l, true);
+  Result := l;
   SSLCheck;
 end;
 
-FUNCTION TSSLStreamSec.RecvBuffer(buffer: TMemory; len: integer): integer;
-VAR
+function TSSLStreamSec.RecvBuffer(Buffer: TMemory; Len: Integer): Integer;
+var
   l: integer;
 begin
-  l := len;
-  result := FSlave.ReceiveBuf(buffer^, l);
+  l := Len;
+  Result := FSlave.ReceiveBuf(Buffer^, l);
   SSLCheck;
 end;
 
-FUNCTION TSSLStreamSec.WaitingData: integer;
+function TSSLStreamSec.WaitingData: Integer;
 begin
-  result := 0;
+  Result := 0;
   while FSlave.Connected do begin
-    result := FSlave.ReceiveLength;
-    if result > 0 then
-      break;
-    sleep(1);
+    Result := FSlave.ReceiveLength;
+    if Result > 0 then
+      Break;
+    Sleep(1);
   end;
 end;
 
-FUNCTION TSSLStreamSec.GetSSLVersion: string;
+function TSSLStreamSec.GetSSLVersion: string;
 begin
-  result := 'SSLv3 or TLSv1';
+  Result := 'SSLv3 or TLSv1';
 end;
 
-FUNCTION TSSLStreamSec.GetCert: PASN1Struct;
+function TSSLStreamSec.GetCert: PASN1Struct;
 begin
   if FIsServer then
-    result := FSlave.GetClientCert
+    Result := FSlave.GetClientCert
   else
-    result := FSlave.GetServerCert;
+    Result := FSlave.GetServerCert;
 end;
 
-FUNCTION TSSLStreamSec.GetPeerSubject: string;
-VAR
+function TSSLStreamSec.GetPeerSubject: string;
+var
   XName: TX501Name;
   Cert: PASN1Struct;
 begin
-  result := '';
+  Result := '';
   Cert := GetCert;
   if Assigned(cert) then
   begin
     ExtractSubject(Cert^,XName, false);
-    result := X501NameToStr(XName);
+    Result := X501NameToStr(XName);
   end;
 end;
 
-FUNCTION TSSLStreamSec.GetPeerName: string;
-VAR
+function TSSLStreamSec.GetPeerName: string;
+var
   XName: TX501Name;
   Cert: PASN1Struct;
 begin
-  result := '';
+  Result := '';
   Cert := GetCert;
   if Assigned(cert) then
   begin
     ExtractSubject(Cert^,XName, false);
-    result := XName.commonName.Str;
+    Result := XName.commonName.Str;
   end;
 end;
 
-FUNCTION TSSLStreamSec.GetPeerIssuer: string;
-VAR
+function TSSLStreamSec.GetPeerIssuer: string;
+var
   XName: TX501Name;
   Cert: PASN1Struct;
 begin
-  result := '';
+  Result := '';
   Cert := GetCert;
   if Assigned(cert) then
   begin
     ExtractIssuer(Cert^, XName, false);
-    result := X501NameToStr(XName);
+    Result := X501NameToStr(XName);
   end;
 end;
 
-FUNCTION TSSLStreamSec.GetPeerFingerprint: string;
-VAR
+function TSSLStreamSec.GetPeerFingerprint: string;
+var
   Cert: PASN1Struct;
 begin
-  result := '';
+  Result := '';
   Cert := GetCert;
   if Assigned(cert) then
-    result := MD5(Cert.ContentAsOctetString);
+    Result := MD5(Cert.ContentAsOctetString);
 end;
 
-FUNCTION TSSLStreamSec.GetCertInfo: string;
-VAR
+function TSSLStreamSec.GetCertInfo: string;
+var
   Cert: PASN1Struct;
-  l: TStringList;
+  l: Tstringlist;
 begin
-  result := '';
+  Result := '';
   Cert := GetCert;
   if Assigned(cert) then
   begin
-    l := TStringList.create;
+    l := TStringList.Create;
     try
       Asn1.RenderAsText(cert^, l, true, true, true, 2);
-      result := l.text;
+      Result := l.Text;
     finally
       l.free;
     end;
   end;
 end;
 
-FUNCTION TSSLStreamSec.X500StrToStr(CONST prefix: string;
-  CONST value: TX500String): string;
+function TSSLStreamSec.X500StrToStr(const Prefix: string;
+  const Value: TX500String): string;
 begin
-  if value.Str = '' then
-    result := ''
+  if Value.Str = '' then
+    Result := ''
   else
-    result := '/' + prefix + '=' + value.Str;
+    Result := '/' + Prefix + '=' + Value.Str;
 end;
 
-FUNCTION TSSLStreamSec.X501NameToStr(CONST value: TX501Name): string;
+function TSSLStreamSec.X501NameToStr(const Value: TX501Name): string;
 begin
-  result := X500StrToStr('CN',value.commonName) +
-           X500StrToStr('C',value.countryName) +
-           X500StrToStr('L',value.localityName) +
-           X500StrToStr('ST',value.stateOrProvinceName) +
-           X500StrToStr('O',value.organizationName) +
-           X500StrToStr('OU',value.organizationalUnitName) +
-           X500StrToStr('T',value.title) +
-           X500StrToStr('N',value.name) +
-           X500StrToStr('G',value.givenName) +
-           X500StrToStr('I',value.initials) +
-           X500StrToStr('SN',value.surname) +
-           X500StrToStr('GQ',value.generationQualifier) +
-           X500StrToStr('DNQ',value.dnQualifier) +
-           X500StrToStr('E',value.emailAddress);
+  Result := X500StrToStr('CN',Value.commonName) +
+           X500StrToStr('C',Value.countryName) +
+           X500StrToStr('L',Value.localityName) +
+           X500StrToStr('ST',Value.stateOrProvinceName) +
+           X500StrToStr('O',Value.organizationName) +
+           X500StrToStr('OU',Value.organizationalUnitName) +
+           X500StrToStr('T',Value.title) +
+           X500StrToStr('N',Value.name) +
+           X500StrToStr('G',Value.givenName) +
+           X500StrToStr('I',Value.initials) +
+           X500StrToStr('SN',Value.surname) +
+           X500StrToStr('GQ',Value.generationQualifier) +
+           X500StrToStr('DNQ',Value.dnQualifier) +
+           X500StrToStr('E',Value.emailAddress);
 end;
 
 
 {==============================================================================}
 
-INITIALIZATION
+initialization
   SSLImplementation := TSSLStreamSec;
 
-FINALIZATION
+finalization
 
 end.
 

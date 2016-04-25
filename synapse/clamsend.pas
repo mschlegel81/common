@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.001.001 |
+| Project : Ararat Synapse                                       | 001.001.001 |
 |==============================================================================|
-| content: ClamAV-daemon Client                                                |
+| Content: ClamAV-daemon client                                                |
 |==============================================================================|
 | Copyright (c)2005-2010, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,31 +20,31 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2005-2010.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract( ClamAV-daemon client)
 
-This UNIT is capable to do antivirus scan of your data by TCP channel to ClamD
+This unit is capable to do antivirus scan of your data by TCP channel to ClamD
 daemon from ClamAV. See more about ClamAV on @LINK(http://www.clamav.net)
 }
 
@@ -59,21 +59,21 @@ daemon from ClamAV. See more about ClamAV on @LINK(http://www.clamav.net)
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT clamsend;
+unit clamsend;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes,
+uses
+  SysUtils, Classes,
   synsock, blcksock, synautil;
 
-CONST
+const
   cClamProtocol = '3310';
 
-TYPE
+type
 
   {:@abstract(Implementation of ClamAV-daemon client protocol)
-   by this class you can scan any your data by ClamAV opensource antivirus.
+   By this class you can scan any your data by ClamAV opensource antivirus.
 
    This class can connect to ClamD by TCP channel, send your data to ClamD
    and read result.}
@@ -82,158 +82,158 @@ TYPE
     FSock: TTCPBlockSocket;
     FDSock: TTCPBlockSocket;
     FSession: boolean;
-    FUNCTION Login: boolean; virtual;
-    FUNCTION Logout: boolean; virtual;
-    FUNCTION OpenStream: boolean; virtual;
+    function Login: boolean; virtual;
+    function Logout: Boolean; virtual;
+    function OpenStream: Boolean; virtual;
   public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
+    constructor Create;
+    destructor Destroy; override;
 
     {:Call any command to ClamD. Used internally by other methods.}
-    FUNCTION DoCommand(CONST value: ansistring): ansistring; virtual;
+    function DoCommand(const Value: AnsiString): AnsiString; virtual;
 
     {:Return ClamAV version and version of loaded databases.}
-    FUNCTION GetVersion: ansistring; virtual;
+    function GetVersion: AnsiString; virtual;
 
     {:Scan content of TStrings.}
-    FUNCTION ScanStrings(CONST value: TStrings): ansistring; virtual;
+    function ScanStrings(const Value: TStrings): AnsiString; virtual;
 
     {:Scan content of TStream.}
-    FUNCTION ScanStream(CONST value: TStream): ansistring; virtual;
+    function ScanStream(const Value: TStream): AnsiString; virtual;
 
     {:Scan content of TStrings by new 0.95 API.}
-    FUNCTION ScanStrings2(CONST value: TStrings): ansistring; virtual;
+    function ScanStrings2(const Value: TStrings): AnsiString; virtual;
 
     {:Scan content of TStream by new 0.95 API.}
-    FUNCTION ScanStream2(CONST value: TStream): ansistring; virtual;
-  Published
+    function ScanStream2(const Value: TStream): AnsiString; virtual;
+  published
     {:Socket object used for TCP/IP operation. Good for seting OnStatus hook, etc.}
-    PROPERTY Sock: TTCPBlockSocket read FSock;
+    property Sock: TTCPBlockSocket read FSock;
 
     {:Socket object used for TCP data transfer operation. Good for seting OnStatus hook, etc.}
-    PROPERTY DSock: TTCPBlockSocket read FDSock;
+    property DSock: TTCPBlockSocket read FDSock;
 
     {:Can turn-on session mode of communication with ClamD. Default is @false,
      because ClamAV developers design their TCP code very badly and session mode
      is broken now (CVS-20051031). Maybe ClamAV developers fix their bugs
      and this mode will be possible in future.}
-    PROPERTY Session: boolean read FSession write FSession;
+    property Session: boolean read FSession write FSession;
   end;
 
-IMPLEMENTATION
+implementation
 
-CONSTRUCTOR TClamSend.create;
+constructor TClamSend.Create;
 begin
-  inherited create;
-  FSock := TTCPBlockSocket.create;
+  inherited Create;
+  FSock := TTCPBlockSocket.Create;
   FSock.Owner := self;
-  FDSock := TTCPBlockSocket.create;
+  FDSock := TTCPBlockSocket.Create;
   FDSock.Owner := self;
   FTimeout := 60000;
   FTargetPort := cClamProtocol;
   FSession := false;
 end;
 
-DESTRUCTOR TClamSend.destroy;
+destructor TClamSend.Destroy;
 begin
   Logout;
-  FDSock.free;
-  FSock.free;
-  inherited destroy;
+  FDSock.Free;
+  FSock.Free;
+  inherited Destroy;
 end;
 
-FUNCTION TClamSend.DoCommand(CONST value: ansistring): ansistring;
+function TClamSend.DoCommand(const Value: AnsiString): AnsiString;
 begin
-  result := '';
+  Result := '';
   if not FSession then
     FSock.CloseSocket
   else
-    FSock.SendString(value + LF);
+    FSock.SendString(Value + LF);
   if not FSession or (FSock.LastError <> 0) then
   begin
     if Login then
-      FSock.SendString(value + LF)
+      FSock.SendString(Value + LF)
     else
-      exit;
+      Exit;
   end;
-  result := FSock.RecvTerminated(FTimeout, LF);
+  Result := FSock.RecvTerminated(FTimeout, LF);
 end;
 
-FUNCTION TClamSend.Login: boolean;
+function TClamSend.Login: boolean;
 begin
-  result := false;
+  Result := False;
   Sock.CloseSocket;
   FSock.Bind(FIPInterface, cAnyPort);
   if FSock.LastError <> 0 then
-    exit;
+    Exit;
   FSock.Connect(FTargetHost, FTargetPort);
   if FSock.LastError <> 0 then
-    exit;
+    Exit;
   if FSession then
     FSock.SendString('SESSION' + LF);
-  result := FSock.LastError = 0;
+  Result := FSock.LastError = 0;
 end;
 
-FUNCTION TClamSend.Logout: boolean;
+function TClamSend.Logout: Boolean;
 begin
   FSock.SendString('END' + LF);
-  result := FSock.LastError = 0;
+  Result := FSock.LastError = 0;
   FSock.CloseSocket;
 end;
 
-FUNCTION TClamSend.GetVersion: ansistring;
+function TClamSend.GetVersion: AnsiString;
 begin
-  result := DoCommand('nVERSION');
+  Result := DoCommand('nVERSION');
 end;
 
-FUNCTION TClamSend.OpenStream: boolean;
-VAR
-  S: ansistring;
+function TClamSend.OpenStream: Boolean;
+var
+  S: AnsiString;
 begin
-  result := false;
+  Result := False;
   s := DoCommand('nSTREAM');
-  if (s <> '') and (copy(s, 1, 4) = 'PORT') then
+  if (s <> '') and (Copy(s, 1, 4) = 'PORT') then
   begin
     s := SeparateRight(s, ' ');
     FDSock.CloseSocket;
     FDSock.Bind(FIPInterface, cAnyPort);
     if FDSock.LastError <> 0 then
-      exit;
+      Exit;
     FDSock.Connect(FTargetHost, s);
     if FDSock.LastError <> 0 then
-      exit;
-    result := true;
+      Exit;
+    Result := True;
   end;
 end;
 
-FUNCTION TClamSend.ScanStrings(CONST value: TStrings): ansistring;
+function TClamSend.ScanStrings(const Value: TStrings): AnsiString;
 begin
-  result := '';
+  Result := '';
   if OpenStream then
   begin
-    DSock.SendString(value.text);
+    DSock.SendString(Value.Text);
     DSock.CloseSocket;
-    result := FSock.RecvTerminated(FTimeout, LF);
+    Result := FSock.RecvTerminated(FTimeout, LF);
   end;
 end;
 
-FUNCTION TClamSend.ScanStream(CONST value: TStream): ansistring;
+function TClamSend.ScanStream(const Value: TStream): AnsiString;
 begin
-  result := '';
+  Result := '';
   if OpenStream then
   begin
-    DSock.SendStreamRaw(value);
+    DSock.SendStreamRaw(Value);
     DSock.CloseSocket;
-    result := FSock.RecvTerminated(FTimeout, LF);
+    Result := FSock.RecvTerminated(FTimeout, LF);
   end;
 end;
 
-FUNCTION TClamSend.ScanStrings2(CONST value: TStrings): ansistring;
-VAR
+function TClamSend.ScanStrings2(const Value: TStrings): AnsiString;
+var
   i: integer;
-  s: ansistring;
+  s: AnsiString;
 begin
-  result := '';
+  Result := '';
   if not FSession then
     FSock.CloseSocket
   else
@@ -243,19 +243,19 @@ begin
     if Login then
       FSock.sendstring('nINSTREAM' + LF)
     else
-      exit;
+      Exit;
   end;
-  s := value.text;
+  s := Value.text;
   i := length(s);
   FSock.SendString(CodeLongint(i) + s + #0#0#0#0);
-  result := FSock.RecvTerminated(FTimeout, LF);
+  Result := FSock.RecvTerminated(FTimeout, LF);
 end;
 
-FUNCTION TClamSend.ScanStream2(CONST value: TStream): ansistring;
-VAR
+function TClamSend.ScanStream2(const Value: TStream): AnsiString;
+var
   i: integer;
 begin
-  result := '';
+  Result := '';
   if not FSession then
     FSock.CloseSocket
   else
@@ -265,13 +265,13 @@ begin
     if Login then
       FSock.sendstring('nINSTREAM' + LF)
     else
-      exit;
+      Exit;
   end;
-  i := value.size;
+  i := value.Size;
   FSock.SendString(CodeLongint(i));
-  FSock.SendStreamRaw(value);
+  FSock.SendStreamRaw(Value);
   FSock.SendString(#0#0#0#0);
-  result := FSock.RecvTerminated(FTimeout, LF);
+  Result := FSock.RecvTerminated(FTimeout, LF);
 end;
 
 end.

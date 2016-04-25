@@ -1,15 +1,15 @@
 {==============================================================================|
-| project : Ararat Synapse                                       | 001.003.001 |
+| Project : Ararat Synapse                                       | 001.003.001 |
 |==============================================================================|
-| content: TELNET and SSH2 Client                                              |
+| Content: TELNET and SSH2 client                                              |
 |==============================================================================|
 | Copyright (c)1999-2010, Lukas Gebauer                                        |
-| all rights reserved.                                                         |
+| All rights reserved.                                                         |
 |                                                                              |
-| Redistribution and use in Source and binary Forms, with or without           |
+| Redistribution and use in source and binary forms, with or without           |
 | modification, are permitted provided that the following conditions are met:  |
 |                                                                              |
-| Redistributions of Source code must retain the above copyright notice, this  |
+| Redistributions of source code must retain the above copyright notice, this  |
 | list of conditions and the following disclaimer.                             |
 |                                                                              |
 | Redistributions in binary form must reproduce the above copyright notice,    |
@@ -20,31 +20,31 @@
 | be used to endorse or promote products derived from this software without    |
 | specific prior written permission.                                           |
 |                                                                              |
-| THIS SOFTWARE IS PROVIDED by the COPYRIGHT HOLDERS and CONTRIBUTORS "AS IS"  |
-| and ANY EXPRESS or IMPLIED WARRANTIES, INCLUDING, BUT not limited to, the    |
-| IMPLIED WARRANTIES of MERCHANTABILITY and FITNESS for A PARTICULAR PURPOSE   |
-| ARE DISCLAIMED. in no EVENT SHALL the REGENTS or CONTRIBUTORS BE LIABLE for  |
-| ANY direct, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, or CONSEQUENTIAL       |
-| DAMAGES (INCLUDING, BUT not limited to, PROCUREMENT of SUBSTITUTE GOODS or   |
-| SERVICES; LOSS of use, data, or PROFITS; or BUSINESS INTERRUPTION) HOWEVER   |
-| CAUSED and on ANY THEORY of LIABILITY, WHETHER in CONTRACT, STRICT           |
-| LIABILITY, or TORT (INCLUDING NEGLIGENCE or OTHERWISE) ARISING in ANY WAY    |
-| OUT of the use of THIS SOFTWARE, EVEN if ADVISED of the POSSIBILITY of SUCH  |
+| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"  |
+| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE    |
+| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE   |
+| ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR  |
+| ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL       |
+| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR   |
+| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER   |
+| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT           |
+| LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    |
+| OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  |
 | DAMAGE.                                                                      |
 |==============================================================================|
-| the Initial Developer of the original code is Lukas Gebauer (Czech Republic).|
+| The Initial Developer of the Original Code is Lukas Gebauer (Czech Republic).|
 | Portions created by Lukas Gebauer are Copyright (c)2002-2010.                |
-| all Rights Reserved.                                                         |
+| All Rights Reserved.                                                         |
 |==============================================================================|
 | Contributor(s):                                                              |
 |==============================================================================|
-| history: see history.HTM from distribution package                           |
-|          (found at URL: http://www.ararat.cz/synapse/)                       |
+| History: see HISTORY.HTM from distribution package                           |
+|          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
 
 {:@abstract(Telnet script client)
 
-used RFC: RFC-854
+Used RFC: RFC-854
 }
 
 {$IFDEF FPC}
@@ -57,15 +57,15 @@ used RFC: RFC-854
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
 {$ENDIF}
 
-UNIT tlntsend;
+unit tlntsend;
 
-INTERFACE
+interface
 
-USES
-  sysutils, Classes,
+uses
+  SysUtils, Classes,
   blcksock, synautil;
 
-CONST
+const
   cTelnetProtocol = '23';
   cSSHProtocol = '22';
 
@@ -87,72 +87,72 @@ CONST
   TLNT_DONT               = #254;
   TLNT_IAC                = #255;
 
-TYPE
+type
   {:@abstract(State of telnet protocol). Used internaly by TTelnetSend.}
   TTelnetState =(tsDATA, tsIAC, tsIAC_SB, tsIAC_WILL, tsIAC_DO, tsIAC_WONT,
      tsIAC_DONT, tsIAC_SBIAC, tsIAC_SBDATA, tsSBDATA_IAC);
 
   {:@abstract(Class with implementation of Telnet/SSH script client.)
 
-   Note: Are you missing properties for specify Server address and port? Look to
+   Note: Are you missing properties for specify server address and port? Look to
    parent @link(TSynaClient) too!}
   TTelnetSend = class(TSynaClient)
   private
     FSock: TTCPBlockSocket;
-    FBuffer: ansistring;
+    FBuffer: Ansistring;
     FState: TTelnetState;
-    FSessionLog: ansistring;
-    FSubNeg: ansistring;
+    FSessionLog: Ansistring;
+    FSubNeg: Ansistring;
     FSubType: Ansichar;
-    FTermType: ansistring;
-    FUNCTION Connect: boolean;
-    FUNCTION Negotiate(CONST Buf: ansistring): ansistring;
-    PROCEDURE FilterHook(Sender: TObject; VAR value: ansistring);
+    FTermType: Ansistring;
+    function Connect: Boolean;
+    function Negotiate(const Buf: Ansistring): Ansistring;
+    procedure FilterHook(Sender: TObject; var Value: AnsiString);
   public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy; override;
+    constructor Create;
+    destructor Destroy; override;
 
     {:Connects to Telnet server.}
-    FUNCTION Login: boolean;
+    function Login: Boolean;
 
     {:Connects to SSH2 server and login by Username and Password properties.
 
-     You must use some of SSL plugins with SSH support. for exammple CryptLib.}
-    FUNCTION SSHLogin: boolean;
+     You must use some of SSL plugins with SSH support. For exammple CryptLib.}
+    function SSHLogin: Boolean;
 
     {:Logout from telnet server.}
-    PROCEDURE Logout;
+    procedure Logout;
 
     {:Send this data to telnet server.}
-    PROCEDURE Send(CONST value: string);
+    procedure Send(const Value: string);
 
     {:Reading data from telnet server until Value is readed. If it is not readed
      until timeout, result is @false. Otherwise result is @true.}
-    FUNCTION WaitFor(CONST value: string): boolean;
+    function WaitFor(const Value: string): Boolean;
 
     {:Read data terminated by terminator from telnet server.}
-    FUNCTION RecvTerminated(CONST Terminator: string): string;
+    function RecvTerminated(const Terminator: string): string;
 
     {:Read string from telnet server.}
-    FUNCTION RecvString: string;
-  Published
+    function RecvString: string;
+  published
     {:Socket object used for TCP/IP operation. Good for seting OnStatus hook, etc.}
-    PROPERTY Sock: TTCPBlockSocket read FSock;
+    property Sock: TTCPBlockSocket read FSock;
 
     {:all readed datas in this session (from connect) is stored in this large
      string.}
-    PROPERTY SessionLog: ansistring read FSessionLog write FSessionLog;
+    property SessionLog: Ansistring read FSessionLog write FSessionLog;
 
     {:Terminal type indentification. By default is 'SYNAPSE'.}
-    PROPERTY TermType: ansistring read FTermType write FTermType;
+    property TermType: Ansistring read FTermType write FTermType;
   end;
 
-IMPLEMENTATION
+implementation
 
-CONSTRUCTOR TTelnetSend.create;
+constructor TTelnetSend.Create;
 begin
-  inherited create;
-  FSock := TTCPBlockSocket.create;
+  inherited Create;
+  FSock := TTCPBlockSocket.Create;
   FSock.Owner := self;
   FSock.OnReadFilter := FilterHook;
   FTimeout := 60000;
@@ -162,13 +162,13 @@ begin
   FTermType := 'SYNAPSE';
 end;
 
-DESTRUCTOR TTelnetSend.destroy;
+destructor TTelnetSend.Destroy;
 begin
-  FSock.free;
-  inherited destroy;
+  FSock.Free;
+  inherited Destroy;
 end;
 
-FUNCTION TTelnetSend.Connect: boolean;
+function TTelnetSend.Connect: Boolean;
 begin
   // Do not call this function! It is calling by LOGIN method!
   FBuffer := '';
@@ -178,39 +178,39 @@ begin
   FSock.LineBuffer := '';
   FSock.Bind(FIPInterface, cAnyPort);
   FSock.Connect(FTargetHost, FTargetPort);
-  result := FSock.LastError = 0;
+  Result := FSock.LastError = 0;
 end;
 
-FUNCTION TTelnetSend.RecvTerminated(CONST Terminator: string): string;
+function TTelnetSend.RecvTerminated(const Terminator: string): string;
 begin
-  result := FSock.RecvTerminated(FTimeout, Terminator);
+  Result := FSock.RecvTerminated(FTimeout, Terminator);
 end;
 
-FUNCTION TTelnetSend.RecvString: string;
+function TTelnetSend.RecvString: string;
 begin
-  result := FSock.RecvTerminated(FTimeout, CRLF);
+  Result := FSock.RecvTerminated(FTimeout, CRLF);
 end;
 
-FUNCTION TTelnetSend.WaitFor(CONST value: string): boolean;
+function TTelnetSend.WaitFor(const Value: string): Boolean;
 begin
-  result := FSock.RecvTerminated(FTimeout, value) <> '';
+  Result := FSock.RecvTerminated(FTimeout, Value) <> '';
 end;
 
-PROCEDURE TTelnetSend.FilterHook(Sender: TObject; VAR value: ansistring);
+procedure TTelnetSend.FilterHook(Sender: TObject; var Value: AnsiString);
 begin
-  value := Negotiate(value);
-  FSessionLog := FSessionLog + value;
+  Value := Negotiate(Value);
+  FSessionLog := FSessionLog + Value;
 end;
 
-FUNCTION TTelnetSend.Negotiate(CONST Buf: ansistring): ansistring;
-VAR
+function TTelnetSend.Negotiate(const Buf: Ansistring): Ansistring;
+var
   n: integer;
   c: Ansichar;
-  Reply: ansistring;
-  SubReply: ansistring;
+  Reply: Ansistring;
+  SubReply: Ansistring;
 begin
-  result := '';
-  for n := 1 to length(Buf) do
+  Result := '';
+  for n := 1 to Length(Buf) do
   begin
     c := Buf[n];
     Reply := '';
@@ -219,14 +219,14 @@ begin
         if c = TLNT_IAC then
           FState := tsIAC
         else
-          result := result + c;
+          Result := Result + c;
 
       tsIAC:
         case c of
           TLNT_IAC:
             begin
               FState := tsData;
-              result := result + TLNT_IAC;
+              Result := Result + TLNT_IAC;
             end;
           TLNT_WILL:
             FState := tsIAC_WILL;
@@ -329,33 +329,33 @@ begin
 
 end;
 
-PROCEDURE TTelnetSend.Send(CONST value: string);
+procedure TTelnetSend.Send(const Value: string);
 begin
-  Sock.SendString(ReplaceString(value, TLNT_IAC, TLNT_IAC + TLNT_IAC));
+  Sock.SendString(ReplaceString(Value, TLNT_IAC, TLNT_IAC + TLNT_IAC));
 end;
 
-FUNCTION TTelnetSend.Login: boolean;
+function TTelnetSend.Login: Boolean;
 begin
-  result := false;
+  Result := False;
   if not Connect then
-    exit;
-  result := true;
+    Exit;
+  Result := True;
 end;
 
-FUNCTION TTelnetSend.SSHLogin: boolean;
+function TTelnetSend.SSHLogin: Boolean;
 begin
-  result := false;
+  Result := False;
   if Connect then
   begin
     FSock.SSL.SSLType := LT_SSHv2;
     FSock.SSL.Username := FUsername;
     FSock.SSL.Password := FPassword;
     FSock.SSLDoConnect;
-    result := FSock.LastError = 0;
+    Result := FSock.LastError = 0;
   end;
 end;
 
-PROCEDURE TTelnetSend.Logout;
+procedure TTelnetSend.Logout;
 begin
   FSock.CloseSocket;
 end;
