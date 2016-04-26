@@ -584,9 +584,9 @@ FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
   VAR alternative:ansistring;
   begin
     case algorithm of
-      {C_deflate=}        1: exit(#126+gzip_compressString(src));
-      {C_huffman=}        2: exit(#188+huffyEncode(src));
-      {C_adaptiveHuffman=}3: exit(#195+huffyEncode2(src));
+      1: exit(#126+gzip_compressString(src));
+      2: exit(#188+huffyEncode(src));
+      3: exit(#195+huffyEncode2(src));
     end;
     if length(src)=0 then exit(src);
     if src[1] in [#96,#126,#188,#195] then result:=#96+src
