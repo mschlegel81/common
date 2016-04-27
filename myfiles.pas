@@ -70,7 +70,7 @@ PROCEDURE T_file.flushBuffer;
   end;
 
 PROCEDURE T_file.readBuffer;
-  VAR actuallyRead:longint;
+  VAR actuallyRead:longint=0;
   begin
     if readMode and stateOkay then begin
       BlockRead(handle,buffer[bufFill],bufferSize-bufFill,actuallyRead);
@@ -204,7 +204,7 @@ PROCEDURE T_file.writeBuf(p:PByte; pSize:longint);
   end;
 
 PROCEDURE T_file.readBuf (p:PByte; pSize:longint);
-  VAR actuallyRead:longint;
+  VAR actuallyRead:longint=0;
   begin
     if readMode then begin
       if bufFill>=pSize then begin //if buffer contains enough data...

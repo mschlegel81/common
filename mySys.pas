@@ -284,7 +284,6 @@ FUNCTION readFile(CONST fileName:string):T_arrayOfString;
   end;
 
 INITIALIZATION
-  Exec('cmd','/c chcp 1252 > NUL');
   CMD_PATH.create(@obtainCmd,nil);
   SEVEN_ZIP_PATH.create(@obtain7Zip,nil);
   NOTEPAD_PATH.create(@obtainNotepad,nil);
