@@ -35,7 +35,7 @@ TYPE
 
 CONST HTTP_404_RESPONSE='HTTP/1.0 404' + CRLF;
 
-FUNCTION wrapTextInHttp(CONST OutputDataString:string; CONST contentType:string='Text/Html'):string;
+FUNCTION wrapTextInHttp(CONST OutputDataString,serverInfo:string; CONST contentType:string='Text/Html'):string;
 FUNCTION cleanIp(CONST dirtyIp:ansistring):ansistring;
 IMPLEMENTATION
 PROCEDURE disposeSocket(VAR socket:P_socketPair);
@@ -43,14 +43,14 @@ PROCEDURE disposeSocket(VAR socket:P_socketPair);
     dispose(socket,destroy);
   end;
 
-FUNCTION wrapTextInHttp(CONST OutputDataString: string; CONST contentType:string='Text/Html'): string;
+FUNCTION wrapTextInHttp(CONST OutputDataString,serverInfo: string; CONST contentType:string='Text/Html'): string;
   begin
     result:='HTTP/1.0 200' + CRLF +
             'Content-type: '+ contentType + CRLF +
             'Content-length: ' + intToStr(length(OutputDataString)) + CRLF +
             'Connection: close' + CRLF +
             'Date: ' + Rfc822DateTime(now) + CRLF +
-            'Server: MNH5 using Synapse' + CRLF +
+            'Server: '+serverInfo + CRLF +
             '' + CRLF +
             OutputDataString;
   end;
@@ -114,7 +114,7 @@ PROCEDURE T_customSocketListener.attend;
       sleepTime:longint=minSleepTime;
   begin
     repeat
-      request:=socket.getRequest;
+      request:=socket.getRequest(sleepTime);
       if request<>'' then begin
         socket.SendString(requestToResponseMapper(request));
         sleepTime:=minSleepTime;
@@ -144,7 +144,7 @@ CONSTRUCTOR T_socketPair.create(CONST ip, port: string);
     ListenerSocket := TTCPBlockSocket.create;
     ConnectionSocket := TTCPBlockSocket.create;
     ListenerSocket.CreateSocket;
-    ListenerSocket.setLinger(true,10);
+    ListenerSocket.setLinger(true,1);
     ListenerSocket.bind(ip,port);
     ListenerSocket.listen;
     id:=ip+':'+port;
@@ -166,9 +166,9 @@ FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint): ansistri
     acceptingRequest:=true;
     s := ConnectionSocket.RecvString(timeOutInMilliseconds);
     if s='' then exit('/');
-    {method :=} fetch(s, ' ');
-    result := fetch(s, ' ');
-    {protocol :=} fetch(s, ' ');
+    {method  :=}fetch(s, ' ');
+    result   := fetch(s, ' ');
+    {protocol:=}fetch(s, ' ');
     repeat
       s := ConnectionSocket.RecvString(timeOutInMilliseconds);
     until s = '';
