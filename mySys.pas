@@ -22,17 +22,20 @@ PROCEDURE hideConsole;
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 
-VAR CMD_PATH,
-    SEVEN_ZIP_PATH,
-    NOTEPAD_PATH:specialize G_lazyVar<ansistring>;
-
 IMPLEMENTATION
 FUNCTION getNumberOfCPUs:longint;
+{$ifdef WINDOWS}
   VAR SystemInfo:SYSTEM_INFO;
   begin
     getSystemInfo(SystemInfo);
     result:=SystemInfo.dwNumberOfProcessors;
   end;
+{$else}
+  begin
+    result:=1;
+  end;
+{$endif}
+
 
 FUNCTION getEnvironment:T_arrayOfString;
   VAR i:longint;
@@ -88,7 +91,7 @@ PROCEDURE clearConsole;
     if clearConsoleProcess=nil then begin
       clearConsoleProcess := TProcess.create(nil);
       clearConsoleProcess.options:=clearConsoleProcess.options+[poWaitOnExit];
-      clearConsoleProcess.executable := CMD_PATH.value;
+      clearConsoleProcess.executable := 'cmd';
       clearConsoleProcess.parameters.add('/C');
       clearConsoleProcess.parameters.add('cls');
     end;
@@ -98,10 +101,6 @@ PROCEDURE clearConsole;
     except
     end;
   end;
-
-FUNCTION obtainCmd:ansistring; begin result:=findDeeply('C:\*Win*','cmd.exe'); end;
-FUNCTION obtain7Zip:ansistring; begin result:=findDeeply('C:\*Program*','7z.exe'); end;
-FUNCTION obtainNotepad:ansistring; begin result:=findDeeply('C:\*Program*','notepad++.exe'); end;
 
 PROCEDURE getFileInfo(CONST filePath:string;
   OUT time:double;
@@ -282,15 +281,5 @@ FUNCTION readFile(CONST fileName:string):T_arrayOfString;
     end;
     close(handle);
   end;
-
-INITIALIZATION
-  CMD_PATH.create(@obtainCmd,nil);
-  SEVEN_ZIP_PATH.create(@obtain7Zip,nil);
-  NOTEPAD_PATH.create(@obtainNotepad,nil);
-
-FINALIZATION
-  CMD_PATH.destroy;
-  SEVEN_ZIP_PATH.destroy;
-  NOTEPAD_PATH.destroy;
 
 end.

@@ -386,6 +386,7 @@ begin
   {$IFDEF LINUX}
   CONST
     CLOCK_MONOTONIC = 1;
+    NanoPerMilli=1000000;
 
           { Experimental, no idea if this works or is implemented correctly }
           FUNCTION newGetTickCount: Cardinal;
@@ -394,8 +395,8 @@ begin
             i: TickType;
             t: timeval;
           begin
-            // use the Posix clock_gettime() call
-            if clock_gettime(CLOCK_MONOTONIC, @ts)=0 then
+            // use the Posix clock_gettime() call - broken, thus commented out (M.S.)
+            //if clock_gettime(CLOCK_MONOTONIC, @ts)=0 then
             begin
               // Use the FPC fallback
               fpgettimeofday(@t,nil);

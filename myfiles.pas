@@ -83,10 +83,14 @@ CONSTRUCTOR T_file.createToRead (fileName:string);
     readMode:=true;
     bufFill:=0;
     if fileExists(fileName) then begin
-      assign(handle,fileName);
-      reset(handle);
-      readBuffer;
-      stateOkay:=true;
+      try
+        assign(handle,fileName);
+        reset(handle);
+        readBuffer;
+        stateOkay:=true;
+      except
+        stateOkay:=false;
+      end;
     end else stateOkay:=false;
   end;
 
@@ -101,13 +105,13 @@ CONSTRUCTOR T_file.createToWrite(fileName:string);
     except stateOkay:=false; end;
   end;
 
-DESTRUCTOR  T_file.destroy;
+DESTRUCTOR T_file.destroy;
   begin
     if not(readMode) then flushBuffer;
-    close(handle);
+    try close(handle); except end;
   end;
 
-FUNCTION    T_file.allOkay:boolean;
+FUNCTION T_file.allOkay:boolean;
   begin
     result:=stateOkay;
   end;
@@ -118,6 +122,7 @@ FUNCTION    T_file.allOkay:boolean;
     if stateOkay then move(x,buffer[bufFill],sizeOf(x));
     inc(bufFill,sizeOf(x));
   end}
+{$WARN 5059 OFF}
 {$define macro_genericRead:=
   begin
     if stateOkay then begin
@@ -224,6 +229,9 @@ CONSTRUCTOR T_serializable.notReallyAConstructor; begin end;
 FUNCTION    T_serializable.loadFromFile(fileName:string):boolean;
   VAR ff:T_file;
   begin
+    {$ifdef debugMode}
+    writeln(stdout,'Reading from: ',filename);
+    {$endif}
     if fileExists(fileName) then begin
       ff.createToRead(fileName);
       result:=loadFromFile(ff);
@@ -234,6 +242,9 @@ FUNCTION    T_serializable.loadFromFile(fileName:string):boolean;
 PROCEDURE T_serializable.saveToFile(fileName:string);
   VAR ff:T_file;
   begin
+    {$ifdef debugMode}
+    writeln(stdout,'Saving to: ',filename);
+    {$endif}
     ff.createToWrite(fileName);
     saveToFile(ff);
     ff.destroy;
