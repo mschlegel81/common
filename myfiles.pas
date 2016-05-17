@@ -230,7 +230,7 @@ FUNCTION    T_serializable.loadFromFile(fileName:string):boolean;
   VAR ff:T_file;
   begin
     {$ifdef debugMode}
-    writeln(stdout,'Reading from: ',filename);
+    writeln(StdOut,'Reading from: ',fileName);
     {$endif}
     if fileExists(fileName) then begin
       ff.createToRead(fileName);
@@ -243,7 +243,7 @@ PROCEDURE T_serializable.saveToFile(fileName:string);
   VAR ff:T_file;
   begin
     {$ifdef debugMode}
-    writeln(stdout,'Saving to: ',filename);
+    writeln(StdOut,'Saving to: ',fileName);
     {$endif}
     ff.createToWrite(fileName);
     saveToFile(ff);
