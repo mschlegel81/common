@@ -91,9 +91,15 @@ PROCEDURE clearConsole;
     if clearConsoleProcess=nil then begin
       clearConsoleProcess := TProcess.create(nil);
       clearConsoleProcess.options:=clearConsoleProcess.options+[poWaitOnExit];
+      {$ifdef LINUX}
+      clearConsoleProcess.executable := 'sh';
+      clearConsoleProcess.parameters.add('-c');
+      clearConsoleProcess.parameters.add('clear');
+      {$else}
       clearConsoleProcess.executable := 'cmd';
       clearConsoleProcess.parameters.add('/C');
       clearConsoleProcess.parameters.add('cls');
+      {$endif}
     end;
     try
       flush(StdOut);
