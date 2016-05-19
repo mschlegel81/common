@@ -1,10 +1,11 @@
 UNIT mySys;
 INTERFACE
-USES dos,myGenerics,sysutils,Process,{$ifdef WINDOWS}windows,{$endif}FileUtil,Classes;
+USES dos,myGenerics,sysutils,Process,{$ifdef WINDOWS}windows,{$endif}FileUtil,Classes,LazUTF8;
 
 FUNCTION getEnvironment:T_arrayOfString;
 FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
 FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
+FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString; OUT output: TStringList): boolean;
 PROCEDURE clearConsole;
 PROCEDURE getFileInfo(CONST filePath:string; OUT time:double; OUT size:int64; OUT isExistent, isArchive, isDirectory, isReadOnly, isSystem, isHidden:boolean);
 FUNCTION getNumberOfCPUs:longint;
@@ -31,8 +32,17 @@ FUNCTION getNumberOfCPUs:longint;
     result:=SystemInfo.dwNumberOfProcessors;
   end;
 {$else}
+  VAR param:T_arrayOfString;
+      output: TStringList;
+      i:longint;
   begin
-    result:=1;
+    param:='-c';
+    append(param,'nproc');
+    runCommand('sh',param,output);
+    result:=-1;
+    for i:=0 to output.count-1 do if result<0 then result:=strToIntDef(output[i],-1);
+    if result<0 then result:=1;
+    output.destroy;
   end;
 {$endif}
 
@@ -83,6 +93,50 @@ FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
     then result:=info.name
     else result:='';
     sysutils.FindClose(info);
+  end;
+
+FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString; OUT output: TStringList): boolean;
+  CONST
+    READ_BYTES = 2048;
+  VAR
+    memStream: TMemoryStream;
+    tempProcess: TProcess;
+    n: longint;
+    BytesRead: longint;
+    sleepTime: longint = 1;
+  begin
+    memStream := TMemoryStream.create;
+    BytesRead := 0;
+    tempProcess := TProcess.create(nil);
+    tempProcess.executable := UTF8ToWinCP(executable);
+    for n := 0 to length(parameters)-1 do
+      tempProcess.parameters.add(UTF8ToWinCP(parameters[n]));
+    tempProcess.options := [poUsePipes, poStderrToOutPut];
+    tempProcess.ShowWindow := swoHIDE;
+    try
+      tempProcess.execute;
+      tempProcess.CloseInput;
+      while tempProcess.running do begin
+        memStream.SetSize(BytesRead+READ_BYTES);
+        n := tempProcess.output.read((memStream.memory+BytesRead)^, READ_BYTES);
+        if n>0 then begin sleepTime:=1; inc(BytesRead, n); end
+               else begin inc(sleepTime); sleep(sleepTime); end;
+      end;
+      if tempProcess.running then tempProcess.Terminate(999);
+      repeat
+        memStream.SetSize(BytesRead+READ_BYTES);
+        n := tempProcess.output.read((memStream.memory+BytesRead)^, READ_BYTES);
+        if n>0 then inc(BytesRead, n);
+      until n<=0;
+      result := (tempProcess.exitStatus = 0);
+    except
+      result := false;
+    end;
+    tempProcess.free;
+    memStream.SetSize(BytesRead);
+    output := TStringList.create;
+    output.LoadFromStream(memStream);
+    memStream.free;
   end;
 
 VAR clearConsoleProcess:TProcess=nil;
