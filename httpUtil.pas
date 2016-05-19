@@ -1,6 +1,6 @@
 UNIT httpUtil;
 INTERFACE
-USES Classes, blcksock, sockets, synautil, sysutils, myGenerics,myStringUtil;
+USES Classes, blcksock, synautil, sysutils, myGenerics,myStringUtil;
 TYPE
   P_socketPair=^T_socketPair;
   T_socketPair=object
