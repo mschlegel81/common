@@ -221,10 +221,10 @@ FUNCTION C_EMPTY_DOUBLE_ARRAY:T_arrayOfDouble; begin setLength(result,0); end;
 FUNCTION hashOfAnsiString(CONST x:ansistring):longint; inline;
   VAR i:longint;
   begin
-    {$Q-}
+    {$Q-}{$R-}
     result:=length(x);
     for i:=1 to length(x) do result:=result*31+ord(x[i]);
-    {$Q+}
+    {$Q+}{$R+}
   end;
 
 { G_safeArray }

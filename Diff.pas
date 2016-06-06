@@ -165,7 +165,7 @@ begin
   with DiffVars^ do
       DiffInt(offset1, offset2, len1, len2);
   dispose(DiffVars);
-  fDiffList.Delete(idx);
+  fDiffList.delete(idx);
 end;
 //------------------------------------------------------------------------------
 

@@ -507,7 +507,7 @@ FUNCTION StripHTML(S: string): string;
       TagEnd := pos('>', S);              // find the matching >
       TagEnd := PosEx('>',S,TagBegin);
       TagLength := TagEnd - TagBegin + 1;
-      Delete(S, TagBegin, TagLength);     // delete the tag
+      delete(S, TagBegin, TagLength);     // delete the tag
       TagBegin:= pos( '<', S);            // search for next <
     end;
     result := S;
