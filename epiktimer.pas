@@ -401,7 +401,9 @@ begin
               // Use the FPC fallback
               fpgettimeofday(@t,nil);
               // Build a 64 bit microsecond tick from the seconds and microsecond longints
+              {$R-}
               result := (TickType(t.tv_sec) * NanoPerMilli) + t.tv_usec;
+              {$R+}
               exit;
             end;
             i := ts.tv_sec;
