@@ -68,7 +68,6 @@ TYPE
   FUNCTION C_EMPTY_STRING_ARRAY:T_arrayOfString;
   FUNCTION C_EMPTY_DOUBLE_ARRAY:T_arrayOfDouble;
 
-  { G_stringKeyMap }
 TYPE
   GENERIC G_stringKeyMap<VALUE_TYPE>=object
     TYPE VALUE_TYPE_ARRAY=array of VALUE_TYPE;
@@ -103,8 +102,6 @@ TYPE
       FUNCTION size:longint;
   end;
 
-  { G_safeVar }
-
   GENERIC G_safeVar<ENTRY_TYPE>=object
     private VAR
       v :ENTRY_TYPE;
@@ -116,8 +113,6 @@ TYPE
       DESTRUCTOR destroy;
       PROPERTY value:ENTRY_TYPE read getValue write setValue;
   end;
-
-  { G_safeArray }
 
   GENERIC G_safeArray<ENTRY_TYPE>=object
     TYPE ENTRY_TYPE_ARRAY=array of ENTRY_TYPE;
@@ -226,8 +221,6 @@ FUNCTION hashOfAnsiString(CONST x:ansistring):longint; inline;
     for i:=1 to length(x) do result:=result*31+ord(x[i]);
     {$Q+}{$R+}
   end;
-
-{ G_safeArray }
 
 CONSTRUCTOR G_safeArray.create;
   begin
