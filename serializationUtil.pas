@@ -17,6 +17,7 @@ TYPE
       FUNCTION hasWrongTypeError:boolean;
       FUNCTION hasEarlyEndOfFileError:boolean;
       FUNCTION hasFileAccessError:boolean;
+      PROCEDURE logWrongTypeError;
       FUNCTION allOkay:boolean;
       FUNCTION readDWord:dword;
       PROCEDURE writeDWord(CONST value:dword);
@@ -24,6 +25,8 @@ TYPE
       PROCEDURE writeLongint(CONST value:longint);
       FUNCTION readShortint:shortint;
       PROCEDURE writeShortint(CONST value:shortint);
+      FUNCTION readInt64:int64;
+      PROCEDURE writeInt64(CONST value:int64);
       FUNCTION readBoolean:boolean;
       PROCEDURE writeBoolean(CONST value:boolean);
       FUNCTION readByte:byte;
@@ -38,8 +41,8 @@ TYPE
 
   T_serializable=object
     FUNCTION getSerialVersion:dword; virtual; abstract;
-    FUNCTION LoadFromStream(VAR stream:T_streamWrapper):boolean; virtual;
-    PROCEDURE SaveToStream(VAR stream:T_streamWrapper); virtual;
+    FUNCTION loadFromStream(VAR stream:T_streamWrapper):boolean; virtual;
+    PROCEDURE saveToStream(VAR stream:T_streamWrapper); virtual;
 
     FUNCTION loadFromFile(CONST fileName:string):boolean;
     PROCEDURE saveToFile(CONST fileName:string);
@@ -108,6 +111,11 @@ FUNCTION T_streamWrapper.hasFileAccessError: boolean;
     result:=fileAccessError;
   end;
 
+PROCEDURE T_streamWrapper.logWrongTypeError;
+  begin
+    wrongTypeError:=true;
+  end;
+
 FUNCTION T_streamWrapper.allOkay: boolean;
   begin
     result:=not(wrongTypeError or earlyEndOfFileError or fileAccessError);
@@ -142,6 +150,9 @@ PROCEDURE T_streamWrapper.writeLongint genericWrite;
 {$define VALUE_TYPE:=shortInt}
 FUNCTION T_streamWrapper.readShortint:genericRead;
 PROCEDURE T_streamWrapper.writeShortint genericWrite;
+{$define VALUE_TYPE:=Int64}
+FUNCTION T_streamWrapper.readInt64:genericRead;
+PROCEDURE T_streamWrapper.writeInt64 genericWrite;
 {$define VALUE_TYPE:=boolean}
 FUNCTION T_streamWrapper.readBoolean:genericRead;
 PROCEDURE T_streamWrapper.writeBoolean genericWrite;
@@ -173,11 +184,11 @@ FUNCTION T_serializable.loadFromFile(CONST fileName: string): boolean;
   VAR stream:T_streamWrapper;
   begin
     stream.createToReadFromFile(fileName);
-    result:=stream.allOkay and LoadFromStream(stream);
+    result:=stream.allOkay and loadFromStream(stream);
     stream.destroy;
   end;
 
-FUNCTION T_serializable.LoadFromStream(VAR stream:T_streamWrapper): boolean;
+FUNCTION T_serializable.loadFromStream(VAR stream:T_streamWrapper): boolean;
   begin
     result:=stream.readDWord=getSerialVersion;
     if not(result) then stream.wrongTypeError:=true;
@@ -187,11 +198,11 @@ PROCEDURE T_serializable.saveToFile(CONST fileName: string);
   VAR stream:T_streamWrapper;
   begin
     stream.createToWriteToFile(fileName);
-    SaveToStream(stream);
+    saveToStream(stream);
     stream.destroy;
   end;
 
-PROCEDURE T_serializable.SaveToStream(VAR stream:T_streamWrapper);
+PROCEDURE T_serializable.saveToStream(VAR stream:T_streamWrapper);
   begin
     stream.writeDWord(getSerialVersion);
   end;

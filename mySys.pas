@@ -135,7 +135,7 @@ FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfStr
     tempProcess.free;
     memStream.SetSize(BytesRead);
     output := TStringList.create;
-    output.LoadFromStream(memStream);
+    output.loadFromStream(memStream);
     memStream.free;
   end;
 

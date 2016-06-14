@@ -1,5 +1,4 @@
 UNIT myGenerics;
-{H+}
 INTERFACE
 USES sysutils;
 TYPE
@@ -17,6 +16,7 @@ TYPE
       FUNCTION contains(CONST value:ENTRY_TYPE):boolean;
       FUNCTION indexOf(CONST value:ENTRY_TYPE):longint;
       PROCEDURE add(CONST value:ENTRY_TYPE);
+      PROCEDURE add(CONST value:ENTRY_TYPE; CONST index:longint);
       PROCEDURE remValue(CONST value:ENTRY_TYPE);
       PROCEDURE remValues(CONST values:ENTRY_TYPE_ARRAY);
       PROCEDURE remIndex(CONST index:longint);
@@ -26,7 +26,8 @@ TYPE
       PROCEDURE unique;
       FUNCTION size:longint;
       FUNCTION getEntry(CONST index:longint):ENTRY_TYPE;
-      PROPERTY element[index:longint]:ENTRY_TYPE read getEntry; default;
+      PROCEDURE setEntry(CONST index:longint; CONST value:ENTRY_TYPE);
+      PROPERTY element[index:longint]:ENTRY_TYPE read getEntry write setEntry; default;
       FUNCTION elementArray:ENTRY_TYPE_ARRAY;
   end;
 
@@ -94,6 +95,7 @@ TYPE
       FUNCTION containsKey(CONST key:ansistring):boolean;
       FUNCTION get(CONST key:ansistring):VALUE_TYPE;
       PROCEDURE put(CONST key:ansistring; CONST value:VALUE_TYPE);
+      PROCEDURE putAll(CONST entries:KEY_VALUE_LIST);
       PROCEDURE dropKey(CONST key:ansistring);
       PROCEDURE clear;
       FUNCTION keySet:T_arrayOfString;
@@ -397,6 +399,20 @@ PROCEDURE G_list.add(CONST value:ENTRY_TYPE);
     system.leaveCriticalSection(cs);
   end;
 
+PROCEDURE G_list.add(CONST value:ENTRY_TYPE; CONST index:longint);
+  VAR i:longint;
+  begin
+    system.enterCriticalSection(cs);
+    i:=length(entry);
+    setLength(entry,i+1);
+    for i:=length(entry)-1 downto index+1 do entry[i]:=entry[i-1];
+    entry[index]:=value;
+    isUnique:=false;
+    if sortedUntilIndex>index then sortedUntilIndex:=index;
+    system.leaveCriticalSection(cs);
+  end;
+
+
 PROCEDURE G_list.remIndex(CONST index:longint);
   VAR i:longint;
   begin
@@ -546,6 +562,13 @@ FUNCTION G_list.getEntry(CONST index:longint):ENTRY_TYPE;
     system.leaveCriticalSection(cs);
   end;
 
+PROCEDURE G_list.setEntry(CONST index:longint; CONST value:ENTRY_TYPE);
+  begin
+    system.enterCriticalSection(cs);
+    entry[index]:=value;
+    system.leaveCriticalSection(cs);
+  end;
+
 FUNCTION G_list.elementArray:ENTRY_TYPE_ARRAY;
   VAR i:longint;
   begin
@@ -554,158 +577,6 @@ FUNCTION G_list.elementArray:ENTRY_TYPE_ARRAY;
     for i:=0 to length(result)-1 do result[i]:=entry[i];
     system.leaveCriticalSection(cs);
   end;
-
-
-{CONSTRUCTOR G_hashMap.create(hashFunc:HASH_FUNC; rebalanceFactor:double);
-  begin
-    hash:=hashFunc;
-    setLength(bucket,1);
-    bitMask:=0;
-    rebalanceFac:=rebalanceFactor;
-    entryCount:=0;
-  end;
-
-CONSTRUCTOR G_hashMap.create(hashFunc:HASH_FUNC);
-  begin
-    if hashFunc=nil then raise Exception.create ('Hash func is nil!');
-    hash:=hashFunc;
-    setLength(bucket,1);
-    bitMask:=0;
-    rebalanceFac:=4;
-    entryCount:=0;
-  end;
-
-PROCEDURE G_hashMap.rehash(grow:boolean);
-  VAR i,i0,j,k,c0,c1,newMask:longint;
-      temp:array of KEY_VALUE_PAIR;
-  begin
-    if grow then begin
-      i0:=length(bucket);
-      setLength(bucket,i0+i0);
-      newMask:=i0+i0-1;
-      for i:=0 to i0-1 do begin
-        temp:=bucket[i];
-        setLength(bucket[i+i0],length(bucket[i]));
-        c0:=0;
-        c1:=0;
-        for j:=0 to length(temp)-1 do begin
-          k:=temp[j].hash and newMask;
-          if k=i then begin
-            bucket[i][c0]:=temp[j];
-            inc(c0);
-          end else begin
-            bucket[k][c1]:=temp[j];
-            inc(c1);
-          end;
-        end;
-        setLength(bucket[i   ],c0);
-        setLength(bucket[i+i0],c1);
-      end;
-      bitMask:=newMask;
-    end else begin
-      i0:=length(bucket) shr 1;
-      newMask:=i0-1;
-      for i:=0 to i0-1 do
-      for j:=0 to length(bucket[i0+i])-1 do begin
-        setLength(bucket[i],length(bucket[i])+1);
-        bucket[i][length(bucket[i])-1]:=bucket[i0+i][j];
-      end;
-    end;
-  end;
-
-
-DESTRUCTOR G_hashMap.destroy;
-  VAR i:longint;
-  begin
-    for i:=0 to length(bucket)-1 do setLength(bucket[i],0);
-    setLength(bucket,0);
-  end;
-
-FUNCTION G_hashMap.containsKey(key:KEY_TYPE; OUT value:VALUE_TYPE):boolean;
-  VAR i,j:longint;
-  begin
-    i:=hash(key) and bitMask;
-    j:=0;
-    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-    if (j<length(bucket[i])) then begin
-      value:=bucket[i][j].value;
-      result:=true;
-    end else result:=false;
-  end;
-
-PROCEDURE G_hashMap.put(key:KEY_TYPE; value:VALUE_TYPE);
-  VAR i,j,h:longint;
-  begin
-    h:=hash(key);
-    i:=h and bitMask;
-    j:=0;
-    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-    if j>=length(bucket[i]) then begin
-      setLength(bucket[i],j+1);
-      bucket[i][j].key:=key;
-      bucket[i][j].hash:=h;
-      bucket[i][j].value:=value;
-      inc(entryCount);
-      if entryCount>length(bucket)*rebalanceFac then rehash(true);
-    end else begin
-      bucket[i][j].value:=value;
-    end;
-  end;
-
-PROCEDURE G_hashMap.dropKey(key:KEY_TYPE);
-  VAR i,j:longint;
-  begin
-    i:=hash(key) and bitMask;
-    j:=0;
-    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-    if j<length(bucket[i]) then begin
-      while j<length(bucket[i])-1 do begin
-        bucket[i][j]:=bucket[i][j+1];
-        inc(j);
-      end;
-      setLength(bucket[i],length(bucket[i])-1);
-      dec(entryCount);
-      if entryCount<0.4*length(bucket)*rebalanceFac then rehash(false);
-    end;
-  end;
-
-PROCEDURE G_hashMap.clear;
-  VAR i:longint;
-  begin
-    for i:=0 to length(bucket)-1 do setLength(bucket[i],0);
-    setLength(bucket,1);
-    bitMask:=0;
-    entryCount:=0;
-  end;
-
-FUNCTION G_hashMap.keySet:KEY_TYPE_ARRAY;
-  VAR k,i,j:longint;
-  begin
-    setLength(result,entryCount);
-    k:=0;
-    for i:=0 to length(bucket)-1 do
-    for j:=0 to length(bucket[i])-1 do begin
-      result[k]:=bucket[i][j].key;
-      inc(k);
-    end;
-  end;
-
-FUNCTION G_hashMap.valueSet:VALUE_TYPE_ARRAY;
-  VAR k,i,j:longint;
-  begin
-    setLength(result,entryCount);
-    k:=0;
-    for i:=0 to length(bucket)-1 do
-    for j:=0 to length(bucket[i])-1 do begin
-      result[k]:=bucket[i][j].value;
-      inc(k);
-    end;
-  end;
-
-FUNCTION G_hashMap.size:longint;
-  begin
-    result:=entryCount;
-  end;}
 
 CONSTRUCTOR G_sparseArray.create;
   begin
@@ -963,6 +834,14 @@ PROCEDURE G_stringKeyMap.put(CONST key: ansistring; CONST value: VALUE_TYPE);
       if disposer<>nil then disposer(bucket[i][j].value);
       bucket[i][j].value:=value;
     end;
+    system.leaveCriticalSection(cs);
+  end;
+
+PROCEDURE G_stringKeyMap.putAll(CONST entries:KEY_VALUE_LIST);
+  VAR i:longint;
+  begin
+    system.enterCriticalSection(cs);
+    for i:=0 to length(entries)-1 do put(entries[i].key,entries[i].value);
     system.leaveCriticalSection(cs);
   end;
 

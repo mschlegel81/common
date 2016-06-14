@@ -41,7 +41,7 @@ begin
         { See Knuth TAOCP Vol2. 3rd Ed. P.106 For multiplier.
           in the previous versions, MSBs of the seed affect
           only MSBs of the array mt[].
-          2002/01/09 modified by Makoto Matsumoto }
+          2002/01/09 Modified by Makoto Matsumoto }
       mt[i] := mt[i] and $ffffffff;
         { For >32 Bit machines }
     end;
