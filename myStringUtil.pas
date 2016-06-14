@@ -1,7 +1,7 @@
 UNIT myStringUtil;
 
 INTERFACE
-USES math, strutils, sysutils,  myGenerics, zstream, Classes, huffman;
+USES math, strutils, sysutils,  myGenerics, zstream, Classes, huffman, LazUTF8;
 
 TYPE charSet=set of char;
 
@@ -35,6 +35,8 @@ FUNCTION myTimeToStr(dt:double):string;
 FUNCTION isAsciiEncoded(CONST s: ansistring): boolean;
 FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
 FUNCTION StripHTML(S: string): string;
+FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
+FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
 
 FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
@@ -497,6 +499,16 @@ FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
       exit(false);
     end;
     exit(true);
+  end;
+
+FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
+  begin
+    if isUtf8Encoded(s) then result:=UTF8ToSys(s) else result:=s;
+  end;
+
+FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
+  begin
+    if isUtf8Encoded(s) or isAsciiEncoded(s) then result:=s else result:=SysToUTF8(s);
   end;
 
 FUNCTION StripHTML(S: string): string;
