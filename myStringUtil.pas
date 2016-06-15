@@ -641,7 +641,6 @@ function tokenSplit(const stringToSplit: ansistring; const language: string): T_
   PROCEDURE parseNumber(CONST input: ansistring; CONST offset:longint; OUT parsedLength: longint);
     VAR i: longint;
     begin
-      result:=nil;
       parsedLength:=0;
       if (length(input)>=offset) and (input [offset] in ['0'..'9', '-', '+']) then begin
         i:=offset;
