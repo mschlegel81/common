@@ -623,7 +623,7 @@ FUNCTION decompressString(CONST src:ansistring):ansistring;
     result:=src;
   end;
 
-function tokenSplit(const stringToSplit: ansistring; const language: string): T_arrayOfString;
+FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_arrayOfString;
   VAR i0,i1:longint;
   PROCEDURE stepToken;
     begin
