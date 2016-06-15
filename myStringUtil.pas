@@ -40,7 +40,7 @@ FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
 
 FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
-
+FUNCTION tokenSplit(CONST stringToSplit:ansistring; CONST language:string='MNH'):T_arrayOfString;
 IMPLEMENTATION
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
@@ -621,6 +621,113 @@ FUNCTION decompressString(CONST src:ansistring):ansistring;
       #195: exit(huffyDecode2(         copy(src,2,length(src)-1)));
     end;
     result:=src;
+  end;
+
+function tokenSplit(const stringToSplit: ansistring; const language: string): T_arrayOfString;
+  VAR i0,i1:longint;
+  PROCEDURE stepToken;
+    begin
+      append(result,copy(stringToSplit,i0,i1-i0));
+      i0:=i1;
+    end;
+
+  VAR doubleQuoteString:boolean=false;
+      singleQuoteString:boolean=false;
+      escapeStringDelimiter:boolean=false;
+      curlyBracketsDelimitOneToken:boolean=false;
+      cStyleComments:boolean=false;
+      dollarVariables:boolean=false;
+
+  PROCEDURE parseNumber(CONST input: ansistring; CONST offset:longint; OUT parsedLength: longint);
+    VAR i: longint;
+    begin
+      result:=nil;
+      parsedLength:=0;
+      if (length(input)>=offset) and (input [offset] in ['0'..'9', '-', '+']) then begin
+        i:=offset;
+        while (i<length(input)) and (input [i+1] in ['0'..'9']) do inc(i);
+        parsedLength:=i+1-offset;
+        //Only digits on indexes [1..i]; accept decimal point and following digts
+        if (i<length(input)) and (input [i+1] = '.') then begin
+          inc(i);
+          if (i<length(input)) and (input [i+1] = '.') then dec(i);
+        end;
+        while (i<length(input)) and (input [i+1] in ['0'..'9']) do  inc(i);
+        //Accept exponent marker and following exponent
+        if (i<length(input)) and (input [i+1] in ['e', 'E']) then begin
+          inc(i);
+          if (i<length(input)) and (input [i+1] in ['+', '-']) then inc(i);
+        end;
+        while (i<length(input)) and (input [i+1] in ['0'..'9']) do inc(i);
+        if i+1-offset>parsedLength then begin
+          parsedLength:=i+1-offset;
+        end;
+      end;
+    end;
+
+  PROCEDURE setLanguage(name:string);
+    begin
+      if trim(uppercase(name))='MNH' then begin
+        doubleQuoteString:=true;
+        singleQuoteString:=true;
+        escapeStringDelimiter:=true;
+        curlyBracketsDelimitOneToken:=true;
+        cStyleComments:=true;
+        dollarVariables:=true;
+      end else if trim(uppercase(name))='JAVA' then begin
+        doubleQuoteString:=true;
+        singleQuoteString:=true;
+        escapeStringDelimiter:=true;
+        curlyBracketsDelimitOneToken:=false;
+        cStyleComments:=true;
+      end else if trim(uppercase(name))='PASCAL' then begin
+        doubleQuoteString:=false;
+        singleQuoteString:=true;
+        escapeStringDelimiter:=false;
+        curlyBracketsDelimitOneToken:=true;
+        cStyleComments:=true;
+      end;
+    end;
+
+  begin
+    setLanguage(language);
+    setLength(result,0);
+    i0:=1;
+    while i0<=length(stringToSplit) do begin
+      if stringToSplit[i0] in [' ',C_lineBreakChar,C_carriageReturnChar,C_tabChar] then begin //whitespace
+        i1:=i0;
+        while (i1<=length(stringToSplit)) and (stringToSplit[i1] in [' ',C_lineBreakChar,C_carriageReturnChar,C_tabChar]) do inc(i1);
+      end else if (stringToSplit[i0]='''') and singleQuoteString or
+                  (stringToSplit[i0]='"') and doubleQuoteString then begin
+        if escapeStringDelimiter then begin
+          unescapeString(copy(stringToSplit,i0,length(stringToSplit)-i0+1),1,i1);
+          if i1<=0 then i1:=i0+1
+                   else i1:=i0+i1;
+        end else begin
+          i1:=i0+1;
+          while (i1<=length(stringToSplit)) and (stringToSplit[i1]<>stringToSplit[i0]) do inc(i1);
+          inc(i1);
+        end;
+      end else if (stringToSplit[i0]='{') and curlyBracketsDelimitOneToken then begin
+        i1:=i0+1;
+        while (i1<=length(stringToSplit)) and (stringToSplit[i1]<>'}') do inc(i1);
+        inc(i1);
+      end else if (copy(stringToSplit,i0,2)='//') and cStyleComments then begin
+        i1:=i0+1;
+        while (i1<=length(stringToSplit)) and not(stringToSplit[i1] in [C_lineBreakChar,C_carriageReturnChar]) do inc(i1);
+      end else if (stringToSplit[i0] in ['a'..'z','A'..'Z']) or (stringToSplit[i0]='$') and dollarVariables then begin
+        i1:=i0+1;
+        while (i1<=length(stringToSplit)) and (stringToSplit[i1] in ['a'..'z','A'..'Z','_','0'..'9']) do inc(i1);
+      end else if stringToSplit[i0] in ['0'..'9'] then begin //numbers
+        parseNumber(copy(stringToSplit,i0,length(stringToSplit)-i0+1),1,i1);
+        if i1<=0 then i1:=i0
+                 else i1:=i0+i1;
+      end else begin
+        while (i1<=length(stringToSplit)) and (stringToSplit[i1] in ['+','-','*','/','?',':','=','<','>','!','%','&','|']) do inc(i1);
+        if i1=i0 then i1:=i0+1;
+      end;
+      stepToken;
+    end;
   end;
 
 end.
