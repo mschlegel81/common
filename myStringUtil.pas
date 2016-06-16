@@ -219,8 +219,8 @@ FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parse
       continue:boolean;
   begin
     if length(input)>=offset+1 then begin //need at least a leading and a trailing delimiter
+      i0:=offset+1; i:=i0; i1:=offset; continue:=true; result:='';
       if input[offset]=SQ then begin
-        i0:=offset+1; i:=i0; i1:=offset; continue:=true; result:='';
         while (i<=length(input)) and continue do if input[i]=SQ then begin
           if (i<length(input)) and (input[i+1]=SQ) then begin
             result:=result+copy(input,i0,i1-i0+1)+SQ;
@@ -237,7 +237,6 @@ FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parse
         parsedLength:=i+1-offset;
         exit(result);
       end else if input[offset]=DQ then begin
-        i0:=offset+1; i:=i0; i1:=offset; continue:=true; result:='';
         while (i<=length(input)) and (input[i]<>DQ) do if input[i]='\' then begin
           if (i<length(input)) then begin
             case input[i+1] of
@@ -503,12 +502,12 @@ FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
 
 FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
   begin
-    if isUtf8Encoded(s) then result:=UTF8ToSys(s) else result:=s;
+    if isUtf8Encoded(s) or isAsciiEncoded(s) then result:=UTF8ToWinCP(s) else result:=s;
   end;
 
 FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
   begin
-    if isUtf8Encoded(s) or isAsciiEncoded(s) then result:=s else result:=SysToUTF8(s);
+    if isUtf8Encoded(s) or isAsciiEncoded(s) then result:=s else result:=WinCPToUTF8(s);
   end;
 
 FUNCTION StripHTML(S: string): string;
