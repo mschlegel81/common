@@ -13,6 +13,7 @@ CONST
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
 
+
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
 FUNCTION isBlank(CONST s: ansistring): boolean;
 FUNCTION replaceAll(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
@@ -37,6 +38,9 @@ FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
 FUNCTION StripHTML(S: string): string;
 FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
 FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
+
+FUNCTION base95Encode(CONST src:ansistring):ansistring;
+FUNCTION base95Decode(CONST src:ansistring):ansistring;
 
 FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
@@ -522,6 +526,56 @@ FUNCTION StripHTML(S: string): string;
       TagBegin:= pos( '<', S);            // search for next <
     end;
     result := S;
+  end;
+
+FUNCTION base95Encode(CONST src:ansistring):ansistring;
+  VAR oneNum:int64;
+      i,j:longint;
+  FUNCTION charCodeAt(CONST index:longint):word;
+    begin
+      if (index>0) and (index<=length(src)) then result:=ord(src[index]) else result:=256;
+    end;
+  begin
+    result:='';
+    i:=1;
+    while i<=length(src) do begin
+      oneNum:=0;
+      for j:=3 downto 0 do oneNum:=oneNum*257+charCodeAt(i+j);
+      for j:=0 to 4 do begin
+        result:=result+chr(32+oneNum mod 95);
+        oneNum:=oneNum div 95;
+      end;
+      inc(i,4);
+    end;
+  end;
+
+FUNCTION base95Decode(CONST src:ansistring):ansistring;
+  VAR oneNum:int64;
+      i,j,k:longint;
+
+  FUNCTION nextNum:longint;
+    begin
+      inc(i);
+      while (i<=length(src)) and not(src[i] in [#32..#126]) do inc(i);
+      if i>length(src)
+      then exit(94)
+      else exit(ord(src[i])-32);
+    end;
+
+  begin
+    result:='';
+    i:=0;
+    while i<length(src) do begin
+      oneNum:=nextNum;
+      oneNum:=oneNum+95      *nextNum;
+      oneNum:=oneNum+9025    *nextNum;
+      oneNum:=oneNum+857375  *nextNum;
+      oneNum:=oneNum+81450625*nextNum;
+      for j:=0 to 3 do begin
+        k:=oneNum mod 257; oneNum:=oneNum div 257;
+        if (k<256) and (k>0) then result:=result+chr(k);
+      end;
+    end;
   end;
 
 FUNCTION gzip_compressString(CONST ASrc: ansistring):ansistring;
