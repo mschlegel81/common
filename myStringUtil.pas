@@ -558,8 +558,8 @@ FUNCTION base95Decode(CONST src:ansistring):ansistring;
       inc(i);
       while (i<=length(src)) and not(src[i] in [#32..#126]) do inc(i);
       if i>length(src)
-      then exit(94)
-      else exit(ord(src[i])-32);
+      then result:=94
+      else result:=ord(src[i])-32;
     end;
 
   begin
@@ -573,7 +573,7 @@ FUNCTION base95Decode(CONST src:ansistring):ansistring;
       oneNum:=oneNum+81450625*nextNum;
       for j:=0 to 3 do begin
         k:=oneNum mod 257; oneNum:=oneNum div 257;
-        if (k<256) and (k>0) then result:=result+chr(k);
+        if (k<256) and (k>=0) then result:=result+chr(k);
       end;
     end;
   end;
@@ -646,32 +646,41 @@ FUNCTION gzip_decompressString(CONST src:ansistring):ansistring;
   end;
 
 FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
-  VAR alternative:ansistring;
+  PROCEDURE checkAlternative(alternative:ansistring; CONST c0,c4:char);
+    begin
+      if algorithm>=4 then alternative:=c4+base95Encode(alternative)
+                      else alternative:=c0+             alternative;
+      if length(alternative)<length(result) then result:=alternative;
+    end;
+
   begin
     case algorithm of
-      1: exit(#126+gzip_compressString(src));
-      2: exit(#188+huffyEncode(src));
-      3: exit(#195+huffyEncode2(src));
+      1: exit(#36+gzip_compressString(src));
+      2: exit(#37+huffyEncode(src));
+      3: exit(#38+huffyEncode2(src));
+      5: exit(#39+base95Encode(gzip_compressString(src)));
+      6: exit(#40+base95Encode(huffyEncode(src)));
+      7: exit(#41+base95Encode(huffyEncode2(src)));
     end;
     if length(src)=0 then exit(src);
-    if src[1] in [#96,#126,#188,#195] then result:=#96+src
-                                      else result:=    src;
-    alternative:=#126+gzip_compressString(src);
-    if length(alternative)<length(result) then result:=alternative;
-    alternative:=#188+huffyEncode(src);
-    if length(alternative)<length(result) then result:=alternative;
-    alternative:=#195+huffyEncode2(src);
-    if length(alternative)<length(result) then result:=alternative;
+    if src[1] in [#35..#41] then result:=#35+src
+                            else result:=    src;
+    checkAlternative(gzip_compressString(src),#36,#39);
+    checkAlternative(huffyEncode(src),#37,#40);
+    checkAlternative(huffyEncode2(src),#38,#41);
   end;
 
 FUNCTION decompressString(CONST src:ansistring):ansistring;
   begin
     if length(src)=0 then exit(src);
     case src[1] of
-       #96: exit(                      copy(src,2,length(src)-1));
-      #126: exit(gzip_decompressString(copy(src,2,length(src)-1)));
-      #188: exit(huffyDecode(          copy(src,2,length(src)-1)));
-      #195: exit(huffyDecode2(         copy(src,2,length(src)-1)));
+      #35: exit(                      copy(src,2,length(src)-1));
+      #36: exit(gzip_decompressString(copy(src,2,length(src)-1)));
+      #37: exit(huffyDecode(          copy(src,2,length(src)-1)));
+      #38: exit(huffyDecode2(         copy(src,2,length(src)-1)));
+      #39: exit(gzip_decompressString(base95Decode(copy(src,2,length(src)-1))));
+      #40: exit(huffyDecode(          base95Decode(copy(src,2,length(src)-1))));
+      #41: exit(huffyDecode2(         base95Decode(copy(src,2,length(src)-1))));
     end;
     result:=src;
   end;
