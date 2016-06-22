@@ -696,9 +696,9 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
   VAR doubleQuoteString:boolean=false;
       singleQuoteString:boolean=false;
       escapeStringDelimiter:boolean=false;
-      curlyBracketsDelimitOneToken:boolean=false;
       cStyleComments:boolean=false;
       dollarVariables:boolean=false;
+      commentDelimiters:array of array[0..1] of string;
 
   PROCEDURE parseNumber(CONST input: ansistring; CONST offset:longint; OUT parsedLength: longint);
     VAR i: longint;
@@ -727,27 +727,64 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
     end;
 
   PROCEDURE setLanguage(name:string);
+    PROCEDURE addCommentDelimiter(CONST opening,closing:string);
+      begin
+        setLength(commentDelimiters,length(commentDelimiters)+1);
+        commentDelimiters[length(commentDelimiters)-1,0]:=opening;
+        commentDelimiters[length(commentDelimiters)-1,1]:=closing;
+      end;
+
     begin
+      setLength(commentDelimiters,0);
       if trim(uppercase(name))='MNH' then begin
         doubleQuoteString:=true;
         singleQuoteString:=true;
         escapeStringDelimiter:=true;
-        curlyBracketsDelimitOneToken:=true;
         cStyleComments:=true;
         dollarVariables:=true;
       end else if trim(uppercase(name))='JAVA' then begin
+        addCommentDelimiter('/**','*/');
+        addCommentDelimiter('/*','*/');
         doubleQuoteString:=true;
         singleQuoteString:=true;
         escapeStringDelimiter:=true;
-        curlyBracketsDelimitOneToken:=false;
         cStyleComments:=true;
       end else if trim(uppercase(name))='PASCAL' then begin
+        addCommentDelimiter('{','}');
+        addCommentDelimiter('(*','*)');
         doubleQuoteString:=false;
         singleQuoteString:=true;
         escapeStringDelimiter:=false;
-        curlyBracketsDelimitOneToken:=true;
         cStyleComments:=true;
       end;
+    end;
+
+  FUNCTION readComment:boolean;
+    VAR i,k:longint;
+        depth:longint=1;
+    begin
+      for i:=0 to length(commentDelimiters)-1 do
+      if copy(stringToSplit,i0,length(commentDelimiters[i,0]))=commentDelimiters[i,0]
+      then begin
+        i1:=i0+length(commentDelimiters[i,0]);
+        while (depth>0) and (i1<length(stringToSplit)) do begin
+          k:=PosEx(commentDelimiters[i,0],stringToSplit,i1);
+          if k>0 then begin
+            inc(depth);
+            i1:=k+length(commentDelimiters[i,0]);
+          end else begin
+            k:=PosEx(commentDelimiters[i,1],stringToSplit,i1);
+            if k>0 then begin
+              dec(depth);
+              i1:=k+length(commentDelimiters[i,1]);
+            end else begin
+              i1:=length(stringToSplit);
+            end;
+          end;
+        end;
+        exit(true);
+      end;
+      result:=false;
     end;
 
   begin
@@ -758,6 +795,7 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
       if stringToSplit[i0] in [' ',C_lineBreakChar,C_carriageReturnChar,C_tabChar] then begin //whitespace
         i1:=i0;
         while (i1<=length(stringToSplit)) and (stringToSplit[i1] in [' ',C_lineBreakChar,C_carriageReturnChar,C_tabChar]) do inc(i1);
+      end else if readComment then begin
       end else if (stringToSplit[i0]='''') and singleQuoteString or
                   (stringToSplit[i0]='"') and doubleQuoteString then begin
         if escapeStringDelimiter then begin
@@ -769,10 +807,8 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
           while (i1<=length(stringToSplit)) and (stringToSplit[i1]<>stringToSplit[i0]) do inc(i1);
           inc(i1);
         end;
-      end else if (stringToSplit[i0]='{') and curlyBracketsDelimitOneToken then begin
+      end else if (stringToSplit[i0] in ['(',')','[',']','{','}']) then begin
         i1:=i0+1;
-        while (i1<=length(stringToSplit)) and (stringToSplit[i1]<>'}') do inc(i1);
-        inc(i1);
       end else if (copy(stringToSplit,i0,2)='//') and cStyleComments then begin
         i1:=i0+1;
         while (i1<=length(stringToSplit)) and not(stringToSplit[i1] in [C_lineBreakChar,C_carriageReturnChar]) do inc(i1);
@@ -780,7 +816,7 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
         i1:=i0+1;
         while (i1<=length(stringToSplit)) and (stringToSplit[i1] in ['a'..'z','A'..'Z','_','0'..'9']) do inc(i1);
       end else if stringToSplit[i0] in ['0'..'9'] then begin //numbers
-        parseNumber(copy(stringToSplit,i0,length(stringToSplit)-i0+1),1,i1);
+        parseNumber(stringToSplit,i0,i1);
         if i1<=0 then i1:=i0
                  else i1:=i0+i1;
       end else begin
