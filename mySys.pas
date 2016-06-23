@@ -342,4 +342,7 @@ FUNCTION readFile(CONST fileName:string):T_arrayOfString;
     close(handle);
   end;
 
+FINALIZATION
+  if clearConsoleProcess<>nil then clearConsoleProcess.destroy;
+
 end.
