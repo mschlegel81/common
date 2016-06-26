@@ -9,10 +9,10 @@ CONST
   C_lineBreakChar = #10;
   C_carriageReturnChar = #13;
   C_tabChar = #9;
+  C_invisibleTabChar = #11;
   C_formFeedChar = #12;
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
-
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
 FUNCTION isBlank(CONST s: ansistring): boolean;
@@ -51,6 +51,7 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
   VAR matrix: array of T_arrayOfString;
       i, j, maxJ, maxLength, dotPos: longint;
       anyTab:boolean=false;
+      anyInvisibleTab:boolean=false;
   FUNCTION isNumeric(s: ansistring): boolean;
     VAR i: longint;
         hasDot, hasExpo: boolean;
@@ -74,11 +75,20 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
     end;
 
   begin
-    for i:=0 to length(s)-1 do anyTab:=anyTab or (pos(C_tabChar,s[i])>0);
-    if not(anyTab) then exit(s);
+    for i:=0 to length(s)-1 do begin
+      anyTab         :=anyTab           or (pos(C_tabChar         ,s[i])>0);
+      anyInvisibleTab:=anyInvisibleTab  or (pos(C_invisibleTabChar,s[i])>0);
+    end;
+    if not(anyTab or anyInvisibleTab) then exit(s);
+
 
     result:=s;
     setLength(matrix,length(result));
+    if anyInvisibleTab then begin
+      if anyTab then
+      for i:=0 to length(result)-1 do result[i]:=replaceAll(result[i],C_tabChar         ,' '+C_tabChar);
+      for i:=0 to length(result)-1 do result[i]:=replaceAll(result[i],C_invisibleTabChar,    C_tabChar);
+    end;
     j:=-1;
     maxJ:=-1;
     for i:=0 to length(result)-1 do begin
@@ -103,9 +113,10 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
       for i:=0 to length(matrix)-1 do
         if (length(matrix [i])>j) and (length(matrix [i] [j])>maxLength) then
           maxLength:=length(matrix [i] [j]);
+      if not(anyInvisibleTab) then inc(maxLength);
       for i:=0 to length(matrix)-1 do
         if (length(matrix [i])>j) then
-          while length(matrix [i] [j])<=maxLength do
+          while length(matrix [i] [j])<maxLength do
             matrix[i][j]:=matrix [i] [j]+' ';
     end;
 
