@@ -38,7 +38,7 @@ begin
   for i := 1 to N-1 do
     begin
       mt[i] := (1812433253 * (mt[i-1] xor (mt[i-1] shr 30)) + i);
-        { See Knuth TAOCP Vol2. 3rd Ed. P.106 For multiplier.
+        { See Knuth TAOCP Vol2. 3rd ED. P.106 for multiplier.
           in the previous versions, MSBs of the seed affect
           only MSBs of the array mt[].
           2002/01/09 Modified by Makoto Matsumoto }
