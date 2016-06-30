@@ -52,26 +52,32 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
       i, j, maxJ, maxLength, dotPos: longint;
       anyTab:boolean=false;
       anyInvisibleTab:boolean=false;
+
   FUNCTION isNumeric(s: ansistring): boolean;
     VAR i: longint;
         hasDot, hasExpo: boolean;
     begin
+      s:=trim(s);
       result:=length(s)>0;
       hasDot:=false;
       hasExpo:=false;
-      for i:=1 to length(s)-1 do if s [i] = '.' then begin
-        result:=result and not (hasDot);
+      for i:=1 to length(s)-1 do if s [i] in ['.',','] then begin
+        result:=result and not(hasDot);
         hasDot:=true;
       end else if (s [i] in ['e', 'E']) and (i>1) then begin
-        result:=result and not (hasExpo);
+        result:=result and not(hasExpo);
         hasExpo:=true;
       end else result:=result and ((s [i] in ['0'..'9']) or ((i = 1) or (s [i-1] in ['e', 'E'])) and (s [i] in ['-', '+']));
     end;
 
   FUNCTION posOfDot(s: ansistring): longint;
     begin
-      result:=pos('.', s);
-      if result = 0 then result:=length(s)+1;
+      result:=pos('.', s); if result>0 then exit(result);
+      result:=pos(',', s); if result>0 then exit(result);
+      if anyTab and anyInvisibleTab then begin
+        result:=pos(' ', s); if result=length(s) then exit(result);
+      end;
+      result:=length(s)+1;
     end;
 
   begin
@@ -771,7 +777,7 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
     end;
 
   FUNCTION readComment:boolean;
-    VAR i,k:longint;
+    VAR i,nextOpen,nextClose:longint;
         depth:longint=1;
     begin
       for i:=0 to length(commentDelimiters)-1 do
@@ -779,20 +785,19 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
       then begin
         i1:=i0+length(commentDelimiters[i,0]);
         while (depth>0) and (i1<length(stringToSplit)) do begin
-          k:=PosEx(commentDelimiters[i,0],stringToSplit,i1);
-          if k>0 then begin
+          nextOpen :=PosEx(commentDelimiters[i,0],stringToSplit,i1); if nextOpen <=0 then nextOpen :=maxLongint;
+          nextClose:=PosEx(commentDelimiters[i,1],stringToSplit,i1); if nextClose<=0 then nextClose:=maxLongint;
+          if (nextOpen=nextClose) then begin
+            exit(true);
+          end else if (nextOpen<nextClose) then begin
             inc(depth);
-            i1:=k+length(commentDelimiters[i,0]);
+            i1:=nextOpen+length(commentDelimiters[i,0]);
           end else begin
-            k:=PosEx(commentDelimiters[i,1],stringToSplit,i1);
-            if k>0 then begin
-              dec(depth);
-              i1:=k+length(commentDelimiters[i,1]);
-            end else begin
-              i1:=length(stringToSplit);
-            end;
+            dec(depth);
+            i1:=nextClose+length(commentDelimiters[i,1]);
           end;
         end;
+        if i1>length(stringToSplit)+1 then i1:=length(stringToSplit)+1;
         exit(true);
       end;
       result:=false;
