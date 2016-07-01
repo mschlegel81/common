@@ -584,10 +584,10 @@ FUNCTION base95Decode(CONST src:ansistring):ansistring;
     i:=0;
     while i<length(src) do begin
       oneNum:=nextNum;
-      oneNum:=oneNum+95      *nextNum;
-      oneNum:=oneNum+9025    *nextNum;
-      oneNum:=oneNum+857375  *nextNum;
-      oneNum:=oneNum+81450625*nextNum;
+      oneNum:=oneNum+int64(95      )*nextNum;
+      oneNum:=oneNum+int64(9025    )*nextNum;
+      oneNum:=oneNum+int64(857375  )*nextNum;
+      oneNum:=oneNum+int64(81450625)*nextNum;
       for j:=0 to 3 do begin
         k:=oneNum mod 257; oneNum:=oneNum div 257;
         if (k<256) and (k>=0) then result:=result+chr(k);
@@ -836,6 +836,7 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
         if i1<=0 then i1:=i0
                  else i1:=i0+i1;
       end else begin
+        i1:=i0;
         while (i1<=length(stringToSplit)) and (stringToSplit[i1] in ['+','-','*','/','?',':','=','<','>','!','%','&','|']) do inc(i1);
         if i1=i0 then i1:=i0+1;
       end;

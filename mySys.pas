@@ -26,6 +26,7 @@ FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 IMPLEMENTATION
 FUNCTION getNumberOfCPUs:longint;
 {$ifdef WINDOWS}
+{$WARN 5057 OFF}
   VAR SystemInfo:SYSTEM_INFO;
   begin
     getSystemInfo(SystemInfo);
@@ -272,7 +273,9 @@ PROCEDURE deleteMyselfOnExit;
     writeln(handle,'@del %0');
     close(handle);
     proc:=TProcess.create(nil);
-    proc.CommandLine:='cmd /C '+batName;
+    proc.executable:='cmd';
+    proc.parameters.add('/C');
+    proc.parameters.add(batName);
     proc.execute;
   end;
 {$endif}
