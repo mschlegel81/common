@@ -86,9 +86,9 @@ TYPE
       bitMask:longint;
       bucket:array of KEY_VALUE_LIST;
       disposer:VALUE_DISPOSER;
-      PROCEDURE rehash(grow:boolean);
+      PROCEDURE rehash(CONST grow:boolean);
     public
-      CONSTRUCTOR create(rebalanceFactor:double; CONST disposer_:VALUE_DISPOSER=nil);
+      CONSTRUCTOR create(CONST rebalanceFactor:double; CONST disposer_:VALUE_DISPOSER=nil);
       CONSTRUCTOR create(CONST disposer_:VALUE_DISPOSER=nil);
       DESTRUCTOR destroy;
       FUNCTION containsKey(CONST key:ansistring; OUT value:VALUE_TYPE):boolean;
@@ -707,7 +707,7 @@ FUNCTION G_sparseArray.getEntry(CONST iterator:longint):ENTRY_TYPE;
                        else result:=map[0,0].value;
   end;
 
-PROCEDURE G_stringKeyMap.rehash(grow: boolean);
+PROCEDURE G_stringKeyMap.rehash(CONST grow: boolean);
   VAR i,i0,j,k,c0,c1,newMask:longint;
       temp:array of KEY_VALUE_PAIR;
   begin
@@ -732,6 +732,7 @@ PROCEDURE G_stringKeyMap.rehash(grow: boolean);
         end;
         setLength(bucket[i   ],c0);
         setLength(bucket[i+i0],c1);
+        setLength(temp,0);
       end;
       bitMask:=newMask;
     end else begin
@@ -745,7 +746,7 @@ PROCEDURE G_stringKeyMap.rehash(grow: boolean);
     end;
   end;
 
-CONSTRUCTOR G_stringKeyMap.create(rebalanceFactor: double; CONST disposer_:VALUE_DISPOSER=nil);
+CONSTRUCTOR G_stringKeyMap.create(CONST rebalanceFactor: double; CONST disposer_:VALUE_DISPOSER=nil);
   begin
     system.initCriticalSection(cs);
     rebalanceFac:=rebalanceFactor;
@@ -776,10 +777,13 @@ CONSTRUCTOR G_stringKeyMap.create(CONST disposer_:VALUE_DISPOSER=nil);
   end;
 
 DESTRUCTOR G_stringKeyMap.destroy;
-  VAR i:longint;
+  VAR i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    for i:=0 to length(bucket)-1 do setLength(bucket[i],0);
+    for i:=0 to length(bucket)-1 do begin
+      for j:=0 to length(bucket[i])-1 do bucket[i,j].key:='';
+      setLength(bucket[i],0);
+    end;
     setLength(bucket,0);
     system.leaveCriticalSection(cs);
     system.doneCriticalSection(cs);

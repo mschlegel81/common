@@ -2612,7 +2612,7 @@ end;
 
 function TBlockSocket.WaitingData: Integer;
 var
-  x: Integer;
+  x: Integer=0;
 begin
   Result := 0;
   if synsock.IoctlSocket(FSocket, FIONREAD, x) = 0 then
