@@ -20,6 +20,7 @@ FUNCTION readString(VAR handle:file):ansistring;
 {$endif}
 PROCEDURE showConsole;
 PROCEDURE hideConsole;
+FUNCTION isConsoleShowing:boolean;
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 
@@ -210,6 +211,11 @@ FUNCTION MemoryUsed: int64;
   end;
 
 VAR consoleShowing:longint=1;
+FUNCTION isConsoleShowing:boolean;
+  begin
+    result:={$ifdef WINDOWS}consoleShowing>=1{$else}true{$endif};
+  end;
+
 PROCEDURE showConsole;
   begin
     inc(consoleShowing);
