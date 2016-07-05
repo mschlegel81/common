@@ -217,7 +217,10 @@ FUNCTION T_progressEstimatorQueue.estimatedRemainingTime: double;
 FUNCTION T_progressEstimatorQueue.getProgressString:ansistring;
   begin
     system.enterCriticalSection(cs);
-    if length(progress)<=0 then exit('');
+    if length(progress)<=0 then begin
+      system.leaveCriticalSection(cs);
+      exit('');
+    end;
     with progress[length(progress)-1] do case state of
       eqs_done:      result:='done ('+myTimeToStr(time-startOfCalculation)+')';
       eqs_cancelled: result:='cancelled ('+myTimeToStr(time-startOfCalculation)+')';
