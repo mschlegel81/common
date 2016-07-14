@@ -68,9 +68,9 @@ CONSTRUCTOR T_streamWrapper.createToReadFromFile(CONST fileName: string);
       fileAccessError:=true;
       try
         stream.destroy;
-      finally
-        stream:=nil;
+      except
       end;
+      stream:=nil;
     end;
   end;
 
@@ -85,9 +85,9 @@ CONSTRUCTOR T_streamWrapper.createToWriteToFile(CONST fileName: string);
       fileAccessError:=true;
       try
         stream.destroy;
-      finally
-        stream:=nil;
+      except
       end;
+      stream:=nil;
     end;
   end;
 
