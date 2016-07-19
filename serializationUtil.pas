@@ -31,6 +31,8 @@ TYPE
       PROCEDURE writeBoolean(CONST value:boolean);
       FUNCTION readByte:byte;
       PROCEDURE writeByte(CONST value:byte);
+      FUNCTION readWord:word;
+      PROCEDURE writeWord(CONST value:word);
       FUNCTION readChar:char;
       PROCEDURE writeChar(CONST value:char);
       FUNCTION readDouble:double;
@@ -159,6 +161,9 @@ PROCEDURE T_streamWrapper.writeBoolean genericWrite;
 {$define VALUE_TYPE:=byte}
 FUNCTION T_streamWrapper.readByte:genericRead;
 PROCEDURE T_streamWrapper.writeByte  genericWrite;
+{$define VALUE_TYPE:=word}
+FUNCTION T_streamWrapper.readWord:genericRead;
+PROCEDURE T_streamWrapper.writeWord  genericWrite;
 {$define VALUE_TYPE:=char}
 FUNCTION T_streamWrapper.readChar:genericRead;
 PROCEDURE T_streamWrapper.writeChar genericWrite;
