@@ -35,7 +35,7 @@ FUNCTION cleanString(CONST s:ansistring; CONST whiteList:charSet; CONST instead:
 FUNCTION myTimeToStr(dt:double):string;
 FUNCTION isAsciiEncoded(CONST s: ansistring): boolean;
 FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
-FUNCTION StripHTML(S: string): string;
+FUNCTION StripHTML(CONST S: string): string;
 FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
 FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
 
@@ -53,11 +53,12 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
       anyTab:boolean=false;
       anyInvisibleTab:boolean=false;
 
-  FUNCTION isNumeric(s: ansistring): boolean;
+  FUNCTION isNumeric(CONST untrimmedString: ansistring): boolean;
     VAR i: longint;
         hasDot, hasExpo: boolean;
+        s:ansistring;
     begin
-      s:=trim(s);
+      s:=trim(untrimmedString);
       result:=length(s)>0;
       hasDot:=false;
       hasExpo:=false;
@@ -74,9 +75,9 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
     begin
       result:=pos('.', s); if result>0 then exit(result);
       result:=pos(',', s); if result>0 then exit(result);
-      if anyTab and anyInvisibleTab then begin
-        result:=pos(' ', s); if result=length(s) then exit(result);
-      end;
+      //if anyTab and anyInvisibleTab then begin
+      //  result:=pos(' ', s); if result=length(s) then exit(result);
+      //end;
       result:=length(s)+1;
     end;
 
@@ -104,28 +105,17 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
     end;
     //expand columns to equal size:
     for j:=0 to maxJ do begin
+      //Align numeric cells at decimal point
       dotPos:=0;
-      for i:=0 to length(matrix)-1 do
-        if (length(matrix [i])>j) and (isNumeric(matrix [i] [j])) and
-          (posOfDot(matrix [i] [j])>dotPos) then
-          dotPos:=posOfDot(matrix [i] [j]);
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (isNumeric(matrix[i,j])) and       (posOfDot(matrix[i,j])>dotPos) then dotPos:=posOfDot(matrix[i,j]);
       if dotPos>0 then
-        for i:=0 to length(matrix)-1 do
-          if (length(matrix [i])>j) and (isNumeric(matrix [i] [j])) then
-            while posOfDot(matrix [i] [j])<dotPos do
-              matrix[i][j]:=' '+matrix [i] [j];
-
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (isNumeric(matrix[i,j])) then while posOfDot(matrix[i,j])<dotPos    do matrix[i][j]:=' '+matrix[i,j];
+      //Expand cells to equal width
       maxLength:=0;
-      for i:=0 to length(matrix)-1 do
-        if (length(matrix [i])>j) and (length(matrix [i] [j])>maxLength) then
-          maxLength:=length(matrix [i] [j]);
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and       (length(matrix[i,j])>maxLength) then maxLength:=length(matrix[i,j]);
       if not(anyInvisibleTab) then inc(maxLength);
-      for i:=0 to length(matrix)-1 do
-        if (length(matrix [i])>j) then
-          while length(matrix [i] [j])<maxLength do
-            matrix[i][j]:=matrix [i] [j]+' ';
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) then while length(matrix[i,j])<maxLength do matrix[i,j]:=matrix[i,j]+' ';
     end;
-
     //join matrix to result;
     for i:=0 to length(matrix)-1 do result[i]:=trimRight(join(matrix[i],''));
   end;
@@ -531,18 +521,18 @@ FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
     if isUtf8Encoded(s) or isAsciiEncoded(s) then result:=s else result:=WinCPToUTF8(s);
   end;
 
-FUNCTION StripHTML(S: string): string;
+FUNCTION StripHTML(CONST S: string): string;
   VAR TagBegin, TagEnd, TagLength: integer;
   begin
-    TagBegin := pos( '<', S);      // search position of first <
+    result:=s;
+    TagBegin := pos( '<', result);      // search position of first <
     while (TagBegin > 0) do begin  // while there is a < in S
-      TagEnd := pos('>', S);              // find the matching >
-      TagEnd := PosEx('>',S,TagBegin);
+      TagEnd := pos('>', result);              // find the matching >
+      TagEnd := PosEx('>',result,TagBegin);
       TagLength := TagEnd - TagBegin + 1;
-      delete(S, TagBegin, TagLength);     // delete the tag
-      TagBegin:= pos( '<', S);            // search for next <
+      delete(result, TagBegin, TagLength);     // delete the tag
+      TagBegin:= pos( '<', result);            // search for next <
     end;
-    result := S;
   end;
 
 FUNCTION base95Encode(CONST src:ansistring):ansistring;
@@ -663,10 +653,11 @@ FUNCTION gzip_decompressString(CONST src:ansistring):ansistring;
   end;
 
 FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
-  PROCEDURE checkAlternative(alternative:ansistring; CONST c0,c4:char);
+  PROCEDURE checkAlternative(CONST alternativeSuffix:ansistring; CONST c0,c4:char);
+    VAR alternative:ansistring;
     begin
-      if algorithm>=4 then alternative:=c4+base95Encode(alternative)
-                      else alternative:=c0+             alternative;
+      if algorithm>=4 then alternative:=c4+base95Encode(alternativeSuffix)
+                      else alternative:=c0+             alternativeSuffix;
       if length(alternative)<length(result) then result:=alternative;
     end;
 
