@@ -39,8 +39,8 @@ FUNCTION StripHTML(CONST S: string): string;
 FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
 FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
 
-FUNCTION base95Encode(CONST src:ansistring):ansistring;
-FUNCTION base95Decode(CONST src:ansistring):ansistring;
+FUNCTION base92Encode(CONST src:ansistring):ansistring;
+FUNCTION base92Decode(CONST src:ansistring):ansistring;
 
 FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
@@ -535,38 +535,50 @@ FUNCTION StripHTML(CONST S: string): string;
     end;
   end;
 
-FUNCTION base95Encode(CONST src:ansistring):ansistring;
-  VAR oneNum:int64;
-      i,j:longint;
-  FUNCTION charCodeAt(CONST index:longint):word;
+FUNCTION base92Encode(CONST src:ansistring):ansistring;
+  VAR k:longint;
+
+  FUNCTION encodeQuartet(CONST startIdx:longint):string;
+    VAR i:longint;
+        j:byte;
+        value:int64=0;
     begin
-      if (index>0) and (index<=length(src)) then result:=ord(src[index]) else result:=256;
+      for i:=3 downto 0 do if startIdx+i<=length(src)
+      then value:=value*257+ord(src[startIdx+i])
+      else value:=value*257+256;
+
+      setLength(result,5);
+      for i:=0 to 4 do begin
+        j:=value mod 92; value:=value div 92;
+        if      j=0 then    j:=33
+        else if j<5 then inc(j,34)
+        else             inc(j,35);
+        result[i+1]:=chr(j);
+      end;
     end;
+
   begin
     result:='';
-    i:=1;
-    while i<=length(src) do begin
-      oneNum:=0;
-      for j:=3 downto 0 do oneNum:=oneNum*257+charCodeAt(i+j);
-      for j:=0 to 4 do begin
-        result:=result+chr(32+oneNum mod 95);
-        oneNum:=oneNum div 95;
-      end;
-      inc(i,4);
+    k:=1;
+    while k<=length(src) do begin
+      result:=result+encodeQuartet(k);
+      inc(k,4);
     end;
   end;
 
-FUNCTION base95Decode(CONST src:ansistring):ansistring;
+FUNCTION base92Decode(CONST src:ansistring):ansistring;
   VAR oneNum:int64;
       i,j,k:longint;
 
   FUNCTION nextNum:longint;
     begin
       inc(i);
-      while (i<=length(src)) and not(src[i] in [#32..#126]) do inc(i);
-      if i>length(src)
-      then result:=94
-      else result:=ord(src[i])-32;
+      while (i<=length(src)) and not(src[i] in [#33,#35..#38,#40..#126]) do inc(i);
+      if i>length(src) then exit(91)
+      else result:=ord(src[i]);
+      if      result=33 then result:=0
+      else if result<39 then dec(result,34)
+                        else dec(result,35);
     end;
 
   begin
@@ -574,10 +586,10 @@ FUNCTION base95Decode(CONST src:ansistring):ansistring;
     i:=0;
     while i<length(src) do begin
       oneNum:=nextNum;
-      oneNum:=oneNum+int64(95      )*nextNum;
-      oneNum:=oneNum+int64(9025    )*nextNum;
-      oneNum:=oneNum+int64(857375  )*nextNum;
-      oneNum:=oneNum+int64(81450625)*nextNum;
+      oneNum:=oneNum+int64(92      )*nextNum;
+      oneNum:=oneNum+int64(8464    )*nextNum;
+      oneNum:=oneNum+int64(778688  )*nextNum;
+      oneNum:=oneNum+int64(71639296)*nextNum;
       for j:=0 to 3 do begin
         k:=oneNum mod 257; oneNum:=oneNum div 257;
         if (k<256) and (k>=0) then result:=result+chr(k);
@@ -653,11 +665,10 @@ FUNCTION gzip_decompressString(CONST src:ansistring):ansistring;
   end;
 
 FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
-  PROCEDURE checkAlternative(CONST alternativeSuffix:ansistring; CONST c0,c4:char);
+  PROCEDURE checkAlternative(CONST alternativeSuffix:ansistring; CONST c0:char);
     VAR alternative:ansistring;
     begin
-      if algorithm>=4 then alternative:=c4+base95Encode(alternativeSuffix)
-                      else alternative:=c0+             alternativeSuffix;
+      alternative:=c0+alternativeSuffix;
       if length(alternative)<length(result) then result:=alternative;
     end;
 
@@ -666,16 +677,14 @@ FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
       1: exit(#36+gzip_compressString(src));
       2: exit(#37+huffyEncode(src));
       3: exit(#38+huffyEncode2(src));
-      5: exit(#39+base95Encode(gzip_compressString(src)));
-      6: exit(#40+base95Encode(huffyEncode(src)));
-      7: exit(#41+base95Encode(huffyEncode2(src)));
     end;
     if length(src)=0 then exit(src);
-    if src[1] in [#35..#41] then result:=#35+src
+    if src[1] in [#35..#38] then result:=#35+src
                             else result:=    src;
-    checkAlternative(gzip_compressString(src),#36,#39);
-    checkAlternative(huffyEncode(src),#37,#40);
-    checkAlternative(huffyEncode2(src),#38,#41);
+    if algorithm=255 then exit(result);
+    checkAlternative(gzip_compressString(src),#36);
+    checkAlternative(huffyEncode (src),#37);
+    checkAlternative(huffyEncode2(src),#38);
   end;
 
 FUNCTION decompressString(CONST src:ansistring):ansistring;
@@ -686,9 +695,6 @@ FUNCTION decompressString(CONST src:ansistring):ansistring;
       #36: exit(gzip_decompressString(copy(src,2,length(src)-1)));
       #37: exit(huffyDecode(          copy(src,2,length(src)-1)));
       #38: exit(huffyDecode2(         copy(src,2,length(src)-1)));
-      #39: exit(gzip_decompressString(base95Decode(copy(src,2,length(src)-1))));
-      #40: exit(huffyDecode(          base95Decode(copy(src,2,length(src)-1))));
-      #41: exit(huffyDecode2(         base95Decode(copy(src,2,length(src)-1))));
     end;
     result:=src;
   end;
