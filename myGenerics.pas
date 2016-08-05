@@ -60,6 +60,7 @@ TYPE
   OPERATOR :=(x:ansistring):T_arrayOfString;
   PROCEDURE append(VAR x:T_arrayOfString; CONST y:ansistring);
   PROCEDURE append(VAR x:T_arrayOfLongint; CONST y:longint);
+  PROCEDURE append(VAR x:T_arrayOfDouble; CONST y:double);
   PROCEDURE appendIfNew(VAR x:T_arrayOfString; CONST y:ansistring);
   PROCEDURE appendIfNew(VAR x:T_arrayOfLongint; CONST y:longint);
   PROCEDURE append(VAR x:T_arrayOfString; CONST y:T_arrayOfString);
@@ -168,6 +169,12 @@ PROCEDURE append(VAR x:T_arrayOfString; CONST y:ansistring);
   end;
 
 PROCEDURE append(VAR x:T_arrayOfLongint; CONST y:longint);
+  begin
+    setLength(x,length(x)+1);
+    x[length(x)-1]:=y;
+  end;
+
+PROCEDURE append(VAR x:T_arrayOfDouble; CONST y:double);
   begin
     setLength(x,length(x)+1);
     x[length(x)-1]:=y;
