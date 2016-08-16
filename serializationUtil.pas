@@ -175,7 +175,8 @@ FUNCTION T_streamWrapper.readAnsiString:ansistring;
   VAR i:longint;
   begin
     setLength(result,readDWord);
-    for i:=1 to length(result) do result[i]:=readChar;
+    for i:=1 to length(result) do if not(earlyEndOfFileError) then result[i]:=readChar;
+    if earlyEndOfFileError then result:='';
   end;
 
 PROCEDURE T_streamWrapper.writeAnsiString(CONST value:ansistring);
