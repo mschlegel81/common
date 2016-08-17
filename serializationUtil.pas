@@ -3,8 +3,6 @@ INTERFACE
 USES Classes;
 TYPE
 
-  { T_streamWrapper }
-
   T_streamWrapper=object
     private
       stream:TStream;
@@ -19,24 +17,33 @@ TYPE
       FUNCTION hasFileAccessError:boolean;
       PROCEDURE logWrongTypeError;
       FUNCTION allOkay:boolean;
-      FUNCTION readDWord:dword;
-      PROCEDURE writeDWord(CONST value:dword);
-      FUNCTION readLongint:longint;
-      PROCEDURE writeLongint(CONST value:longint);
-      FUNCTION readShortint:shortint;
-      PROCEDURE writeShortint(CONST value:shortint);
-      FUNCTION readInt64:int64;
-      PROCEDURE writeInt64(CONST value:int64);
+
       FUNCTION readBoolean:boolean;
       PROCEDURE writeBoolean(CONST value:boolean);
+
       FUNCTION readByte:byte;
       PROCEDURE writeByte(CONST value:byte);
       FUNCTION readWord:word;
       PROCEDURE writeWord(CONST value:word);
-      FUNCTION readChar:char;
-      PROCEDURE writeChar(CONST value:char);
+      FUNCTION readDWord:dword;
+      PROCEDURE writeDWord(CONST value:dword);
+      FUNCTION readQWord:qword;
+      PROCEDURE writeQWord(CONST value:qword);
+
+      FUNCTION readShortint:shortint;
+      PROCEDURE writeShortint(CONST value:shortint);
+      FUNCTION readLongint:longint;
+      PROCEDURE writeLongint(CONST value:longint);
+      FUNCTION readInt64:int64;
+      PROCEDURE writeInt64(CONST value:int64);
+
       FUNCTION readDouble:double;
       PROCEDURE writeDouble(CONST value:double);
+      FUNCTION readSingle:single;
+      PROCEDURE writeSingle(CONST value:single);
+
+      FUNCTION readChar:char;
+      PROCEDURE writeChar(CONST value:char);
       FUNCTION readAnsiString:ansistring;
       PROCEDURE writeAnsiString(CONST value:ansistring);
   end;
@@ -143,18 +150,6 @@ begin
   end;
 end}
 
-{$define VALUE_TYPE:=DWord}
-FUNCTION T_streamWrapper.readDWord:genericRead;
-PROCEDURE T_streamWrapper.writeDWord genericWrite;
-{$define VALUE_TYPE:=longint}
-FUNCTION T_streamWrapper.readLongint:genericRead;
-PROCEDURE T_streamWrapper.writeLongint genericWrite;
-{$define VALUE_TYPE:=shortInt}
-FUNCTION T_streamWrapper.readShortint:genericRead;
-PROCEDURE T_streamWrapper.writeShortint genericWrite;
-{$define VALUE_TYPE:=Int64}
-FUNCTION T_streamWrapper.readInt64:genericRead;
-PROCEDURE T_streamWrapper.writeInt64 genericWrite;
 {$define VALUE_TYPE:=boolean}
 FUNCTION T_streamWrapper.readBoolean:genericRead;
 PROCEDURE T_streamWrapper.writeBoolean genericWrite;
@@ -164,12 +159,30 @@ PROCEDURE T_streamWrapper.writeByte  genericWrite;
 {$define VALUE_TYPE:=word}
 FUNCTION T_streamWrapper.readWord:genericRead;
 PROCEDURE T_streamWrapper.writeWord  genericWrite;
-{$define VALUE_TYPE:=char}
-FUNCTION T_streamWrapper.readChar:genericRead;
-PROCEDURE T_streamWrapper.writeChar genericWrite;
+{$define VALUE_TYPE:=DWord}
+FUNCTION T_streamWrapper.readDWord:genericRead;
+PROCEDURE T_streamWrapper.writeDWord genericWrite;
+{$define VALUE_TYPE:=QWord}
+FUNCTION T_streamWrapper.readQWord:genericRead;
+PROCEDURE T_streamWrapper.writeQWord genericWrite;
+{$define VALUE_TYPE:=shortInt}
+FUNCTION T_streamWrapper.readShortint:genericRead;
+PROCEDURE T_streamWrapper.writeShortint genericWrite;
+{$define VALUE_TYPE:=longint}
+FUNCTION T_streamWrapper.readLongint:genericRead;
+PROCEDURE T_streamWrapper.writeLongint genericWrite;
+{$define VALUE_TYPE:=Int64}
+FUNCTION T_streamWrapper.readInt64:genericRead;
+PROCEDURE T_streamWrapper.writeInt64 genericWrite;
+{$define VALUE_TYPE:=single}
+FUNCTION T_streamWrapper.readSingle:genericRead;
+PROCEDURE T_streamWrapper.writeSingle genericWrite;
 {$define VALUE_TYPE:=double}
 FUNCTION T_streamWrapper.readDouble:genericRead;
 PROCEDURE T_streamWrapper.writeDouble genericWrite;
+{$define VALUE_TYPE:=char}
+FUNCTION T_streamWrapper.readChar:genericRead;
+PROCEDURE T_streamWrapper.writeChar genericWrite;
 
 FUNCTION T_streamWrapper.readAnsiString:ansistring;
   VAR i:longint;
@@ -182,7 +195,7 @@ FUNCTION T_streamWrapper.readAnsiString:ansistring;
 PROCEDURE T_streamWrapper.writeAnsiString(CONST value:ansistring);
   VAR i:longint;
   begin
-    writeLongint(length(value));
+    writeDWord(length(value));
     for i:=1 to length(value) do writeChar(value[i]);
   end;
 
