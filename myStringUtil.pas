@@ -605,7 +605,7 @@ FUNCTION gzip_compressString(CONST ASrc: ansistring):ansistring;
     result:='';
     vDest := TStringStream.create('');
     try
-      vCompressor := TCompressionStream.create(clMax, vDest,true);
+      vCompressor := TCompressionStream.create(clMax, vDest,false);
       try
 	vSource := TStringStream.create(ASrc);
 	try     vCompressor.CopyFrom(vSource, 0);
@@ -633,7 +633,7 @@ FUNCTION gzip_decompressString(CONST ASrc; CONST ASrcSize: int64):ansistring;
     try
       vSource.write(ASrc, ASrcSize);
       vSource.position := 0;
-      vDecompressor := TDecompressionStream.create(vSource,true);
+      vDecompressor := TDecompressionStream.create(vSource,false);
       try
 	vDest := TStringStream.create('');
 	try
