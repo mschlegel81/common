@@ -45,6 +45,7 @@ FUNCTION base92Decode(CONST src:ansistring):ansistring;
 FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
 FUNCTION tokenSplit(CONST stringToSplit:ansistring; CONST language:string='MNH'):T_arrayOfString;
+FUNCTION anistringInfo(VAR s:ansistring):string;
 IMPLEMENTATION
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
@@ -839,6 +840,19 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
       end;
       stepToken;
     end;
+  end;
+
+FUNCTION anistringInfo(VAR s:ansistring):string;
+  begin
+    result:=IntToHex(ptrint  (pointer(s)-24) ,16)
+       +' '+IntToHex(PByte   (pointer(s)-24)^,2)
+       +' '+IntToHex(PByte   (pointer(s)-23)^,2)
+       +' '+IntToHex(PByte   (pointer(s)-22)^,2)
+       +' '+IntToHex(PByte   (pointer(s)-21)^,2)
+       +' '+intToStr(PLongint(pointer(s)-20)^)
+       +' '+intToStr(PInt64  (pointer(s)-16)^)
+       +' '+intToStr(PInt64  (pointer(s)- 8)^)
+       +' '+s;
   end;
 
 end.
