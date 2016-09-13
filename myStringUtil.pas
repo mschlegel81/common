@@ -849,7 +849,7 @@ FUNCTION anistringInfo(VAR s:ansistring):string;
        +' '+IntToHex(PByte   (pointer(s)-23)^,2)
        +' '+IntToHex(PByte   (pointer(s)-22)^,2)
        +' '+IntToHex(PByte   (pointer(s)-21)^,2)
-       +' '+intToStr(PLongint(pointer(s)-20)^)
+       +' '+intToStr(plongint(pointer(s)-20)^)
        +' '+intToStr(PInt64  (pointer(s)-16)^)
        +' '+intToStr(PInt64  (pointer(s)- 8)^)
        +' '+s;

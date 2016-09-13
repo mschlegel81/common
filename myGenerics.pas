@@ -57,13 +57,17 @@ TYPE
   T_arrayOfString=array of ansistring;
   T_arrayOfDouble=array of double;
   T_arrayOfLongint=array of longint;
+  T_arrayOfInt64 = array of int64;
   OPERATOR :=(x:ansistring):T_arrayOfString;
   PROCEDURE append(VAR x:T_arrayOfString; CONST y:ansistring);
   PROCEDURE append(VAR x:T_arrayOfLongint; CONST y:longint);
+  PROCEDURE append(VAR x:T_arrayOfInt64; CONST y:int64);
   PROCEDURE append(VAR x:T_arrayOfDouble; CONST y:double);
   PROCEDURE appendIfNew(VAR x:T_arrayOfString; CONST y:ansistring);
   PROCEDURE appendIfNew(VAR x:T_arrayOfLongint; CONST y:longint);
   PROCEDURE append(VAR x:T_arrayOfString; CONST y:T_arrayOfString);
+  PROCEDURE append(VAR x:T_arrayOfLongint; CONST y:T_arrayOfLongint);
+  PROCEDURE append(VAR x:T_arrayOfInt64; CONST y:T_arrayOfInt64);
   PROCEDURE dropFirst(VAR x:T_arrayOfString; CONST dropCount:longint);
 
 
@@ -176,6 +180,12 @@ PROCEDURE append(VAR x:T_arrayOfLongint; CONST y:longint);
     x[length(x)-1]:=y;
   end;
 
+PROCEDURE append(VAR x:T_arrayOfInt64; CONST y:int64);
+  begin
+    setLength(x,length(x)+1);
+    x[length(x)-1]:=y;
+  end;
+
 PROCEDURE append(VAR x:T_arrayOfDouble; CONST y:double);
   begin
     setLength(x,length(x)+1);
@@ -205,6 +215,22 @@ PROCEDURE appendIfNew(VAR x:T_arrayOfLongint; CONST y:longint);
   end;
 
 PROCEDURE append(VAR x:T_arrayOfString; CONST y:T_arrayOfString);
+  VAR i,i0:longint;
+  begin
+    i0:=length(x);
+    setLength(x,i0+length(y));
+    for i:=0 to length(y)-1 do x[i+i0]:=y[i];
+  end;
+
+PROCEDURE append(VAR x:T_arrayOfLongint; CONST y:T_arrayOfLongint);
+  VAR i,i0:longint;
+  begin
+    i0:=length(x);
+    setLength(x,i0+length(y));
+    for i:=0 to length(y)-1 do x[i+i0]:=y[i];
+  end;
+
+PROCEDURE append(VAR x:T_arrayOfInt64; CONST y:T_arrayOfInt64);
   VAR i,i0:longint;
   begin
     i0:=length(x);
