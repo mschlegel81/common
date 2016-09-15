@@ -36,9 +36,10 @@ TYPE
   T_listOfDoubles=specialize G_list<double>;
 
   GENERIC G_sparseArray<ENTRY_TYPE>=object
+    TYPE INDEXED_ENTRY=record index:longint; value:ENTRY_TYPE; end;
+         INDEXED_ENTRY_ARRAY=array of INDEXED_ENTRY;
     private
-      TYPE INDEXED_ENTRY=record index:longint; value:ENTRY_TYPE; end;
-      VAR map:array of array of INDEXED_ENTRY;
+      VAR map:array of INDEXED_ENTRY_ARRAY;
       hashMask:longint;
       entryCount:longint;
       FUNCTION indexInMap(CONST mapIdx,searchIdx:longint):longint;
@@ -50,8 +51,7 @@ TYPE
       FUNCTION containsIndex(CONST index:longint; OUT value:ENTRY_TYPE):boolean;
       FUNCTION remove(CONST index:longint):boolean;
       FUNCTION size:longint;
-      FUNCTION getEntry(CONST iterator:longint):ENTRY_TYPE;
-      FUNCTION getIndex(CONST iterator:longint):longint;
+      FUNCTION entries:INDEXED_ENTRY_ARRAY;
   end;
 
   T_arrayOfString=array of ansistring;
@@ -726,30 +726,15 @@ PROCEDURE G_sparseArray.rehash(CONST grow:boolean);
 FUNCTION G_sparseArray.size:longint;
   begin result:=entryCount;end;
 
-FUNCTION G_sparseArray.getIndex(CONST iterator:longint):longint;
-  VAR i,k:longint;
+FUNCTION G_sparseArray.entries:INDEXED_ENTRY_ARRAY;
+  VAR i,j,k:longint;
   begin
-    k:=iterator;
-    i:=0;
-    while (i<length(map)) and (k>=length(map[i])) do begin
-      dec(k,length(map[i]));
-      inc(i);
+    setLength(result,entryCount);
+    k:=0;
+    for i:=0 to length(map)-1 do for j:=0 to length(map[i])-1 do begin
+      result[k]:=map[i,j];
+      inc(k);
     end;
-    if (i<length(map)) then result:=map[i,k].index
-                       else result:=-1;
-  end;
-
-FUNCTION G_sparseArray.getEntry(CONST iterator:longint):ENTRY_TYPE;
-  VAR i,k:longint;
-  begin
-    k:=iterator;
-    i:=0;
-    while (i<length(map)) and (k>=length(map[i])) do begin
-      dec(k,length(map[i]));
-      inc(i);
-    end;
-    if (i<length(map)) then result:=map[i,k].value
-                       else result:=map[0,0].value;
   end;
 
 PROCEDURE G_stringKeyMap.rehash(CONST grow: boolean);
