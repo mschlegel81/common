@@ -807,13 +807,9 @@ CONSTRUCTOR G_stringKeyMap.create(CONST disposer_:VALUE_DISPOSER=nil);
   end;
 
 DESTRUCTOR G_stringKeyMap.destroy;
-  VAR i,j:longint;
   begin
+    clear;
     system.enterCriticalSection(cs);
-    for i:=0 to length(bucket)-1 do begin
-      for j:=0 to length(bucket[i])-1 do bucket[i,j].key:='';
-      setLength(bucket[i],0);
-    end;
     setLength(bucket,0);
     system.leaveCriticalSection(cs);
     system.doneCriticalSection(cs);
