@@ -134,6 +134,7 @@ FUNCTION T_streamWrapper.allOkay: boolean;
 {$define genericRead:=VALUE_TYPE;
 begin
   try
+    initialize(result);
     if stream.read(result,sizeOf(result))<>sizeOf(result)
     then earlyEndOfFileError:=true;
   except
