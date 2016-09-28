@@ -46,6 +46,9 @@ TYPE
       PROCEDURE writeChar(CONST value:char);
       FUNCTION readAnsiString:ansistring;
       PROCEDURE writeAnsiString(CONST value:ansistring);
+
+      FUNCTION readNaturalNumber:QWord;
+      PROCEDURE writeNaturalNumber(CONST value:qword);
   end;
 
   T_serializable=object
@@ -188,7 +191,7 @@ PROCEDURE T_streamWrapper.writeChar genericWrite;
 FUNCTION T_streamWrapper.readAnsiString:ansistring;
   VAR i:longint;
   begin
-    setLength(result,readDWord);
+    setLength(result,readNaturalNumber);
     for i:=1 to length(result) do if not(earlyEndOfFileError) then result[i]:=readChar;
     if earlyEndOfFileError then result:='';
   end;
@@ -196,8 +199,24 @@ FUNCTION T_streamWrapper.readAnsiString:ansistring;
 PROCEDURE T_streamWrapper.writeAnsiString(CONST value:ansistring);
   VAR i:longint;
   begin
-    writeDWord(length(value));
+    writeNaturalNumber(length(value));
     for i:=1 to length(value) do writeChar(value[i]);
+  end;
+
+FUNCTION T_streamWrapper.readNaturalNumber:QWord;
+  begin
+    result:=readByte;
+    if result>=128 then result:=result and 127 + (readNaturalNumber() shl 7);
+  end;
+
+PROCEDURE T_streamWrapper.writeNaturalNumber(CONST value:qword);
+  begin
+    if value<=127
+    then writeByte(value)
+    else begin
+      writeByte((value and 127) or 128);
+      writeNaturalNumber(value shr 7);
+    end;
   end;
 
 FUNCTION T_serializable.loadFromFile(CONST fileName: string): boolean;
@@ -226,5 +245,7 @@ PROCEDURE T_serializable.saveToStream(VAR stream:T_streamWrapper);
   begin
     stream.writeDWord(getSerialVersion);
   end;
+
+
 
 end.
