@@ -47,7 +47,7 @@ TYPE
       FUNCTION readAnsiString:ansistring;
       PROCEDURE writeAnsiString(CONST value:ansistring);
 
-      FUNCTION readNaturalNumber:QWord;
+      FUNCTION readNaturalNumber:qword;
       PROCEDURE writeNaturalNumber(CONST value:qword);
   end;
 
@@ -203,7 +203,7 @@ PROCEDURE T_streamWrapper.writeAnsiString(CONST value:ansistring);
     for i:=1 to length(value) do writeChar(value[i]);
   end;
 
-FUNCTION T_streamWrapper.readNaturalNumber:QWord;
+FUNCTION T_streamWrapper.readNaturalNumber:qword;
   begin
     result:=readByte;
     if result>=128 then result:=result and 127 + (readNaturalNumber() shl 7);
