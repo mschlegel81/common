@@ -39,7 +39,7 @@ TYPE
     slotRange:T_slotRange;
     myIndex:byte;
     callbacks:record
-      resize,changeBounds,show,hide:TNotifyEvent;
+      resize,changeBounds,Show,Hide:TNotifyEvent;
     end;
 
     CONSTRUCTOR create(CONST form_:TForm; CONST sizable_:boolean; CONST index:byte);
@@ -61,13 +61,20 @@ TYPE
 
 PROCEDURE registerForm(CONST f:TForm; CONST canResize:boolean);
 PROCEDURE unregisterForm(CONST f:TForm);
-PROCEDURE formStatusChange(CONST f:TForm);
 PROCEDURE arrangeForms(CONST triggeredBy:longint);
 
 VAR autoarrangeForms:boolean=true;
 IMPLEMENTATION
 VAR formMeta:array of P_formMeta;
     arranging:boolean=false;
+    arrangementPending:longint=-1;
+
+PROCEDURE finalizeUnit;
+  VAR i:longint;
+  begin
+    for i:=0 to length(formMeta)-1 do dispose(formMeta[i],destroy);
+    setLength(formMeta,0);
+  end;
 
 FUNCTION indexOfForm(CONST f:TForm):longint;
   VAR i:longint;
@@ -100,28 +107,23 @@ PROCEDURE arrangeForms(CONST triggeredBy:longint);
     begin
       dx:=slotCenterX(meta1^.slotRange)-slotCenterX(meta2^.slotRange);
       dy:=slotCenterY(meta1^.slotRange)-slotCenterY(meta2^.slotRange);
-      writeln('Resolving unbiased conflict between ',meta1^.form.toString,' and ',meta2^.form.toString,'; dx=',dx,'; dy=',dy);
       map.clear;
-      if abs(dx)>abs(dy) then begin
-        if dx<0 then begin
-          meta1^.shrinks(d_left,map);
-          meta2^.shrinks(d_right,map);
-        end else begin
+      if abs(dx)>=abs(dy) then begin
+        if dx>0 then begin
           meta1^.shrinks(d_right,map);
           meta2^.shrinks(d_left,map);
-        end;
+        end else begin
+          meta1^.shrinks(d_left,map);
+          meta2^.shrinks(d_right,map);
+        end
       end else if dy<0 then begin
         meta1^.shrinks(d_up,map);
         meta2^.shrinks(d_down,map);
       end else if dy>0 then begin
         meta1^.shrinks(d_down,map);
         meta2^.shrinks(d_up,map);
-      end else begin
-        meta1^.shrinks(d_left,map);
-        meta2^.shrinks(d_right,map);
       end;
     end;
-
 
   PROCEDURE resolveBiasedConflict(CONST other:P_formMeta);
     VAR triggeringMeta:P_formMeta;
@@ -131,7 +133,7 @@ PROCEDURE arrangeForms(CONST triggeredBy:longint);
       dx:=slotCenterX(other^.slotRange)-slotCenterX(triggeringMeta^.slotRange);
       dy:=slotCenterY(other^.slotRange)-slotCenterY(triggeringMeta^.slotRange);
       map.clear;
-      if abs(dx)>abs(dy) then begin
+      if abs(dx)>=abs(dy) then begin
         if dx<0 then begin
           //other is left of triggering -> shrink leftwards, triggering shrinks rightwards as fallback
           if not(other^.shrinks(d_left,map)) then triggeringMeta^.shrinks(d_right,map);
@@ -142,11 +144,8 @@ PROCEDURE arrangeForms(CONST triggeredBy:longint);
         if not(other^.shrinks(d_up,map)) then triggeringMeta^.shrinks(d_down,map);
       end else if dy>0 then begin
         if not(other^.shrinks(d_down,map)) then triggeringMeta^.shrinks(d_up,map);
-      end else begin
-        if not(other^.shrinks(d_left,map)) then triggeringMeta^.shrinks(d_right,map);
       end;
     end;
-
 
   begin
     if arranging then exit;
@@ -173,17 +172,23 @@ PROCEDURE arrangeForms(CONST triggeredBy:longint);
         else if conflictForm2=triggeredBy then resolveBiasedConflict(formMeta[conflictForm1])
         else resolveUnbiasedConflict(formMeta[conflictForm1],formMeta[conflictForm2]);
         changedInThisLoop:=true;
-      end else
-      //grow
-      repeat
-        growing:=false;
-        for i:=0 to length(formMeta)-1 do growing:=growing or formMeta[i]^.grows(map);
-        changedInThisLoop:=changedInThisLoop or growing;
-      until not(growing);
+      end else begin
+        //grow
+        repeat
+          growing:=false;
+          for i:=0 to length(formMeta)-1 do if i<>triggeredBy then growing:=growing or formMeta[i]^.grows(map);
+          changedInThisLoop:=changedInThisLoop or growing;
+        until not(growing);
+        if (triggeredBy>=0) and (triggeredBy<length(formMeta)) then repeat
+          growing:=formMeta[triggeredBy]^.grows(map);
+          changedInThisLoop:=changedInThisLoop or growing;
+        until not(growing);
+      end;
       changed:=changed or changedInThisLoop;
     until not(changedInThisLoop);
     if changed then for i:=0 to length(formMeta)-1 do formMeta[i]^.applyPosition(map);
     map.destroy;
+    Application.ProcessMessages;
     arranging:=false;
   end;
 
@@ -215,6 +220,10 @@ PROCEDURE formStatusChange(CONST f: TForm);
   VAR i:longint;
   begin
     if not(autoarrangeForms) then exit;
+    if not(f.showing) then begin
+      arrangeForms(-1);
+      exit;
+    end;
     i:=indexOfForm(f);
     if i<0 then exit;
     arrangeForms(i);
@@ -224,9 +233,6 @@ PROCEDURE formStatusChange(CONST f: TForm);
 
 CONSTRUCTOR T_slotMap.create;
   begin
-    mapWidth:=screen.WorkAreaWidth div SLOT_SIZE;
-    mapHeight:=screen.WorkAreaHeight div SLOT_SIZE;
-    setLength(occupied,mapWidth*mapHeight);
     clear;
   end;
 
@@ -238,6 +244,9 @@ DESTRUCTOR T_slotMap.destroy;
 PROCEDURE T_slotMap.clear;
   VAR i:longint;
   begin
+    mapWidth:=screen.WorkAreaWidth div SLOT_SIZE;
+    mapHeight:=screen.WorkAreaHeight div SLOT_SIZE;
+    setLength(occupied,mapWidth*mapHeight);
     for i:=0 to length(occupied)-1 do occupied[i]:=FREE_INDEX;
   end;
 
@@ -289,33 +298,33 @@ PROCEDURE T_slotMap.slotRangeToWindowPosition(CONST r: T_slotRange; OUT Left, to
 
 { T_formMeta }
 
-constructor T_formMeta.create(const form_: TForm; const sizable_: boolean;
-  const index: byte);
+CONSTRUCTOR T_formMeta.create(CONST form_: TForm; CONST sizable_: boolean;
+  CONST index: byte);
   begin
     form:=form_;
     sizable:=(sizable_) and (form_<>nil);
     myIndex:=index;
-    callbacks.resize:=form.OnResize;             form.OnResize:=@FormResize;
+    callbacks.resize      :=form.OnResize;       form.OnResize      :=@FormResize;
     callbacks.changeBounds:=form.OnChangeBounds; form.OnChangeBounds:=@FormChangeBounds;
-    callbacks.hide:=form.OnHide;                 form.OnHide:=@FormHide;
-    callbacks.show:=form.OnShow;                 form.OnShow:=@FormShow;
+    callbacks.Hide        :=form.OnHide;         form.OnHide        :=@FormHide;
+    callbacks.Show        :=form.OnShow;         form.OnShow        :=@FormShow;
   end;
 
-destructor T_formMeta.destroy;
+DESTRUCTOR T_formMeta.destroy;
   begin
     form.OnResize:=callbacks.resize;
     form.OnChangeBounds:=callbacks.changeBounds;
-    form.OnHide:=callbacks.hide;
-    form.OnShow:=callbacks.show;
+    form.OnHide:=callbacks.Hide;
+    form.OnShow:=callbacks.Show;
   end;
 
-procedure T_formMeta.fetchPosition(var map: T_slotMap);
+PROCEDURE T_formMeta.fetchPosition(VAR map: T_slotMap);
   begin
     if not(visible) then exit;
     slotRange:=map.windowPositionToSlotRange(form.Left,form.top,form.height,form.width);
   end;
 
-procedure T_formMeta.trimToDesktop(var map: T_slotMap);
+PROCEDURE T_formMeta.trimToDesktop(VAR map: T_slotMap);
   VAR required:T_slotRange;
   begin
     required:=requiredSlotSize;
@@ -349,7 +358,7 @@ procedure T_formMeta.trimToDesktop(var map: T_slotMap);
     end;
   end;
 
-procedure T_formMeta.applyPosition(var map: T_slotMap);
+PROCEDURE T_formMeta.applyPosition(VAR map: T_slotMap);
   VAR Left,width,top,height:longint;
   begin
     if not(visible) then exit;
@@ -372,8 +381,7 @@ FUNCTION hStrip(CONST x0,x1,y:longint):T_slotRange;
     result.y0:=y;  result.y1:=y;
   end;
 
-function T_formMeta.shrinks(const dir: T_direction; var map: T_slotMap
-  ): boolean;
+FUNCTION T_formMeta.shrinks(CONST dir: T_direction; VAR map: T_slotMap): boolean;
   begin
     result:=false;
     case dir of
@@ -402,7 +410,7 @@ function T_formMeta.shrinks(const dir: T_direction; var map: T_slotMap
     with slotRange do writeln('    ',x0,'..',x1,'x',y0,'..',y1);
   end;
 
-function T_formMeta.moves(const dir: T_direction; var map: T_slotMap): boolean;
+FUNCTION T_formMeta.moves(CONST dir: T_direction; VAR map: T_slotMap): boolean;
   begin
     result:=false;
     case dir of
@@ -439,7 +447,7 @@ function T_formMeta.moves(const dir: T_direction; var map: T_slotMap): boolean;
     with slotRange do writeln('    ',x0,'..',x1,'x',y0,'..',y1);
   end;
 
-function T_formMeta.grows(var map: T_slotMap): boolean;
+FUNCTION T_formMeta.grows(VAR map: T_slotMap): boolean;
   begin
     if not(visible) then exit(false);
     if not(sizable) then exit(moves(d_left ,map) or
@@ -470,12 +478,12 @@ function T_formMeta.grows(var map: T_slotMap): boolean;
     end;
   end;
 
-function T_formMeta.visible: boolean;
+FUNCTION T_formMeta.visible: boolean;
   begin
-    result:=(form<>nil) and (form.visible);
+    result:=(form<>nil) and (form.visible) and (form.showing);
   end;
 
-function T_formMeta.requiredSlotSize: T_slotRange;
+FUNCTION T_formMeta.requiredSlotSize: T_slotRange;
   begin
     result.x0:=0;
     result.y0:=0;
@@ -485,52 +493,35 @@ function T_formMeta.requiredSlotSize: T_slotRange;
                else result.y1:=slotRange.y1-slotRange.y0;
   end;
 
-VAR handlingGUIevent:boolean=false;
-
-procedure T_formMeta.FormResize(Sender: TObject);
+PROCEDURE T_formMeta.FormResize(Sender: TObject);
   begin
-    writeln('FormResize for ',form.ToString);
-    if not(handlingGUIevent) then begin
-      handlingGUIevent:=true;
-      formStatusChange(form);
-      handlingGUIevent:=false;
-    end;
-    if Assigned(callbacks.resize) then callbacks.resize(sender);
+    writeln('FormResize for ',form.toString,' ',form.visible,' ',form.showing);
+    if Assigned(callbacks.resize) then callbacks.resize(Sender);
+    formStatusChange(form);
   end;
 
-procedure T_formMeta.FormChangeBounds(Sender: TObject);
+PROCEDURE T_formMeta.FormChangeBounds(Sender: TObject);
   begin
-    writeln('FormChangeBounds for ',form.ToString);
-    if not(handlingGUIevent) then begin
-      handlingGUIevent:=true;
-      formStatusChange(form);
-      handlingGUIevent:=false;
-    end;
-    if Assigned(callbacks.changeBounds) then callbacks.changeBounds(sender);
+    writeln('FormChangeBounds for ',form.toString,' ',form.visible,' ',form.showing);
+    if Assigned(callbacks.changeBounds) then callbacks.changeBounds(Sender);
+  //  formStatusChange(form);
   end;
 
-procedure T_formMeta.FormShow(Sender: TObject);
+PROCEDURE T_formMeta.FormShow(Sender: TObject);
   begin
-    writeln('FormShow for ',form.ToString);
-    if not(handlingGUIevent) then begin
-      handlingGUIevent:=true;
-      formStatusChange(form);
-      handlingGUIevent:=false;
-    end;
-    if Assigned(callbacks.show) then callbacks.show(sender);
+    writeln('FormShow for ',form.toString,' ',form.visible,' ',form.showing);
+    if Assigned(callbacks.Show) then callbacks.Show(Sender);
+    formStatusChange(form);
   end;
 
-procedure T_formMeta.FormHide(Sender: TObject);
+PROCEDURE T_formMeta.FormHide(Sender: TObject);
   begin
-    writeln('FormShow for ',form.ToString);
-    if not(handlingGUIevent) then begin
-      handlingGUIevent:=true;
-      formStatusChange(form);
-      handlingGUIevent:=false;
-    end;
-    if Assigned(callbacks.hide) then callbacks.hide(sender);
+    writeln('FormShow for ',form.toString,' ',form.visible,' ',form.showing);
+    if Assigned(callbacks.Hide) then callbacks.Hide(Sender);
+    formStatusChange(form);
   end;
 
-
+FINALIZATION
+  finalizeUnit;
 end.
 
