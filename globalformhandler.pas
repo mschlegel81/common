@@ -91,6 +91,7 @@ PROCEDURE arrangeForms(CONST triggeredBy:longint);
       changedInThisLoop:boolean;
       changed:boolean=false;
       map:T_slotMap;
+      safeguardCounter:longint=100;
 
   FUNCTION slotCenterX(CONST r:T_slotRange):longint;
     begin
@@ -185,7 +186,8 @@ PROCEDURE arrangeForms(CONST triggeredBy:longint);
         until not(growing);
       end;
       changed:=changed or changedInThisLoop;
-    until not(changedInThisLoop);
+      dec(safeguardCounter)
+    until not(changedInThisLoop) or (safeguardCounter<=0);
     if changed then for i:=0 to length(formMeta)-1 do formMeta[i]^.applyPosition(map);
     map.destroy;
     Application.ProcessMessages;

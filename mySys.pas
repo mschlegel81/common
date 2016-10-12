@@ -25,29 +25,33 @@ PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 
 IMPLEMENTATION
+VAR numberOfCPUs:longint=0;
 FUNCTION getNumberOfCPUs:longint;
 {$ifdef WINDOWS}
 {$WARN 5057 OFF}
   VAR SystemInfo:SYSTEM_INFO;
   begin
+    if numberOfCPUs>=0 then exit(numberOfCPUs);
     getSystemInfo(SystemInfo);
-    result:=SystemInfo.dwNumberOfProcessors;
+    numberOfCPUs:=SystemInfo.dwNumberOfProcessors;
+    result:=numberOfCPUs;
   end;
 {$else}
   VAR param:T_arrayOfString;
       output: TStringList;
       i:longint;
   begin
+    if numberOfCPUs>=0 then exit(numberOfCPUs);
     param:='-c';
     append(param,'nproc');
     runCommand('sh',param,output);
     result:=-1;
     for i:=0 to output.count-1 do if result<0 then result:=strToIntDef(output[i],-1);
     if result<0 then result:=1;
+    numberOfCPUs:=result;
     output.destroy;
   end;
 {$endif}
-
 
 FUNCTION getEnvironment:T_arrayOfString;
   VAR i:longint;
