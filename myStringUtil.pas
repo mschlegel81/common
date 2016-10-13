@@ -39,9 +39,6 @@ FUNCTION StripHTML(CONST S: string): string;
 FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
 FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
 
-FUNCTION base92Encode(CONST src:ansistring):ansistring;
-FUNCTION base92Decode(CONST src:ansistring):ansistring;
-
 FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
 FUNCTION tokenSplit(CONST stringToSplit:ansistring; CONST language:string='MNH'):T_arrayOfString;
@@ -199,13 +196,8 @@ FUNCTION escapeString(CONST s: ansistring): ansistring;
       result:=DELIM+replaceAll(s,DELIM,DELIM+DELIM)+DELIM;
     end;
 
-  CONST escapes:array[0..34,0..1] of char=
-       (('\','\'),
-        (#0 ,'0'),(#1 ,'1'),(#2 ,'2'),(#3 ,'3'),(#4 ,'4'),(#5 ,'5'),(#6 ,'6'),(#7 ,'a'),
-        (#8 ,'b'),(#9 ,'t'),(#10,'n'),(#11,'v'),(#12,'f'),(#13,'r'),(#14,'S'),(#15,'s'),
-        (#16,'d'),(#17,'A'),(#18,'B'),(#19,'C'),(#20,'D'),(#21,'N'),(#22,'X'),(#23,'T'),
-        (#24,'Z'),(#25,'M'),(#26,'Y'),(#27,'x'),(#28,'F'),(#29,'G'),(#30,'R'),(#31,'U'),
-        (#127,'-'),('"','"'));
+  CONST escapes:array[0..7,0..1] of char=
+       (('\','\'),(#8 ,'b'),(#9 ,'t'),(#10,'n'),(#11,'v'),(#12,'f'),(#13,'r'),('"','"'));
   FUNCTION javaStyle:ansistring;
     VAR i:longint;
     begin
@@ -252,39 +244,12 @@ FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parse
         while (i<=length(input)) and (input[i]<>DQ) do if input[i]='\' then begin
           if (i<length(input)) then begin
             case input[i+1] of
-              '0': result:=result+copy(input,i0,i1-i0+1)+#0  ;
-              '1': result:=result+copy(input,i0,i1-i0+1)+#1  ;
-              '2': result:=result+copy(input,i0,i1-i0+1)+#2  ;
-              '3': result:=result+copy(input,i0,i1-i0+1)+#3  ;
-              '4': result:=result+copy(input,i0,i1-i0+1)+#4  ;
-              '5': result:=result+copy(input,i0,i1-i0+1)+#5  ;
-              '6': result:=result+copy(input,i0,i1-i0+1)+#6  ;
-              'a': result:=result+copy(input,i0,i1-i0+1)+#7  ;
               'b': result:=result+copy(input,i0,i1-i0+1)+#8  ;
               't': result:=result+copy(input,i0,i1-i0+1)+#9  ;
               'n': result:=result+copy(input,i0,i1-i0+1)+#10 ;
               'v': result:=result+copy(input,i0,i1-i0+1)+#11 ;
               'f': result:=result+copy(input,i0,i1-i0+1)+#12 ;
               'r': result:=result+copy(input,i0,i1-i0+1)+#13 ;
-              'S': result:=result+copy(input,i0,i1-i0+1)+#14 ;
-              's': result:=result+copy(input,i0,i1-i0+1)+#15 ;
-              'd': result:=result+copy(input,i0,i1-i0+1)+#16 ;
-              'A': result:=result+copy(input,i0,i1-i0+1)+#17 ;
-              'B': result:=result+copy(input,i0,i1-i0+1)+#18 ;
-              'C': result:=result+copy(input,i0,i1-i0+1)+#19 ;
-              'D': result:=result+copy(input,i0,i1-i0+1)+#20 ;
-              'N': result:=result+copy(input,i0,i1-i0+1)+#21 ;
-              'X': result:=result+copy(input,i0,i1-i0+1)+#22 ;
-              'T': result:=result+copy(input,i0,i1-i0+1)+#23 ;
-              'Z': result:=result+copy(input,i0,i1-i0+1)+#24 ;
-              'M': result:=result+copy(input,i0,i1-i0+1)+#25 ;
-              'Y': result:=result+copy(input,i0,i1-i0+1)+#26 ;
-              'x': result:=result+copy(input,i0,i1-i0+1)+#27 ;
-              'F': result:=result+copy(input,i0,i1-i0+1)+#28 ;
-              'G': result:=result+copy(input,i0,i1-i0+1)+#29 ;
-              'R': result:=result+copy(input,i0,i1-i0+1)+#30 ;
-              'U': result:=result+copy(input,i0,i1-i0+1)+#31 ;
-              '-': result:=result+copy(input,i0,i1-i0+1)+#127;
               else result:=result+copy(input,i0,i1-i0+1)+input[i+1];
             end;
             inc(i,2);
@@ -533,68 +498,6 @@ FUNCTION StripHTML(CONST S: string): string;
       TagLength := TagEnd - TagBegin + 1;
       delete(result, TagBegin, TagLength);     // delete the tag
       TagBegin:= pos( '<', result);            // search for next <
-    end;
-  end;
-
-FUNCTION base92Encode(CONST src:ansistring):ansistring;
-  VAR k:longint;
-
-  FUNCTION encodeQuartet(CONST startIdx:longint):string;
-    VAR i:longint;
-        j:byte;
-        value:int64=0;
-    begin
-      for i:=3 downto 0 do if startIdx+i<=length(src)
-      then value:=value*257+ord(src[startIdx+i])
-      else value:=value*257+256;
-
-      setLength(result,5);
-      for i:=0 to 4 do begin
-        j:=value mod 92; value:=value div 92;
-        if      j=0 then    j:=33
-        else if j<5 then inc(j,34)
-        else             inc(j,35);
-        result[i+1]:=chr(j);
-      end;
-    end;
-
-  begin
-    result:='';
-    k:=1;
-    while k<=length(src) do begin
-      result:=result+encodeQuartet(k);
-      inc(k,4);
-    end;
-  end;
-
-FUNCTION base92Decode(CONST src:ansistring):ansistring;
-  VAR oneNum:int64;
-      i,j,k:longint;
-
-  FUNCTION nextNum:longint;
-    begin
-      inc(i);
-      while (i<=length(src)) and not(src[i] in [#33,#35..#38,#40..#126]) do inc(i);
-      if i>length(src) then exit(91)
-      else result:=ord(src[i]);
-      if      result=33 then result:=0
-      else if result<39 then dec(result,34)
-                        else dec(result,35);
-    end;
-
-  begin
-    result:='';
-    i:=0;
-    while i<length(src) do begin
-      oneNum:=nextNum;
-      oneNum:=oneNum+int64(92      )*nextNum;
-      oneNum:=oneNum+int64(8464    )*nextNum;
-      oneNum:=oneNum+int64(778688  )*nextNum;
-      oneNum:=oneNum+int64(71639296)*nextNum;
-      for j:=0 to 3 do begin
-        k:=oneNum mod 257; oneNum:=oneNum div 257;
-        if (k<256) and (k>=0) then result:=result+chr(k);
-      end;
     end;
   end;
 
