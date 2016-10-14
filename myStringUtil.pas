@@ -4,7 +4,7 @@ INTERFACE
 USES math, strutils, sysutils,  myGenerics, zstream, Classes, huffman, LazUTF8;
 
 TYPE charSet=set of char;
-
+     T_escapeStyle=(es_javaStyle,es_mnhPascalStyle,es_strictPascalStyle,es_pickShortest,es_dontCare);
 CONST
   C_lineBreakChar = #10;
   C_carriageReturnChar = #13;
@@ -19,7 +19,7 @@ FUNCTION isBlank(CONST s: ansistring): boolean;
 FUNCTION replaceAll(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
 FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT isValid: boolean): ansistring; inline;
 FUNCTION replaceOne(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
-FUNCTION escapeString(CONST s: ansistring): ansistring;
+FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle): ansistring;
 FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parsedLength: longint): ansistring;
 FUNCTION isIdentifier(CONST s: ansistring; CONST allowDot: boolean): boolean;
 FUNCTION isFilename(CONST s: ansistring; CONST acceptedExtensions:array of string):boolean;
@@ -189,29 +189,69 @@ FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT 
     end;
   end;
 
-FUNCTION escapeString(CONST s: ansistring): ansistring;
+FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle): ansistring;
+  CONST javaEscapes:array[0..7,0..1] of char=(('\','\'),(#8 ,'b'),(#9 ,'t'),(#10,'n'),(#11,'v'),(#12,'f'),(#13,'r'),('"','"'));
+        javaEscapable:charSet=[#8,#9,#10,#11,#12,#13];
+  FUNCTION containsJavaEscapable:boolean;
+    VAR c:char;
+    begin
+      for c in s do if c in javaEscapable then exit(true);
+      result:=false;
+    end;
+
   FUNCTION pascalStyle:ansistring;
     CONST DELIM='''';
     begin
       result:=DELIM+replaceAll(s,DELIM,DELIM+DELIM)+DELIM;
     end;
 
-  CONST escapes:array[0..7,0..1] of char=
-       (('\','\'),(#8 ,'b'),(#9 ,'t'),(#10,'n'),(#11,'v'),(#12,'f'),(#13,'r'),('"','"'));
+  FUNCTION strictPascalStyle:ansistring;
+    CONST DELIM='''';
+    VAR nonAsciiChars:set of char=[];
+        c:char;
+        nonAsciiMode:boolean=true;
+    begin
+      for c in s do if (c<#32) or (c>#126) then include(nonAsciiChars,c);
+      if nonAsciiChars=[] then exit(pascalStyle);
+      result:='';
+      for c in s do if (c in nonAsciiChars) then begin
+        if not(nonAsciiMode) then result:=result+DELIM;
+        nonAsciiMode:=true;
+        result:=result+'#'+intToStr(ord(c))
+      end else if c=DELIM then begin
+        if nonAsciiMode then result:=result+'#39'
+                        else result:=result+DELIM+DELIM;
+      end else begin
+        if nonAsciiMode then result:=result+DELIM;
+        nonAsciiMode:=false;
+        result:=result+c;
+      end;
+      if not(nonAsciiMode) then result:=result+DELIM;
+    end;
+
   FUNCTION javaStyle:ansistring;
     VAR i:longint;
     begin
       result:=s;
-      for i:=0 to length(escapes)-1 do result:=replaceAll(result,escapes[i,0],'\'+escapes[i,1]);
+      for i:=0 to length(javaEscapes)-1 do result:=replaceAll(result,javaEscapes[i,0],'\'+javaEscapes[i,1]);
       result:='"'+result+'"';
     end;
 
   VAR tmp:ansistring;
   begin
-    if (pos(C_lineBreakChar,s)>0) or (pos(C_tabChar,s)>0) then exit(javaStyle);
-    tmp:=javaStyle;
-    result:=pascalStyle;
-    if length(tmp)<length(result) then result:=tmp;
+    case style of
+      es_javaStyle        : exit(javaStyle);
+      es_mnhPascalStyle   : exit(pascalStyle);
+      es_strictPascalStyle: exit(strictPascalStyle);
+      es_pickShortest     : begin
+        tmp:=javaStyle;
+        if containsJavaEscapable then exit(tmp);
+        result:=pascalStyle;
+        if length(tmp)<length(result) then result:=tmp;
+      end;
+      es_dontCare         : if containsJavaEscapable then exit(javaStyle)
+                                                     else exit(pascalStyle);
+    end;
   end;
 
 FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parsedLength: longint): ansistring;
