@@ -46,38 +46,72 @@ FUNCTION anistringInfo(VAR s:ansistring):string;
 IMPLEMENTATION
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
-  VAR matrix: array of T_arrayOfString;
+  TYPE TcellInfo=record
+    numeric:boolean;
+    posOfDot,txtLength:longint;
+    txt:ansistring;
+  end;
+
+  FUNCTION infoFromString(CONST s:ansistring):TcellInfo;
+    FUNCTION isNumeric(CONST untrimmedString: ansistring): boolean;
+      VAR i: longint;
+          hasDot, hasExpo: boolean;
+          s:ansistring;
+      begin
+        s:=trim(untrimmedString);
+        result:=length(s)>0;
+        hasDot:=false;
+        hasExpo:=false;
+        for i:=1 to length(s)-1 do if s [i] in ['.',','] then begin
+          result:=result and not(hasDot);
+          hasDot:=true;
+        end else if (s [i] in ['e', 'E']) and (i>1) then begin
+          result:=result and not(hasExpo);
+          hasExpo:=true;
+        end else result:=result and ((s [i] in ['0'..'9']) or ((i = 1) or (s [i-1] in ['e', 'E'])) and (s [i] in ['-', '+']));
+      end;
+
+    FUNCTION findDot(s: ansistring): longint;
+      begin
+        result:=pos('.', s); if result>0 then exit(result);
+        result:=pos(',', s); if result>0 then exit(result);
+        result:=UTF8Length(s)+1;
+      end;
+
+    begin
+      with result do begin
+        txt:=s;
+        txtLength:=UTF8Length(txt);
+        numeric:=isNumeric(txt);
+        if numeric then posOfDot:=findDot(s)
+                   else posOfDot:=txtLength+1;
+      end;
+    end;
+
+  PROCEDURE padLeft(VAR c:TcellInfo; CONST dotPos:longint); inline;
+    VAR count:longint;
+    begin
+      count:=dotPos-c.posOfDot;
+      if count<=0 then exit;
+      c.txt:=StringOfChar(' ',count)+c.txt;
+      inc(c.posOfDot,count);
+      inc(c.txtLength,count);
+    end;
+
+  PROCEDURE padRight(VAR c:TcellInfo; CONST targetLength:longint); inline;
+    VAR count:longint;
+    begin
+      count:=targetLength-c.txtLength;
+      if count<=0 then exit;
+      c.txt:=c.txt+StringOfChar(' ',count);
+      inc(c.txtLength,count);
+    end;
+
+  VAR matrix: array of array of TcellInfo;
       i, j, maxJ, maxLength, dotPos: longint;
       anyTab:boolean=false;
       anyInvisibleTab:boolean=false;
-
-  FUNCTION isNumeric(CONST untrimmedString: ansistring): boolean;
-    VAR i: longint;
-        hasDot, hasExpo: boolean;
-        s:ansistring;
-    begin
-      s:=trim(untrimmedString);
-      result:=length(s)>0;
-      hasDot:=false;
-      hasExpo:=false;
-      for i:=1 to length(s)-1 do if s [i] in ['.',','] then begin
-        result:=result and not(hasDot);
-        hasDot:=true;
-      end else if (s [i] in ['e', 'E']) and (i>1) then begin
-        result:=result and not(hasExpo);
-        hasExpo:=true;
-      end else result:=result and ((s [i] in ['0'..'9']) or ((i = 1) or (s [i-1] in ['e', 'E'])) and (s [i] in ['-', '+']));
-    end;
-
-  FUNCTION posOfDot(s: ansistring): longint;
-    begin
-      result:=pos('.', s); if result>0 then exit(result);
-      result:=pos(',', s); if result>0 then exit(result);
-      //if anyTab and anyInvisibleTab then begin
-      //  result:=pos(' ', s); if result=length(s) then exit(result);
-      //end;
-      result:=length(s)+1;
-    end;
+      tmp:T_arrayOfString;
 
   begin
     for i:=0 to length(s)-1 do begin
@@ -97,7 +131,9 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
     j:=-1;
     maxJ:=-1;
     for i:=0 to length(result)-1 do begin
-      matrix[i]:=split(result[i],C_tabChar);
+      tmp:=split(result[i],C_tabChar);
+      setLength(matrix[i],length(tmp));
+      for j:=0 to length(tmp)-1 do matrix[i][j]:=infoFromString(tmp[j]);
       j:=length(matrix[i])-1;
       if j>maxJ then maxJ:=j;
     end;
@@ -105,17 +141,25 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
     for j:=0 to maxJ do begin
       //Align numeric cells at decimal point
       dotPos:=0;
-      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (isNumeric(matrix[i,j])) and (posOfDot(matrix[i,j])>dotPos) then dotPos:=posOfDot(matrix[i,j]);
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (matrix[i][j].numeric) and (matrix[i][j].posOfDot>dotPos) then dotPos:=matrix[i][j].posOfDot;
       if dotPos>0 then
-      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (isNumeric(matrix[i,j])) then matrix[i][j]:=StringOfChar(' ',dotPos-posOfDot(matrix[i,j]))+matrix[i,j];
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (matrix[i][j].numeric) then padLeft(matrix[i][j],dotPos);
       //Expand cells to equal width
-      maxLength:=0;
-      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (UTF8Length(matrix[i,j])>maxLength) then maxLength:=UTF8Length(matrix[i,j]);
-      if not(anyInvisibleTab) then inc(maxLength);
-      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) then matrix[i,j]:=matrix[i,j]+StringOfChar(' ',maxLength-UTF8Length(matrix[i,j]));
+      if j<maxJ then begin //skip last column 'cause it will be trimmed right anyway
+        maxLength:=0;
+        for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (matrix[i][j].txtLength>maxLength) then maxLength:=matrix[i][j].txtLength;
+        if not(anyInvisibleTab) then inc(maxLength);
+        for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) then padRight(matrix[i][j],maxLength);
+      end;
     end;
     //join matrix to result;
-    for i:=0 to length(matrix)-1 do result[i]:=trimRight(join(matrix[i],''));
+    for i:=0 to length(matrix)-1 do begin
+      result[i]:='';
+      for j:=0 to length(matrix[i])-1 do result[i]:=result[i]+matrix[i][j].txt;
+      setLength(matrix[i],0);
+      result[i]:=trimRight(result[i]);
+    end;
+    setLength(matrix,0);
   end;
 
 FUNCTION isBlank(CONST s: ansistring): boolean;
