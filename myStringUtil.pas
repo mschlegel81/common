@@ -105,14 +105,14 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
     for j:=0 to maxJ do begin
       //Align numeric cells at decimal point
       dotPos:=0;
-      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (isNumeric(matrix[i,j])) and       (posOfDot(matrix[i,j])>dotPos) then dotPos:=posOfDot(matrix[i,j]);
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (isNumeric(matrix[i,j])) and (posOfDot(matrix[i,j])>dotPos) then dotPos:=posOfDot(matrix[i,j]);
       if dotPos>0 then
-      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (isNumeric(matrix[i,j])) then while posOfDot(matrix[i,j])<dotPos    do matrix[i][j]:=' '+matrix[i,j];
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (isNumeric(matrix[i,j])) then matrix[i][j]:=StringOfChar(' ',dotPos-posOfDot(matrix[i,j]))+matrix[i,j];
       //Expand cells to equal width
       maxLength:=0;
-      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and       (UTF8Length(matrix[i,j])>maxLength) then maxLength:=UTF8Length(matrix[i,j]);
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (UTF8Length(matrix[i,j])>maxLength) then maxLength:=UTF8Length(matrix[i,j]);
       if not(anyInvisibleTab) then inc(maxLength);
-      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) then while UTF8Length(matrix[i,j])<maxLength do matrix[i,j]:=matrix[i,j]+' ';
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) then matrix[i,j]:=matrix[i,j]+StringOfChar(' ',maxLength-UTF8Length(matrix[i,j]));
     end;
     //join matrix to result;
     for i:=0 to length(matrix)-1 do result[i]:=trimRight(join(matrix[i],''));
