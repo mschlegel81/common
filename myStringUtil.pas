@@ -283,6 +283,7 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle): ansistrin
 
   VAR tmp:ansistring;
   begin
+    result:='';
     case style of
       es_javaStyle        : exit(javaStyle);
       es_mnhPascalStyle   : exit(pascalStyle);

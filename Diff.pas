@@ -6,9 +6,9 @@ TYPE
 
 {$IFDEF UNICODE}
   P8Bits = PByte;
-{$ELSE}
+{$else}
   P8Bits = PAnsiChar;
-{$ENDIF}
+{$endif}
 
   PDiags = ^TDiags;
   TDiags = array [-MAX_DIAGONAL .. MAX_DIAGONAL] of integer;

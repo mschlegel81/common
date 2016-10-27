@@ -17,7 +17,7 @@ FUNCTION IsServerRunning(Client: TSimpleIPCClient): boolean;
 
 IMPLEMENTATION
 
-{$ifdef unix}
+{$ifdef UNIX}
 USES
   baseunix;
 

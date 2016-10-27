@@ -1,6 +1,6 @@
 UNIT mySys;
 INTERFACE
-USES dos,myGenerics,sysutils,Process,{$ifdef WINDOWS}windows,{$endif}FileUtil,Classes,LazUTF8;
+USES dos,myGenerics,sysutils,Process,{$ifdef Windows}windows,{$endif}FileUtil,Classes,LazUTF8;
 
 FUNCTION getEnvironment:T_arrayOfString;
 FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
@@ -12,9 +12,9 @@ FUNCTION getNumberOfCPUs:longint;
 FUNCTION MemoryUsed: int64;
 PROCEDURE writeString(VAR handle:file; CONST s:ansistring);
 FUNCTION readString(VAR handle:file):ansistring;
-{$ifdef WINDOWS}
+{$ifdef Windows}
   PROCEDURE deleteMyselfOnExit;
-  {$ifndef debugMode}
+  {$ifndef DEBUGMODE}
   FUNCTION GetConsoleWindow: HWND; stdcall; external kernel32;
   {$endif}
 {$endif}
@@ -27,7 +27,7 @@ FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
 FUNCTION getNumberOfCPUs:longint;
-{$ifdef WINDOWS}
+{$ifdef Windows}
 {$WARN 5057 OFF}
   VAR SystemInfo:SYSTEM_INFO;
   begin
@@ -217,14 +217,14 @@ FUNCTION MemoryUsed: int64;
 VAR consoleShowing:longint=1;
 FUNCTION isConsoleShowing:boolean;
   begin
-    result:={$ifdef WINDOWS}consoleShowing>=1{$else}true{$endif};
+    result:={$ifdef Windows}consoleShowing>=1{$else}true{$endif};
   end;
 
 PROCEDURE showConsole;
   begin
     inc(consoleShowing);
     if consoleShowing<1 then consoleShowing:=1;
-    {$ifdef WINDOWS}{$ifndef debugMode}
+    {$ifdef Windows}{$ifndef DEBUGMODE}
     ShowWindow(GetConsoleWindow, SW_SHOW);
     {$endif}{$endif}
   end;
@@ -233,7 +233,7 @@ PROCEDURE hideConsole;
   begin
     dec(consoleShowing);
     if consoleShowing<=0 then begin
-      {$ifdef WINDOWS}{$ifndef debugMode}
+      {$ifdef Windows}{$ifndef DEBUGMODE}
       ShowWindow(GetConsoleWindow, SW_HIDE);
       {$endif}{$endif}
       if consoleShowing<0 then consoleShowing:=0;
@@ -262,7 +262,7 @@ FUNCTION dateToSortable(t:TDateTime):ansistring;
     DateTimeToString(result,'YYYYMMDD_HHmmss',t);
   end;
 
-{$ifdef WINDOWS}
+{$ifdef Windows}
 PROCEDURE deleteMyselfOnExit;
   VAR handle:text;
       batName:string;
