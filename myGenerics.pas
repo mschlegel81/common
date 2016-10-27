@@ -84,6 +84,7 @@ TYPE
          end;
          KEY_VALUE_LIST=array of KEY_VALUE_PAIR;
          VALUE_DISPOSER=PROCEDURE(VAR v:VALUE_TYPE);
+         MY_TYPE=specialize G_stringKeyMap<VALUE_TYPE>;
     private VAR
       cs:TRTLCriticalSection;
       entryCount:longint;
@@ -95,6 +96,7 @@ TYPE
     public
       CONSTRUCTOR create(CONST rebalanceFactor:double; CONST disposer_:VALUE_DISPOSER=nil);
       CONSTRUCTOR create(CONST disposer_:VALUE_DISPOSER=nil);
+      CONSTRUCTOR createClone(VAR map:MY_TYPE);
       DESTRUCTOR destroy;
       FUNCTION containsKey(CONST key:ansistring; OUT value:VALUE_TYPE):boolean;
       FUNCTION containsKey(CONST key:ansistring):boolean;
@@ -804,6 +806,20 @@ PROCEDURE G_stringKeyMap.clear;
 CONSTRUCTOR G_stringKeyMap.create(CONST disposer_:VALUE_DISPOSER=nil);
   begin
     create(4,disposer_);
+  end;
+
+CONSTRUCTOR G_stringKeyMap.createClone(VAR map:MY_TYPE);
+  VAR i,j:longint;
+  begin
+    create(map.rebalanceFac,map.disposer);
+    if disposer<>nil then raise Exception.create('You must not clone maps with an associated disposer');
+    setLength(bucket,length(map.bucket));
+    for i:=0 to length(bucket)-1 do begin
+      setLength(bucket[i],length(map.bucket[i]));
+      for j:=0 to length(bucket[i])-1 do bucket[i,j]:=map.bucket[i,j];
+    end;
+    entryCount:=map.entryCount;
+    bitMask:=map.bitMask;
   end;
 
 DESTRUCTOR G_stringKeyMap.destroy;
