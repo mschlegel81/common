@@ -89,7 +89,6 @@ TYPE
       cs:TRTLCriticalSection;
       entryCount:longint;
       rebalanceFac:double;
-      bitMask:longint;
       bucket:array of KEY_VALUE_LIST;
       disposer:VALUE_DISPOSER;
       PROCEDURE rehash(CONST grow:boolean);
@@ -740,20 +739,19 @@ FUNCTION G_sparseArray.entries:INDEXED_ENTRY_ARRAY;
   end;
 
 PROCEDURE G_stringKeyMap.rehash(CONST grow: boolean);
-  VAR i,i0,j,k,c0,c1,newMask:longint;
+  VAR i,i0,j,k,c0,c1:longint;
       temp:array of KEY_VALUE_PAIR;
   begin
     if grow then begin
       i0:=length(bucket);
       setLength(bucket,i0+i0);
-      newMask:=i0+i0-1;
       for i:=0 to i0-1 do begin
         temp:=bucket[i];
         setLength(bucket[i+i0],length(bucket[i]));
         c0:=0;
         c1:=0;
         for j:=0 to length(temp)-1 do begin
-          k:=temp[j].hash and newMask;
+          k:=temp[j].hash and (length(bucket)-1);
           if k=i then begin
             bucket[i][c0]:=temp[j];
             inc(c0);
@@ -766,10 +764,8 @@ PROCEDURE G_stringKeyMap.rehash(CONST grow: boolean);
         setLength(bucket[i+i0],c1);
         setLength(temp,0);
       end;
-      bitMask:=newMask;
     end else begin
       i0:=length(bucket) shr 1;
-      newMask:=i0-1;
       for i:=0 to i0-1 do
       for j:=0 to length(bucket[i0+i])-1 do begin
         setLength(bucket[i],length(bucket[i])+1);
@@ -784,7 +780,6 @@ CONSTRUCTOR G_stringKeyMap.create(CONST rebalanceFactor: double; CONST disposer_
     rebalanceFac:=rebalanceFactor;
     setLength(bucket,1);
     setLength(bucket[0],0);
-    bitMask:=0;
     entryCount:=0;
     disposer:=disposer_;
   end;
@@ -798,7 +793,6 @@ PROCEDURE G_stringKeyMap.clear;
       setLength(bucket[i],0);
     end;
     setLength(bucket,1);
-    bitMask:=0;
     entryCount:=0;
     system.leaveCriticalSection(cs);
   end;
@@ -819,7 +813,6 @@ CONSTRUCTOR G_stringKeyMap.createClone(VAR map:MY_TYPE);
       for j:=0 to length(bucket[i])-1 do bucket[i,j]:=map.bucket[i,j];
     end;
     entryCount:=map.entryCount;
-    bitMask:=map.bitMask;
   end;
 
 DESTRUCTOR G_stringKeyMap.destroy;
@@ -835,7 +828,7 @@ FUNCTION G_stringKeyMap.containsKey(CONST key: ansistring; OUT value: VALUE_TYPE
   VAR i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    i:=hashOfAnsiString(key) and bitMask;
+    i:=hashOfAnsiString(key) and (length(bucket)-1);
     j:=0;
     while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
     if (j<length(bucket[i])) then begin
@@ -849,7 +842,7 @@ FUNCTION G_stringKeyMap.containsKey(CONST key:ansistring):boolean;
   VAR i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    i:=hashOfAnsiString(key) and bitMask;
+    i:=hashOfAnsiString(key) and (length(bucket)-1);
     j:=0;
     while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
     result:=(j<length(bucket[i]));
@@ -866,7 +859,7 @@ PROCEDURE G_stringKeyMap.put(CONST key: ansistring; CONST value: VALUE_TYPE);
   begin
     system.enterCriticalSection(cs);
     h:=hashOfAnsiString(key);
-    i:=h and bitMask;
+    i:=h and (length(bucket)-1);
     j:=0;
     while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
     if j>=length(bucket[i]) then begin
@@ -895,7 +888,7 @@ PROCEDURE G_stringKeyMap.dropKey(CONST key: ansistring);
   VAR i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    i:=hashOfAnsiString(key) and bitMask;
+    i:=hashOfAnsiString(key) and (length(bucket)-1);
     j:=0;
     while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
     if j<length(bucket[i]) then begin
