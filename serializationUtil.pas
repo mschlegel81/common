@@ -17,10 +17,11 @@ TYPE
       FUNCTION hasFileAccessError:boolean;
       PROCEDURE logWrongTypeError;
       FUNCTION allOkay:boolean;
+      FUNCTION streamPosition:int64;
+      PROCEDURE jumpToStreamPosition(CONST position:int64);
 
       FUNCTION readBoolean:boolean;
       PROCEDURE writeBoolean(CONST value:boolean);
-
       FUNCTION readByte:byte;
       PROCEDURE writeByte(CONST value:byte);
       FUNCTION readWord:word;
@@ -131,6 +132,16 @@ PROCEDURE T_streamWrapper.logWrongTypeError;
 FUNCTION T_streamWrapper.allOkay: boolean;
   begin
     result:=not(wrongTypeError or earlyEndOfFileError or fileAccessError);
+  end;
+
+FUNCTION T_streamWrapper.streamPosition:int64;
+  begin
+    result:=stream.position;
+  end;
+
+PROCEDURE T_streamWrapper.jumpToStreamPosition(CONST position:int64);
+  begin
+    stream.position:=position;
   end;
 
 {$MACRO ON}
