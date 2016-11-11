@@ -690,9 +690,12 @@ FUNCTION decompressString(CONST src:ansistring):ansistring;
 
 FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_arrayOfString;
   VAR i0,i1:longint;
+      resultCount:longint=0;
   PROCEDURE stepToken;
     begin
-      append(result,copy(stringToSplit,i0,i1-i0));
+      if length(result)<=resultCount then setLength(result,resultCount+128);
+      result[resultCount]:=copy(stringToSplit,i0,i1-i0);
+      inc(resultCount);
       i0:=i1;
     end;
 
@@ -828,6 +831,7 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
       end;
       stepToken;
     end;
+    setLength(result,resultCount);
   end;
 
 FUNCTION anistringInfo(VAR s:ansistring):string;
