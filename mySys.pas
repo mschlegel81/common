@@ -31,7 +31,7 @@ FUNCTION getNumberOfCPUs:longint;
 {$WARN 5057 OFF}
   VAR SystemInfo:SYSTEM_INFO;
   begin
-    if numberOfCPUs>=0 then exit(numberOfCPUs);
+    if numberOfCPUs>0 then exit(numberOfCPUs);
     getSystemInfo(SystemInfo);
     numberOfCPUs:=SystemInfo.dwNumberOfProcessors;
     result:=numberOfCPUs;
