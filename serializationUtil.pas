@@ -23,6 +23,7 @@ TYPE
 
   { T_inputStreamWrapper }
 
+  P_inputStreamWrapper=^T_inputStreamWrapper;
   T_inputStreamWrapper=object(T_abstractStreamWrapper)
     private
       stream:TStream;
@@ -49,6 +50,7 @@ TYPE
 
   { T_bufferedInputStreamWrapper }
 
+  P_bufferedInputStreamWrapper=^T_bufferedInputStreamWrapper;
   T_bufferedInputStreamWrapper=object(T_inputStreamWrapper)
     private
       buffer:array[0..C_bufferSize-1] of byte;
@@ -62,7 +64,7 @@ TYPE
   end;
 
   { T_outputStreamWrapper }
-
+  P_outputStreamWrapper=^T_outputStreamWrapper;
   T_outputStreamWrapper=object(T_abstractStreamWrapper)
     private
       stream:TStream;
@@ -89,13 +91,14 @@ TYPE
 
   { T_bufferedOutputStreamWrapper }
 
+  P_bufferedOutputStreamWrapper=^T_bufferedOutputStreamWrapper;
   T_bufferedOutputStreamWrapper=object(T_outputStreamWrapper)
     private
       buffer:array[0..C_bufferSize-1] of byte;
       bufferFill:longint;
-      PROCEDURE flush;
       PROCEDURE write(CONST sourceBuffer; CONST count: longint); virtual;
     public
+      PROCEDURE flush;
       CONSTRUCTOR create(CONST stream_:TStream);
       CONSTRUCTOR createToWriteToFile(CONST fileName:string);
       DESTRUCTOR destroy;
@@ -215,6 +218,7 @@ PROCEDURE T_bufferedInputStreamWrapper.read(VAR targetBuffer; CONST count: longi
     then earlyEndOfFileError:=true
     else begin
       move(buffer,targetBuffer,count);
+      move(buffer[count],buffer,bufferFill-count);
       dec(bufferFill,count);
     end;
   end;
@@ -312,6 +316,7 @@ PROCEDURE T_bufferedOutputStreamWrapper.write(CONST sourceBuffer; CONST count: l
   begin
     if bufferFill+count>length(buffer) then flush;
     move(sourceBuffer,buffer[bufferFill],count);
+    inc(bufferFill,count);
   end;
 
 CONSTRUCTOR T_bufferedOutputStreamWrapper.create(CONST stream_: TStream);
@@ -351,6 +356,7 @@ PROCEDURE T_serializable.saveToFile(CONST fileName: string);
   begin
     stream.createToWriteToFile(fileName);
     saveToStream(stream);
+    stream.flush;
     stream.destroy;
   end;
 
