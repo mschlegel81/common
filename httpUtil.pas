@@ -16,6 +16,7 @@ TYPE
       FUNCTION getRequest(CONST timeOutInMilliseconds:longint=100):ansistring;
       PROCEDURE SendString(CONST s:ansistring);
       FUNCTION toString:ansistring;
+      FUNCTION getLastListenerSocketError:longint;
   end;
 
   F_stringToString=FUNCTION(CONST request:string):string;
@@ -184,6 +185,11 @@ PROCEDURE T_socketPair.SendString(CONST s: ansistring);
 FUNCTION T_socketPair.toString: ansistring;
   begin
     result:=id;
+  end;
+
+FUNCTION T_socketPair.getLastListenerSocketError:longint;
+  begin
+    result:=ListenerSocket.LastError;
   end;
 
 end.
