@@ -69,7 +69,7 @@ TYPE
   PROCEDURE append(VAR x:T_arrayOfLongint; CONST y:T_arrayOfLongint);
   PROCEDURE append(VAR x:T_arrayOfInt64; CONST y:T_arrayOfInt64);
   PROCEDURE dropFirst(VAR x:T_arrayOfString; CONST dropCount:longint);
-
+  FUNCTION clone(CONST s:T_arrayOfString):T_arrayOfString;
 
   FUNCTION C_EMPTY_STRING_ARRAY:T_arrayOfString;
   FUNCTION C_EMPTY_DOUBLE_ARRAY:T_arrayOfDouble;
@@ -246,6 +246,13 @@ PROCEDURE dropFirst(VAR x:T_arrayOfString; CONST dropCount:longint);
     if dropCount>length(x) then dc:=length(x) else dc:=dropCount;
     for i:=0 to length(x)-dc-1 do x[i]:=x[i+dc];
     setLength(x,length(x)-dc);
+  end;
+
+FUNCTION clone(CONST s:T_arrayOfString):T_arrayOfString;
+  VAR i:longint;
+  begin
+    setLength(result,length(s));
+    for i:=0 to length(s)-1 do result[i]:=s[i];
   end;
 
 FUNCTION C_EMPTY_STRING_ARRAY:T_arrayOfString; begin setLength(result,0); end;
