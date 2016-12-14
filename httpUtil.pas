@@ -2,6 +2,11 @@ UNIT httpUtil;
 INTERFACE
 USES Classes, blcksock, synautil, sysutils, myGenerics,myStringUtil;
 TYPE
+  T_requestTriplet=record
+    isBlank:boolean;
+    method,request,protocol:string;
+  end;
+
   P_socketPair=^T_socketPair;
   T_socketPair=object
     private
@@ -13,22 +18,22 @@ TYPE
       CONSTRUCTOR create(CONST ipAndPort:string);
       CONSTRUCTOR create(CONST ip,port:string);
       DESTRUCTOR destroy;
-      FUNCTION getRequest(CONST timeOutInMilliseconds:longint=100):ansistring;
+      FUNCTION getRequest(CONST timeOutInMilliseconds:longint=100):T_requestTriplet;
       PROCEDURE SendString(CONST s:ansistring);
       FUNCTION toString:ansistring;
       FUNCTION getLastListenerSocketError:longint;
   end;
 
-  F_stringToString=FUNCTION(CONST request:string):string;
+  F_stringX3ToString=FUNCTION(CONST method,request,protocol:string):string;
 
   P_customSocketListener=^T_customSocketListener;
   T_customSocketListener=object
     private
       socket:T_socketPair;
-      requestToResponseMapper:F_stringToString;
+      requestToResponseMapper:F_stringX3ToString;
       killSignalled:boolean;
     public
-      CONSTRUCTOR create(CONST ipAndPort:string; CONST requestToResponseMapper_:F_stringToString);
+      CONSTRUCTOR create(CONST ipAndPort:string; CONST requestToResponseMapper_:F_stringX3ToString);
       DESTRUCTOR destroy;
       PROCEDURE attend;
       PROCEDURE kill;
@@ -95,7 +100,7 @@ FUNCTION customSocketListenerThread(p:pointer):ptrint;
     result:=0;
   end;
 
-CONSTRUCTOR T_customSocketListener.create(CONST ipAndPort: string; CONST requestToResponseMapper_: F_stringToString);
+CONSTRUCTOR T_customSocketListener.create(CONST ipAndPort: string; CONST requestToResponseMapper_: F_stringX3ToString);
   begin
     socket.create(ipAndPort);
     requestToResponseMapper:=requestToResponseMapper_;
@@ -111,18 +116,18 @@ DESTRUCTOR T_customSocketListener.destroy;
 PROCEDURE T_customSocketListener.attend;
   CONST minSleepTime=1;
         maxSleepTime=1000;
-  VAR request:ansistring;
+  VAR request:T_requestTriplet;
       sleepTime:longint=minSleepTime;
   begin
     repeat
       request:=socket.getRequest(sleepTime);
-      if request<>'' then begin
-        socket.SendString(requestToResponseMapper(request));
-        sleepTime:=minSleepTime;
-      end else begin
+      if request.isBlank then begin
         sleep(sleepTime);
         inc(sleepTime);
         if sleepTime>maxSleepTime then sleepTime:=maxSleepTime;
+      end else begin
+        socket.SendString(requestToResponseMapper(request.method,request.request,request.protocol));
+        sleepTime:=minSleepTime;
       end;
     until killSignalled;
   end;
@@ -158,18 +163,24 @@ DESTRUCTOR T_socketPair.destroy;
     ConnectionSocket.free;
   end;
 
-FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint): ansistring;
+FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint): T_requestTriplet;
   VAR s:string;
   begin
     if acceptingRequest then SendString(HTTP_404_RESPONSE);
-    if not(ListenerSocket.canread(timeOutInMilliseconds)) then exit('');
+    if not(ListenerSocket.canread(timeOutInMilliseconds)) then begin
+      result.method:='';
+      result.request:='';
+      result.protocol:='';
+      result.isBlank:=true;
+      exit(result);
+    end;
     ConnectionSocket.socket := ListenerSocket.accept;
     acceptingRequest:=true;
     s := ConnectionSocket.RecvString(timeOutInMilliseconds);
-    if s='' then exit('/');
-    {method  :=}fetch(s, ' ');
-    result   := fetch(s, ' ');
-    {protocol:=}fetch(s, ' ');
+    result.method  :=fetch(s, ' ');
+    result.request :=fetch(s, ' ');
+    result.protocol:=fetch(s, ' ');
+    result.isBlank :=false;
     repeat
       s := ConnectionSocket.RecvString(timeOutInMilliseconds);
     until s = '';
