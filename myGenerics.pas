@@ -92,19 +92,19 @@ TYPE
   {$define M_SET_TYPE:=T_setOfString}
   {$define M_KEY_ARRAY_TYPE:=T_arrayOfString}
   {$define M_HASH_FUNC:=hashOfAnsistring}
-  GENERIC G_stringKeyMap<VALUE_TYPE>=someKeyMapInterface;
+  generic G_stringKeyMap<VALUE_TYPE>=someKeyMapInterface;
   T_setOfString=someSetInterface;
 
   {$define M_KEY_TYPE:=pointer}
   {$define M_MAP_TYPE:=G_pointerKeyMap}
   {$define M_KEY_ARRAY_TYPE:=T_arrayOfPointer}
   {$define M_HASH_FUNC:=ptrint}
-  GENERIC G_pointerKeyMap<VALUE_TYPE>=someKeyMapInterface;
+  generic G_pointerKeyMap<VALUE_TYPE>=someKeyMapInterface;
 
   {$undef someKeyMapInterface}
   {$undef someSetInterface}
 
-  GENERIC G_safeVar<ENTRY_TYPE>=object
+  generic G_safeVar<ENTRY_TYPE>=object
     private VAR
       v :ENTRY_TYPE;
       saveCS:TRTLCriticalSection;
@@ -118,7 +118,7 @@ TYPE
       PROCEDURE unlock;
   end;
 
-  GENERIC G_safeArray<ENTRY_TYPE>=object
+  generic G_safeArray<ENTRY_TYPE>=object
     TYPE ENTRY_TYPE_ARRAY=array of ENTRY_TYPE;
     private VAR
       data :ENTRY_TYPE_ARRAY;
@@ -137,7 +137,7 @@ TYPE
       PROCEDURE unlock;
   end;
 
-  GENERIC G_lazyVar<ENTRY_TYPE>=object
+  generic G_lazyVar<ENTRY_TYPE>=object
     TYPE T_obtainer=FUNCTION():ENTRY_TYPE;
          T_disposer=PROCEDURE(x:ENTRY_TYPE);
     private
