@@ -23,7 +23,7 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle): ansistrin
 FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parsedLength: longint): ansistring;
 FUNCTION isIdentifier(CONST s: ansistring; CONST allowDot: boolean): boolean;
 FUNCTION isFilename(CONST s: ansistring; CONST acceptedExtensions:array of string):boolean;
-PROCEDURE collectIdentifiers(CONST s:ansistring; VAR list:T_listOfString; CONST skipWordAtPosition:longint);
+PROCEDURE collectIdentifiers(CONST s:ansistring; VAR list:T_setOfString; CONST skipWordAtPosition:longint);
 FUNCTION startsWith(CONST input, head: ansistring): boolean;
 FUNCTION endsWith(CONST input, tail: ansistring): boolean;
 FUNCTION unbrace(CONST s:ansistring):ansistring;
@@ -381,7 +381,7 @@ FUNCTION isFilename(CONST s: ansistring; CONST acceptedExtensions:array of strin
     result:=false;
   end;
 
-PROCEDURE collectIdentifiers(CONST s:ansistring; VAR list:T_listOfString; CONST skipWordAtPosition:longint);
+PROCEDURE collectIdentifiers(CONST s:ansistring; VAR list:T_setOfString; CONST skipWordAtPosition:longint);
   VAR i,i0:longint;
   begin
     i:=1;
@@ -389,7 +389,7 @@ PROCEDURE collectIdentifiers(CONST s:ansistring; VAR list:T_listOfString; CONST 
       if s[i] in ['a'..'z','A'..'Z'] then begin
         i0:=i;
         while (i<=length(s)) and (s[i] in IDENTIFIER_CHARS) do inc(i);
-        if not((i0<=skipWordAtPosition) and (i>=skipWordAtPosition)) then list.add(copy(s,i0,i-i0));
+        if not((i0<=skipWordAtPosition) and (i>=skipWordAtPosition)) then list.put(copy(s,i0,i-i0));
       end else if (s[i]='/') and (i+1<=length(s)) and (s[i+1]='/') then exit
       else inc(i);
     end;
