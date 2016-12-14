@@ -97,9 +97,19 @@ TYPE
 
   {$define M_KEY_TYPE:=pointer}
   {$define M_MAP_TYPE:=G_pointerKeyMap}
+  {$define M_SET_TYPE:=T_setOfPointer}
   {$define M_KEY_ARRAY_TYPE:=T_arrayOfPointer}
   {$define M_HASH_FUNC:=ptrint}
   generic G_pointerKeyMap<VALUE_TYPE>=someKeyMapInterface;
+  T_setOfPointer=someSetInterface;
+
+  {$define M_KEY_TYPE:=longint}
+  {$define M_MAP_TYPE:=G_longintKeyMap}
+  {$define M_SET_TYPE:=T_setOfLongint}
+  {$define M_KEY_ARRAY_TYPE:=T_arrayOfLongint}
+  {$define M_HASH_FUNC:=}
+  generic G_longintKeyMap<VALUE_TYPE>=someKeyMapInterface;
+  T_setOfLongint=someSetInterface;
 
   {$undef someKeyMapInterface}
   {$undef someSetInterface}
@@ -676,9 +686,19 @@ someSetImplementation;
 
 {$define M_KEY_TYPE:=pointer}
 {$define M_MAP_TYPE:=G_pointerKeyMap}
+{$define M_SET_TYPE:=T_setOfPointer}
 {$define M_KEY_ARRAY_TYPE:=T_arrayOfPointer}
 {$define M_HASH_FUNC:=ptrint}
 someKeyMapImplementation;
+someSetImplementation;
+
+{$define M_KEY_TYPE:=longint}
+{$define M_MAP_TYPE:=G_longintKeyMap}
+{$define M_SET_TYPE:=T_setOfLongint}
+{$define M_KEY_ARRAY_TYPE:=T_arrayOfLongint}
+{$define M_HASH_FUNC:=}
+someKeyMapImplementation;
+someSetImplementation;
 
 end.
 
