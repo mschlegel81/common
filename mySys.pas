@@ -10,8 +10,6 @@ PROCEDURE clearConsole;
 PROCEDURE getFileInfo(CONST filePath:string; OUT time:double; OUT size:int64; OUT isExistent, isArchive, isDirectory, isReadOnly, isSystem, isHidden:boolean);
 FUNCTION getNumberOfCPUs:longint;
 FUNCTION MemoryUsed: int64;
-PROCEDURE writeString(VAR handle:file; CONST s:ansistring);
-FUNCTION readString(VAR handle:file):ansistring;
 {$ifdef Windows}
   PROCEDURE deleteMyselfOnExit;
   {$ifndef DEBUGMODE}
@@ -289,47 +287,6 @@ PROCEDURE deleteMyselfOnExit;
     proc.execute;
   end;
 {$endif}
-
-PROCEDURE writeString(VAR handle:file; CONST s:ansistring);
-  VAR buffer:array[0..1023] of char;
-      bufferFill:longint=0;
-  PROCEDURE flushBuffer;
-    begin
-      if bufferFill=0 then exit;
-      BlockWrite(handle,buffer,bufferFill);
-      bufferFill:=0;
-    end;
-
-  PROCEDURE putChar(CONST c:char);
-    begin
-      buffer[bufferFill]:=c;
-      inc(bufferFill);
-      if bufferFill>=length(buffer) then flushBuffer;
-    end;
-
-  VAR size:SizeInt;
-      i:longint;
-  begin
-    size:=length(s);
-    move(size,buffer,sizeOf(SizeInt)); inc(bufferFill,sizeOf(SizeInt));
-    for i:=1 to length(s) do putChar(s[i]);
-    flushBuffer;
-  end;
-
-FUNCTION readString(VAR handle:file):ansistring;
-  VAR buffer:array[0..1023] of char;
-      size:SizeInt=0;
-      i,j1,j:longint;
-  begin
-    BlockRead(handle,size,sizeOf(SizeInt));
-    i:=0; result:='';
-    while i<size do begin
-      j1:=size-i; if j1>length(buffer) then j1:=length(buffer);
-      BlockRead(handle,buffer,j1);
-      for j:=0 to j1-1 do result:=result+buffer[j];
-      inc(i,j1);
-    end;
-  end;
 
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
   VAR handle:text;

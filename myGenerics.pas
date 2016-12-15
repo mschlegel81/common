@@ -99,7 +99,7 @@ TYPE
   {$define M_MAP_TYPE:=G_pointerKeyMap}
   {$define M_SET_TYPE:=T_setOfPointer}
   {$define M_KEY_ARRAY_TYPE:=T_arrayOfPointer}
-  {$define M_HASH_FUNC:=ptrint}
+  {$define M_HASH_FUNC:=ptruint}
   generic G_pointerKeyMap<VALUE_TYPE>=someKeyMapInterface;
   T_setOfPointer=someSetInterface;
 
@@ -164,7 +164,7 @@ TYPE
       FUNCTION isObtained:boolean;
   end;
 
-FUNCTION hashOfAnsiString(CONST x:ansistring):longint; inline;
+FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; inline;
 
 IMPLEMENTATION
 {$define arrayFunctionImpl:=
@@ -300,7 +300,7 @@ FUNCTION C_EMPTY_DOUBLE_ARRAY :T_arrayOfDouble ; begin setLength(result,0); end;
 FUNCTION C_EMPTY_LONGINT_ARRAY:T_arrayOfLongint; begin setLength(result,0); end;
 FUNCTION C_EMPTY_INT64_ARRAY  :T_arrayOfInt64  ; begin setLength(result,0); end;
 
-FUNCTION hashOfAnsiString(CONST x:ansistring):longint; inline;
+FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; inline;
   VAR i:longint;
   begin
     {$Q-}{$R-}
@@ -688,7 +688,7 @@ someSetImplementation;
 {$define M_MAP_TYPE:=G_pointerKeyMap}
 {$define M_SET_TYPE:=T_setOfPointer}
 {$define M_KEY_ARRAY_TYPE:=T_arrayOfPointer}
-{$define M_HASH_FUNC:=ptrint}
+{$define M_HASH_FUNC:=ptruint}
 someKeyMapImplementation;
 someSetImplementation;
 
