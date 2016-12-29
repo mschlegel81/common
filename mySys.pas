@@ -2,12 +2,42 @@ UNIT mySys;
 INTERFACE
 USES dos,myGenerics,sysutils,Process,{$ifdef Windows}windows,{$endif}FileUtil,Classes,LazUTF8;
 
+TYPE
+  T_fileAttrib=(aExistent ,
+                aReadOnly ,
+                aHidden   ,
+                aSysFile  ,
+                aVolumeId ,
+                aDirectory,
+                aArchive  ,
+                aSymLink  );
+CONST
+  C_fileAttribName:array[T_fileAttrib] of string=(
+    'existent',
+    'readOnly',
+    'hidden',
+    'sysFile',
+    'volumeId',
+    'directory',
+    'archive',
+    'symLink');
+TYPE
+  T_fileAttribs=set of T_fileAttrib;
+  T_fileInfo=record
+    filePath:string;
+    time:double;
+    size:int64;
+    attributes:T_fileAttribs;
+  end;
+  T_fileInfoArray=array of T_fileInfo;
+
 FUNCTION getEnvironment:T_arrayOfString;
 FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
 FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
 FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString; OUT output: TStringList): boolean;
 PROCEDURE clearConsole;
-PROCEDURE getFileInfo(CONST filePath:string; OUT time:double; OUT size:int64; OUT isExistent, isArchive, isDirectory, isReadOnly, isSystem, isHidden:boolean);
+FUNCTION containsPlaceholder(CONST S:string):boolean;
+FUNCTION findFileInfo(CONST pathOrPattern:string):T_fileInfoArray;
 FUNCTION getNumberOfCPUs:longint;
 FUNCTION MemoryUsed: int64;
 {$ifdef Windows}
@@ -73,16 +103,16 @@ FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
       end;
 
     begin
-      if (result='') and (FindFirst(path+searchPattern, faAnyFile, info) = 0) then result:=path+info.name;
-      sysutils.FindClose(info);
+      if (result='') and (findFirst(path+searchPattern, faAnyFile, info) = 0) then result:=path+info.name;
+      sysutils.findClose(info);
 
-      if FindFirst(path+'*', faDirectory, info) = 0 then repeat
+      if findFirst(path+'*', faDirectory, info) = 0 then repeat
         if ((info.Attr and faDirectory) = faDirectory) and
            (info.name<>'.') and
            (info.name<>'..')
         then recursePath(deeper);
       until (findNext(info)<>0) or (result<>'');
-      sysutils.FindClose(info);
+      sysutils.findClose(info);
     end;
 
   begin
@@ -93,10 +123,10 @@ FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
 FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
   VAR info: TSearchRec;
   begin
-    if FindFirst(searchPattern,faAnyFile,info)=0
+    if findFirst(searchPattern,faAnyFile,info)=0
     then result:=info.name
     else result:='';
-    sysutils.FindClose(info);
+    sysutils.findClose(info);
   end;
 
 FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString; OUT output: TStringList): boolean;
@@ -166,46 +196,46 @@ PROCEDURE clearConsole;
     end;
   end;
 
-PROCEDURE getFileInfo(CONST filePath:string;
-  OUT time:double;
-  OUT size:int64;
-  OUT isExistent,
-      isArchive,
-      isDirectory,
-      isReadOnly,
-      isSystem,
-      isHidden:boolean);
-  VAR f:file of byte;
-      Attr:word=0;
-      ft:longint;
+FUNCTION containsPlaceholder(CONST S:string):boolean;
   begin
-    time:=-1;
-    size:=-1;
-    isExistent :=false;
-    isArchive  :=false;
-    isDirectory:=false;
-    isReadOnly :=false;
-    isSystem   :=false;
-    isHidden   :=false;
-    if DirectoryExists(filePath) or fileExists(filePath) then begin
-      isExistent:=true;
-      ft:=fileAge(filePath);
-      if ft<>-1 then time:=FileDateToDateTime(ft);
-
-      assign (f,filePath);
-      GetFAttr(f,Attr);
-      isArchive  :=(Attr and archive  )<>0;
-      isDirectory:=(Attr and directory)<>0;
-      isReadOnly :=(Attr and readonly )<>0;
-      isSystem   :=(Attr and sysfile  )<>0;
-      isHidden   :=(Attr and hidden   )<>0;
-      if fileExists(filePath) then try
-        size:=filesize(filePath);
-      except
-        size:=-2;
-      end;
-    end;
+    result:=(pos('*',s)>0) or (pos('?',s)>0);
   end;
+
+FUNCTION findFileInfo(CONST pathOrPattern:string):T_fileInfoArray;
+   VAR info: TSearchRec;
+       path: ansistring;
+   begin
+     path := extractFilePath(pathOrPattern);
+     setLength(result, 0);
+     if findFirst(pathOrPattern, faAnyFile, info) = 0 then repeat
+       if (info.name<>'.') and (info.name<>'..') then begin
+         setLength(result, length(result)+1);
+         with result[length(result)-1] do begin
+           filePath:=path+info.name;
+           time:=FileDateToDateTime(info.time);
+           size:=info.size;
+           attributes:=[aExistent];
+           if info.Attr and faReadOnly >0 then include(attributes,aReadOnly );
+           if info.Attr and faHidden   >0 then include(attributes,aHidden   );
+           if info.Attr and faSysFile  >0 then include(attributes,aSysFile  );
+           if info.Attr and faVolumeId >0 then include(attributes,aVolumeId );
+           if info.Attr and faDirectory>0 then include(attributes,aDirectory);
+           if info.Attr and faArchive  >0 then include(attributes,aArchive  );
+           if info.Attr and faSymLink  >0 then include(attributes,aSymLink  );
+         end;
+       end;
+     until (findNext(info)<>0);
+     if (length(result)=0) and not(containsPlaceholder(pathOrPattern)) then begin
+       setLength(result,1);
+       with result[0] do begin
+         filePath:=pathOrPattern;
+         time:=0;
+         size:=-1;
+         attributes:=[];
+       end;
+     end;
+     sysutils.findClose(info);
+   end;
 
 FUNCTION MemoryUsed: int64;
   begin
