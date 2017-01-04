@@ -291,7 +291,7 @@ FUNCTION queueThreadPoolThread(p:pointer):ptrint;
     randomize;
     queue:=P_progressEstimatorQueue(p);
     //Initially, the thread is considered busy
-    InterLockedIncrement(queue^.busyThreads);
+    interLockedIncrement(queue^.busyThreads);
     repeat
       currentTask:=queue^.dequeue;
       if currentTask=nil then begin
@@ -302,7 +302,7 @@ FUNCTION queueThreadPoolThread(p:pointer):ptrint;
         sleep(1);
       end else begin
         //If the thread was idle before, mark it as busy again
-        if idleCount>0 then InterLockedIncrement(queue^.busyThreads);
+        if idleCount>0 then interLockedIncrement(queue^.busyThreads);
         idleCount:=0;
         currentTask^.execute;
         dispose(currentTask,destroy);
@@ -321,7 +321,7 @@ PROCEDURE T_progressEstimatorQueue.enqueue(CONST task:P_queueToDo);
       if (poolThreadsRunning<getNumberOfCPUs) and (estimatorType=et_stepCounter_parallel)
       or (poolThreadsRunning=0              ) and (estimatorType=et_commentedStepsOfVaryingCost_serial)
       then begin
-        InterLockedIncrement(poolThreadsRunning);
+        interLockedIncrement(poolThreadsRunning);
         beginThread(@queueThreadPoolThread,@self);
       end;
     end;
