@@ -477,13 +477,14 @@ PROCEDURE M_MAP_TYPE.rehash(CONST grow: boolean);
         setLength(bucket[i+i0],c1);
         setLength(temp,0);
       end;
-    end else begin
+    end else if length(bucket)>1 then begin
       i0:=length(bucket) shr 1;
       for i:=0 to i0-1 do
       for j:=0 to length(bucket[i0+i])-1 do begin
         setLength(bucket[i],length(bucket[i])+1);
         bucket[i][length(bucket[i])-1]:=bucket[i0+i][j];
       end;
+      setLength(bucket,i0);
     end;
   end;
 
