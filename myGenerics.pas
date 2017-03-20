@@ -164,6 +164,23 @@ TYPE
       FUNCTION isObtained:boolean;
   end;
 
+  { G_instanceRegistry }
+
+  generic G_instanceRegistry<ENTRY_TYPE>=object
+    TYPE T_operationOnEntry=PROCEDURE(x:ENTRY_TYPE);
+    private
+      cs:TRTLCriticalSection;
+      registered:array of ENTRY_TYPE;
+    public
+      CONSTRUCTOR create;
+      DESTRUCTOR destroy;
+      PROCEDURE forEach      (CONST op:T_operationOnEntry);
+      PROCEDURE onCreation   (CONST x:ENTRY_TYPE);
+      PROCEDURE onDestruction(CONST x:ENTRY_TYPE);
+      PROCEDURE enterCs;
+      PROCEDURE leaveCs;
+  end;
+
 FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; inline;
 
 IMPLEMENTATION
@@ -307,6 +324,70 @@ FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; inline;
     result:=length(x);
     for i:=1 to length(x) do result:=result*31+ord(x[i]);
     {$Q+}{$R+}
+  end;
+
+{ G_instanceRegistry }
+
+CONSTRUCTOR G_instanceRegistry.create;
+  begin
+    initCriticalSection(cs);
+    setLength(registered,0);
+  end;
+
+DESTRUCTOR G_instanceRegistry.destroy;
+  begin
+    enterCriticalSection(cs);
+    setLength(registered,0);
+    leaveCriticalSection(cs);
+    doneCriticalSection(cs);
+  end;
+
+PROCEDURE G_instanceRegistry.forEach(CONST op: T_operationOnEntry);
+  VAR regCopy:array of ENTRY_TYPE;
+      i:longint;
+      x:ENTRY_TYPE;
+  begin
+    enterCriticalSection(cs);
+    setLength(regCopy,length(registered));
+    for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
+    leaveCriticalSection(cs);
+    for x in regCopy do op(x);
+  end;
+
+PROCEDURE G_instanceRegistry.onCreation(CONST x: ENTRY_TYPE);
+  VAR y:ENTRY_TYPE;
+  begin
+    enterCriticalSection(cs);
+    for y in registered do if y=x then begin
+      leaveCriticalSection(cs);
+      exit;
+    end;
+    setLength(registered,length(registered)+1);
+    registered[length(registered)-1]:=x;
+    leaveCriticalSection(cs);
+  end;
+
+PROCEDURE G_instanceRegistry.onDestruction(CONST x: ENTRY_TYPE);
+  VAR i,j:longint;
+  begin
+    enterCriticalSection(cs);
+    j:=0;
+    for i:=0 to length(registered)-1 do if registered[i]<>x then begin
+      registered[j]:=registered[i];
+      inc(j);
+    end;
+    setLength(registered,j);
+    leaveCriticalSection(cs);
+  end;
+
+PROCEDURE G_instanceRegistry.enterCs;
+  begin
+    enterCriticalSection(cs);
+  end;
+
+PROCEDURE G_instanceRegistry.leaveCs;
+  begin
+    leaveCriticalSection(cs);
   end;
 
 CONSTRUCTOR G_safeArray.create;
