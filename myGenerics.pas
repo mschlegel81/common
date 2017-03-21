@@ -168,6 +168,9 @@ TYPE
 
   generic G_instanceRegistry<ENTRY_TYPE>=object
     TYPE T_operationOnEntry=PROCEDURE(x:ENTRY_TYPE);
+         T_parameterizedOperationOnEntry=PROCEDURE(x:ENTRY_TYPE;p:pointer);
+         T_attributeOnEntry=FUNCTION(x:ENTRY_TYPE):boolean;
+         T_parameterizedAttributeOnEntry=FUNCTION(x:ENTRY_TYPE;p:pointer):boolean;
     private
       cs:TRTLCriticalSection;
       registered:array of ENTRY_TYPE;
@@ -175,10 +178,14 @@ TYPE
       CONSTRUCTOR create;
       DESTRUCTOR destroy;
       PROCEDURE forEach      (CONST op:T_operationOnEntry);
+      PROCEDURE forEach      (CONST op:T_parameterizedOperationOnEntry; p:pointer);
+      FUNCTION  anyMatch     (CONST at:T_attributeOnEntry):boolean;
+      FUNCTION  anyMatch     (CONST at:T_parameterizedAttributeOnEntry; p:pointer):boolean;
       PROCEDURE onCreation   (CONST x:ENTRY_TYPE);
       PROCEDURE onDestruction(CONST x:ENTRY_TYPE);
       PROCEDURE enterCs;
       PROCEDURE leaveCs;
+      FUNCTION registeredCount:longint;
   end;
 
 FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; inline;
@@ -354,6 +361,44 @@ PROCEDURE G_instanceRegistry.forEach(CONST op: T_operationOnEntry);
     for x in regCopy do op(x);
   end;
 
+PROCEDURE G_instanceRegistry.forEach(CONST op:T_parameterizedOperationOnEntry; p:pointer);
+  VAR regCopy:array of ENTRY_TYPE;
+      i:longint;
+      x:ENTRY_TYPE;
+  begin
+    enterCriticalSection(cs);
+    setLength(regCopy,length(registered));
+    for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
+    leaveCriticalSection(cs);
+    for x in regCopy do op(x,p);
+  end;
+
+FUNCTION G_instanceRegistry.anyMatch(CONST at:T_attributeOnEntry):boolean;
+  VAR regCopy:array of ENTRY_TYPE;
+      i:longint;
+      x:ENTRY_TYPE;
+  begin
+    enterCriticalSection(cs);
+    setLength(regCopy,length(registered));
+    for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
+    leaveCriticalSection(cs);
+    result:=false;
+    for x in regCopy do if at(x) then result:=true;
+  end;
+
+FUNCTION G_instanceRegistry.anyMatch(CONST at:T_parameterizedAttributeOnEntry; p:pointer):boolean;
+  VAR regCopy:array of ENTRY_TYPE;
+      i:longint;
+      x:ENTRY_TYPE;
+  begin
+    enterCriticalSection(cs);
+    setLength(regCopy,length(registered));
+    for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
+    leaveCriticalSection(cs);
+    result:=false;
+    for x in regCopy do if at(x,p) then result:=true;
+  end;
+
 PROCEDURE G_instanceRegistry.onCreation(CONST x: ENTRY_TYPE);
   VAR y:ENTRY_TYPE;
   begin
@@ -387,6 +432,13 @@ PROCEDURE G_instanceRegistry.enterCs;
 
 PROCEDURE G_instanceRegistry.leaveCs;
   begin
+    leaveCriticalSection(cs);
+  end;
+
+FUNCTION G_instanceRegistry.registeredCount:longint;
+  begin
+    enterCriticalSection(cs);
+    result:=length(registered);
     leaveCriticalSection(cs);
   end;
 
