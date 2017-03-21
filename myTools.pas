@@ -66,7 +66,7 @@ TYPE
       PROCEDURE logStepMessage(CONST message:ansistring);
       FUNCTION estimatedTotalTime:double;
       FUNCTION estimatedRemainingTime:double;
-      FUNCTION getProgressString:ansistring;
+      FUNCTION getProgressString(CONST includeEstimate:boolean=true):ansistring;
       PROCEDURE cancelCalculation(CONST waitForTerminate:boolean=false);
       FUNCTION cancellationRequested:boolean;
       FUNCTION calculating:boolean;
@@ -214,7 +214,7 @@ FUNCTION T_progressEstimatorQueue.estimatedRemainingTime: double;
     system.leaveCriticalSection(cs);
   end;
 
-FUNCTION T_progressEstimatorQueue.getProgressString:ansistring;
+FUNCTION T_progressEstimatorQueue.getProgressString(CONST includeEstimate:boolean=true):ansistring;
   begin
     system.enterCriticalSection(cs);
     if length(progress)<=0 then begin
@@ -227,8 +227,11 @@ FUNCTION T_progressEstimatorQueue.getProgressString:ansistring;
       eqs_reset,eqs_running,eqs_cancelling: begin
         if estimatorType=et_commentedStepsOfVaryingCost_serial
         then result:=intToStr(stepsDone)+'/'+intToStr(totalSteps)+'; '+message
-        else result:=intToStr(round(fractionDone*100))+'%; rem: '+myTimeToStr(estimatedRemainingTime);
-        if (childProgress<>nil) and (childProgress^.calculating) then result:=result+'; '+childProgress^.getProgressString;
+        else begin
+          result:=intToStr(round(fractionDone*100))+'%;';
+          if includeEstimate then result:=result+'rem: '+myTimeToStr(estimatedRemainingTime);
+        end;
+        if (childProgress<>nil) and (childProgress^.calculating) then result:=result+'; '+childProgress^.getProgressString(includeEstimate);
       end;
       else result:='';
     end;
