@@ -111,6 +111,7 @@ TYPE
 
   T_bitArray=object
     private
+      datFill:longint;
       data:array of byte;
       trashBits:byte;
       cursorIndex:longint;
@@ -375,6 +376,7 @@ FUNCTION T_bitArray.getBit(CONST index: longint): boolean;
 CONSTRUCTOR T_bitArray.create;
   begin
     setLength(data,0);
+    datFill:=0;
     trashBits:=0;
     cursorIndex:=0;
   end;
@@ -384,6 +386,7 @@ CONSTRUCTOR T_bitArray.create(CONST rawData: ansistring);
   begin
     setLength(data,length(rawData));
     for i:=0 to length(data)-1 do data[i]:=ord(rawData[i+1]);
+    datFill:=length(data);
     trashBits:=0;
     cursorIndex:=0;
   end;
@@ -394,6 +397,7 @@ CONSTRUCTOR T_bitArray.create(CONST prevArray: T_bitArray; CONST nextBit: boolea
     setLength(data,length(prevArray.data));
     for i:=0 to length(data)-1 do data[i]:=prevArray.data[i];
     trashBits:=prevArray.trashBits;
+    datFill:=prevArray.datFill;
     append(nextBit);
     cursorIndex:=0;
   end;
@@ -407,13 +411,14 @@ DESTRUCTOR T_bitArray.destroy;
 PROCEDURE T_bitArray.append(CONST nextBit: boolean);
   begin
     if trashBits=0 then begin
-      setLength(data,length(data)+1);
-      data[length(data)-1]:=0;
+      if datFill>=length(data) then setLength(data,1+round(1.1*datFill));
+      inc(datFill);
+      data[datFill-1]:=0;
       trashBits:=7;
-      if nextBit then data[length(data)-1]:=data[length(data)-1] or (1 shl trashBits);
+      if nextBit then data[datFill-1]:=data[datFill-1] or (1 shl trashBits);
     end else begin
       dec(trashBits);
-      if nextBit then data[length(data)-1]:=data[length(data)-1] or (1 shl trashBits);
+      if nextBit then data[datFill-1]:=data[datFill-1] or (1 shl trashBits);
     end;
   end;
 
@@ -439,14 +444,14 @@ PROCEDURE T_bitArray.parseString(CONST stringOfZeroesAndOnes: ansistring);
 
 FUNCTION T_bitArray.size: longint;
   begin
-    result:=length(data) shl 3-trashBits;
+    result:=datFill shl 3-trashBits;
   end;
 
 FUNCTION T_bitArray.getRawDataAsString: ansistring;
   VAR i:longint;
   begin
     result:='';
-    for i:=0 to length(data)-1 do result:=result+chr(data[i]);
+    for i:=0 to datFill-1 do result:=result+chr(data[i]);
   end;
 
 FUNCTION T_bitArray.getBitString: ansistring;

@@ -115,7 +115,7 @@ DESTRUCTOR T_customSocketListener.destroy;
 
 PROCEDURE T_customSocketListener.attend;
   CONST minSleepTime=1;
-        maxSleepTime=1000;
+        maxSleepTime=100;
   VAR request:T_requestTriplet;
       sleepTime:longint=minSleepTime;
   begin
