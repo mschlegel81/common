@@ -324,6 +324,8 @@ FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parse
         if continue then exitFailing;
         result:=result+copy(input,i0,i1-i0+1);
         parsedLength:=i+1-offset;
+        result:=result+unescapeString(input,offset+parsedLength,i1);
+        inc(parsedLength,i1);
         exit(result);
       end else if input[offset]=DQ then begin
         while (i<=length(input)) and (input[i]<>DQ) do if input[i]='\' then begin
@@ -347,7 +349,23 @@ FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parse
         end;
         result:=result+copy(input,i0,i1-i0+1);
         parsedLength:=i+1-offset;
+        result:=result+unescapeString(input,offset+parsedLength,i1);
+        inc(parsedLength,i1);
         exit(result);
+      end else if input[offset]='#' then begin
+        i:=offset+1;
+        while (i<length(input)) and (input[i+1] in ['0'..'9']) do inc(i);
+        result:=copy(input,offset+1,i-offset);
+        i0:=strToIntDef(result,256);
+        if (i0<0) or (i0>255)
+        then exitFailing
+        else begin
+          result:=chr(i0);
+          parsedLength:=i-offset+1;
+          result:=result+unescapeString(input,offset+parsedLength,i1);
+          inc(parsedLength,i1);
+          exit(result);
+        end;
       end;
     end;
     exitFailing;
