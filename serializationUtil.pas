@@ -3,9 +3,6 @@ INTERFACE
 USES Classes;
 CONST C_bufferSize=4096;
 TYPE
-
-  { T_abstractStreamWrapper }
-
   T_abstractStreamWrapper=object
     private
       wrongTypeError     ,
@@ -20,8 +17,6 @@ TYPE
       PROCEDURE logWrongTypeError;
       FUNCTION allOkay:boolean;
   end;
-
-  { T_inputStreamWrapper }
 
   P_inputStreamWrapper=^T_inputStreamWrapper;
   T_inputStreamWrapper=object(T_abstractStreamWrapper)
@@ -48,8 +43,6 @@ TYPE
       FUNCTION readNaturalNumber:qword;
   end;
 
-  { T_bufferedInputStreamWrapper }
-
   P_bufferedInputStreamWrapper=^T_bufferedInputStreamWrapper;
   T_bufferedInputStreamWrapper=object(T_inputStreamWrapper)
     private
@@ -60,10 +53,8 @@ TYPE
       CONSTRUCTOR create(CONST stream_:TStream);
       CONSTRUCTOR createToReadFromFile(CONST fileName:string);
       DESTRUCTOR destroy;
-
   end;
 
-  { T_outputStreamWrapper }
   P_outputStreamWrapper=^T_outputStreamWrapper;
   T_outputStreamWrapper=object(T_abstractStreamWrapper)
     private
@@ -89,8 +80,6 @@ TYPE
       PROCEDURE writeNaturalNumber(CONST value:qword);
   end;
 
-  { T_bufferedOutputStreamWrapper }
-
   P_bufferedOutputStreamWrapper=^T_bufferedOutputStreamWrapper;
   T_bufferedOutputStreamWrapper=object(T_outputStreamWrapper)
     private
@@ -114,8 +103,6 @@ TYPE
   end;
 
 IMPLEMENTATION
-{ T_abstractStreamWrapper }
-
 CONSTRUCTOR T_abstractStreamWrapper.create;
   begin
     wrongTypeError     :=false;
@@ -136,8 +123,6 @@ FUNCTION T_abstractStreamWrapper.allOkay: boolean;
   begin
     result:=not(wrongTypeError or earlyEndOfFileError or fileAccessError);
   end;
-
-{ T_inputStreamWrapper }
 
 PROCEDURE T_inputStreamWrapper.read(VAR targetBuffer; CONST count: longint);
   begin
@@ -199,8 +184,6 @@ FUNCTION T_inputStreamWrapper.readNaturalNumber: qword;
     if result>=128 then result:=result and 127 + (readNaturalNumber() shl 7);
   end;
 
-{ T_bufferedInputStreamWrapper }
-
 PROCEDURE T_bufferedInputStreamWrapper.read(VAR targetBuffer; CONST count: longint);
   VAR toRead,actuallyRead:longint;
   begin
@@ -237,8 +220,6 @@ CONSTRUCTOR T_bufferedInputStreamWrapper.createToReadFromFile(CONST fileName: st
 
 DESTRUCTOR T_bufferedInputStreamWrapper.destroy;
   begin inherited destroy; end;
-
-{ T_outputStreamWrapper }
 
 PROCEDURE T_outputStreamWrapper.write(CONST sourceBuffer; CONST count: longint);
   begin
@@ -303,8 +284,6 @@ PROCEDURE T_outputStreamWrapper.writeNaturalNumber(CONST value: qword);
       writeNaturalNumber(value shr 7);
     end;
   end;
-
-{ T_bufferedOutputStreamWrapper }
 
 PROCEDURE T_bufferedOutputStreamWrapper.flush;
   begin
