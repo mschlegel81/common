@@ -11,6 +11,7 @@ TYPE
 
   {$define arrayOp:=OPERATOR :=(x:M_VALUE_TYPE):M_ARRAY_TYPE}
   {$define arrayFunctions:=
+  FUNCTION arrEquals(CONST x,y:M_ARRAY_TYPE):boolean;
   PROCEDURE prepend(VAR x:M_ARRAY_TYPE; CONST y:M_VALUE_TYPE);
   PROCEDURE append(VAR x:M_ARRAY_TYPE; CONST y:M_VALUE_TYPE);
   PROCEDURE append(VAR x:M_ARRAY_TYPE; CONST y:M_ARRAY_TYPE);
@@ -192,6 +193,14 @@ FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; inline;
 
 IMPLEMENTATION
 {$define arrayFunctionImpl:=
+FUNCTION arrEquals(CONST x,y:M_ARRAY_TYPE):boolean;
+  VAR i:longint;
+  begin
+    if length(x)<>length(y) then exit(false);
+    for i:=0 to length(x)-1 do if x[i]<>y[i] then exit(false);
+    result:=true;
+  end;
+
 PROCEDURE prepend(VAR x:M_ARRAY_TYPE; CONST y:M_VALUE_TYPE);
   VAR i:longint;
   begin
