@@ -414,5 +414,4 @@ PROCEDURE T_pixelLayerBlock.putPixel(CONST x, y: longint; CONST invZ: single; CO
     end;
   end;
 
-
 end.

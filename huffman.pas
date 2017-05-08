@@ -166,7 +166,6 @@ TYPE
       FUNCTION decode(CONST s:ansistring):ansistring;
   end;
 
-
 FUNCTION huffyDecode(CONST s:ansistring):ansistring;
 FUNCTION huffyEncode(CONST s:ansistring):ansistring;
 FUNCTION huffyDecode2(CONST s:ansistring):ansistring;
@@ -240,7 +239,6 @@ FUNCTION T_twoLevelHuffmanCode.decode(CONST s: ansistring): ansistring;
     end;
     inputArr.destroy;
   end;
-
 
 CONSTRUCTOR T_huffmanCode.create;
   VAR symbolFrequency:T_symbolFrequency;

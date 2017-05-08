@@ -353,7 +353,6 @@ FUNCTION getOverbright(VAR x:T_rgbFloatColor):T_rgbFloatColor;
     if x[cc_blue ]<0 then x[cc_blue ]:=0;
   end;
 
-
 FUNCTION tint(CONST c:T_hsvColor; CONST h:single):T_hsvColor;
   begin
     result:=c;

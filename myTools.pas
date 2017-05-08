@@ -15,7 +15,6 @@ TYPE
                          eqs_cancelled, //on eqs_cancelling and queuedCount=busyThreads=0
                          eqs_done);     //on logEnd or eqs_running and queuedCount=busyThreads=0
 
-
   T_taskState=(fts_pending,    //set on construction
                fts_evaluating, //set on dequeue
                fts_ready);     //set after evaluation

@@ -277,6 +277,4 @@ PROCEDURE G_pixelMap.copyFromPixMap(VAR srcImage: G_pixelMap);
     for i:=0 to pixelCount-1 do data[i]:=srcImage.data[i];
   end;
 
-
-
 end.

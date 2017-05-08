@@ -101,5 +101,4 @@ FUNCTION getParam(cmd:T_commandAbstraction):T_extendedParameter;
 INITIALIZATION
   DefaultFormatSettings.DecimalSeparator:='.';
 
-
 end.

@@ -504,7 +504,6 @@ PROCEDURE G_safeArray.appendAll(CONST newValue: ENTRY_TYPE_ARRAY);
     system.leaveCriticalSection(saveCS);
   end;
 
-
 PROCEDURE G_safeArray.lock;
   begin
     system.enterCriticalSection(saveCS);

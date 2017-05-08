@@ -120,7 +120,6 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
     end;
     if not(anyTab or anyInvisibleTab) then exit(s);
 
-
     result:=s;
     setLength(matrix,length(result));
     if anyInvisibleTab then begin
@@ -432,7 +431,6 @@ FUNCTION unbrace(CONST s:ansistring):ansistring;
     then result:=copy(s,2,length(s)-2)
     else result:=s;
   end;
-
 
 FUNCTION split(CONST s:ansistring):T_arrayOfString;
   VAR lineSplitters:T_arrayOfString;

@@ -344,6 +344,4 @@ PROCEDURE T_serializable.saveToStream(VAR stream:T_bufferedOutputStreamWrapper);
     stream.writeDWord(getSerialVersion);
   end;
 
-
-
 end.
