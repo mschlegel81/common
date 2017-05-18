@@ -10,7 +10,7 @@ TYPE
 CONST
   BLOCK_LOG2SIZE=4;
   BLOCK_SIZE=1 shl BLOCK_LOG2SIZE;
-  BY255=1/255;
+  by255=1/255;
   BLACK:T_color=(0,0,0,255);
   NO_COLOR:T_color=(0,0,0,0);
 TYPE
@@ -58,7 +58,7 @@ IMPLEMENTATION
 FUNCTION blend(CONST intransparentBackColor,frontColor:T_color):T_color;
   VAR fa,ba:double;
   begin
-    fa:=frontColor[cc_alpha]*BY255;
+    fa:=frontColor[cc_alpha]*by255;
     ba:=1-fa;
     result[cc_red  ]:=round(frontColor[cc_red  ]*fa+intransparentBackColor[cc_red  ]*ba);
     result[cc_green]:=round(frontColor[cc_green]*fa+intransparentBackColor[cc_green]*ba);
@@ -69,7 +69,7 @@ FUNCTION blend(CONST intransparentBackColor,frontColor:T_color):T_color;
 OPERATOR :=(CONST x:T_color):T_floatColor;
   VAR c:T_colorChannel;
   begin
-    for c in T_colorChannel do result[c]:=x[c]*BY255;
+    for c in T_colorChannel do result[c]:=x[c]*by255;
   end;
 
 OPERATOR :=(CONST x:T_floatColor):T_color;
@@ -256,7 +256,7 @@ PROCEDURE T_fancyCanvas.triangle(CONST x0, y0: longint; invZ0: single; CONST col
       result.col :=v.col;
     end;
 
-  FUNCTION vertexToSlope(CONST v0,v1:T_Vertex):T_side; inline;
+  FUNCTION vertexToSlope(CONST v0,v1:T_vertex):T_side; inline;
     VAR f:double;
     begin
       f:=1/(v1.y-v0.y);

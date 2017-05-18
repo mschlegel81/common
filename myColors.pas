@@ -399,12 +399,12 @@ FUNCTION gammaHSV(CONST c:T_hsvColor; CONST gH,gS,gV:single):T_hsvColor; inline;
     result[hc_value     ]:=safeGamma(c[hc_value     ],gV);
   end;
 
-FUNCTION invert(CONST c:T_rgbfloatColor):T_rgbfloatColor;
+FUNCTION invert(CONST c:T_rgbFloatColor):T_rgbFloatColor;
   begin
     result:=WHITE-c;
   end;
 
-FUNCTION absCol(CONST c:T_rgbfloatColor):T_rgbfloatColor;
+FUNCTION absCol(CONST c:T_rgbFloatColor):T_rgbFloatColor;
   VAR i:T_colorChannel;
   begin
     for i in RGB_CHANNELS do if c[i]<0 then result[i]:=-c[i] else result[i]:=c[i];
