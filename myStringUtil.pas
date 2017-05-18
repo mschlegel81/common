@@ -3,8 +3,9 @@ UNIT myStringUtil;
 INTERFACE
 USES math, strutils, sysutils,  myGenerics, zstream, Classes, huffman, LazUTF8;
 
-TYPE charSet=set of char;
+TYPE T_charSet=set of char;
      T_escapeStyle=(es_javaStyle,es_mnhPascalStyle,es_strictPascalStyle,es_pickShortest,es_dontCare);
+     T_stringEncoding=(se_testPending,se_ascii,se_utf8,se_mixed);
 CONST
   C_lineBreakChar = #10;
   C_carriageReturnChar = #13;
@@ -12,7 +13,7 @@ CONST
   C_invisibleTabChar = #11;
   C_formFeedChar = #12;
   BLANK_TEXT = '';
-  IDENTIFIER_CHARS:charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
+  IDENTIFIER_CHARS:T_charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
 FUNCTION isBlank(CONST s: ansistring): boolean;
@@ -31,10 +32,11 @@ FUNCTION split(CONST s:ansistring):T_arrayOfString;
 FUNCTION reSplit(CONST s:T_arrayOfString):T_arrayOfString;
 FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString):T_arrayOfString;
 FUNCTION join(CONST lines:T_arrayOfString; CONST joiner:ansistring):ansistring;
-FUNCTION cleanString(CONST s:ansistring; CONST whiteList:charSet; CONST instead:char):ansistring;
+FUNCTION cleanString(CONST s:ansistring; CONST whiteList:T_charSet; CONST instead:char):ansistring;
 FUNCTION myTimeToStr(dt:double):string;
 FUNCTION isAsciiEncoded(CONST s: ansistring): boolean;
 FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
+FUNCTION encoding(CONST s: ansistring):T_stringEncoding;
 FUNCTION StripHTML(CONST S: string): string;
 FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
 FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
@@ -234,7 +236,7 @@ FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT 
 
 FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle): ansistring;
   CONST javaEscapes:array[0..7,0..1] of char=(('\','\'),(#8 ,'b'),(#9 ,'t'),(#10,'n'),(#11,'v'),(#12,'f'),(#13,'r'),('"','"'));
-        javaEscapable:charSet=[#8,#9,#10,#11,#12,#13];
+        javaEscapable:T_charSet=[#8,#9,#10,#11,#12,#13];
   FUNCTION containsJavaEscapable:boolean;
     VAR c:char;
     begin
@@ -484,7 +486,7 @@ FUNCTION join(CONST lines:T_arrayOfString; CONST joiner:ansistring):ansistring;
     for i:=1 to length(lines)-1 do result:=result+joiner+lines[i];
   end;
 
-FUNCTION cleanString(CONST s:ansistring; CONST whiteList:charSet; CONST instead:char):ansistring;
+FUNCTION cleanString(CONST s:ansistring; CONST whiteList:T_charSet; CONST instead:char):ansistring;
   VAR k:longint;
       tmp:shortString;
   begin
@@ -576,6 +578,65 @@ FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
       exit(false);
     end;
     exit(true);
+  end;
+
+FUNCTION encoding(CONST s: ansistring):T_stringEncoding;
+  VAR i:longint;
+      asciiOnly:boolean=true;
+  begin
+    if length(s)=0 then exit(se_ascii);
+    i:=1;
+    while i<=length(s) do begin
+      // ASCII
+      if (s[i] in [#$09,#$0A,#$0D,#$20..#$7E]) then begin
+        inc(i);
+        continue;
+      end;
+      asciiOnly:=false;
+      // non-overlong 2-byte
+      if (i+1<=length(s)) and
+         (s[i  ] in [#$C2..#$DF]) and
+         (s[i+1] in [#$80..#$BF]) then begin
+        inc(i,2);
+        continue;
+      end;
+      // excluding overlongs
+      if (i+2<=length(s)) and
+         (((s[i]=#$E0) and
+           (s[i+1] in [#$A0..#$BF]) and
+           (s[i+2] in [#$80..#$BF])) or
+          ((s[i] in [#$E1..#$EC,#$EE,#$EF]) and
+           (s[i+1] in [#$80..#$BF]) and
+           (s[i+2] in [#$80..#$BF])) or
+          ((s[i]=#$ED) and
+           (s[i+1] in [#$80..#$9F]) and
+           (s[i+2] in [#$80..#$BF]))) then
+      begin
+        inc(i,3);
+        continue;
+      end;
+      // planes 1-3
+      if (i+3<=length(s)) and
+         (((s[i  ]=#$F0) and
+           (s[i+1] in [#$90..#$BF]) and
+           (s[i+2] in [#$80..#$BF]) and
+           (s[i+3] in [#$80..#$BF])) or
+          ((s[i  ] in [#$F1..#$F3]) and
+           (s[i+1] in [#$80..#$BF]) and
+           (s[i+2] in [#$80..#$BF]) and
+           (s[i+3] in [#$80..#$BF])) or
+          ((s[i]=#$F4) and
+           (s[i+1] in [#$80..#$8F]) and
+           (s[i+2] in [#$80..#$BF]) and
+           (s[i+3] in [#$80..#$BF]))) then
+      begin
+        inc(i,4);
+        continue;
+      end;
+      exit(se_mixed);
+    end;
+    if asciiOnly then result:=se_ascii
+                 else result:=se_utf8;
   end;
 
 FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
