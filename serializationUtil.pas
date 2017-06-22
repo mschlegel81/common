@@ -34,6 +34,7 @@ TYPE
       FUNCTION readDWord:dword;
       FUNCTION readQWord:qword;
       FUNCTION readShortint:shortint;
+      FUNCTION readSmallInt:SmallInt;
       FUNCTION readLongint:longint;
       FUNCTION readInt64:int64;
       FUNCTION readDouble:double;
@@ -41,6 +42,7 @@ TYPE
       FUNCTION readChar:char;
       FUNCTION readAnsiString:ansistring;
       FUNCTION readNaturalNumber:qword;
+      FUNCTION readInteger:int64;
   end;
 
   P_bufferedInputStreamWrapper=^T_bufferedInputStreamWrapper;
@@ -71,6 +73,7 @@ TYPE
       PROCEDURE writeDWord(CONST value:dword);
       PROCEDURE writeQWord(CONST value:qword);
       PROCEDURE writeShortint(CONST value:shortint);
+      PROCEDURE writeSmallInt(CONST value:SmallInt);
       PROCEDURE writeLongint(CONST value:longint);
       PROCEDURE writeInt64(CONST value:int64);
       PROCEDURE writeDouble(CONST value:double);
@@ -78,6 +81,7 @@ TYPE
       PROCEDURE writeChar(CONST value:char);
       PROCEDURE writeAnsiString(CONST value:ansistring);
       PROCEDURE writeNaturalNumber(CONST value:qword);
+      PROCEDURE writeInteger(CONST value:int64);
   end;
 
   P_bufferedOutputStreamWrapper=^T_bufferedOutputStreamWrapper;
@@ -165,6 +169,7 @@ FUNCTION T_inputStreamWrapper.readWord: word;         begin initialize(result); 
 FUNCTION T_inputStreamWrapper.readDWord: dword;       begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readQWord: qword;       begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readShortint: shortint; begin initialize(result); read(result,sizeOf(result)); end;
+FUNCTION T_inputStreamWrapper.readSmallInt: SmallInt; begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readLongint: longint;   begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readInt64: int64;       begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readDouble: double;     begin initialize(result); read(result,sizeOf(result)); end;
@@ -182,6 +187,20 @@ FUNCTION T_inputStreamWrapper.readNaturalNumber: qword;
   begin
     result:=readByte;
     if result>=128 then result:=result and 127 + (readNaturalNumber() shl 7);
+  end;
+
+FUNCTION T_inputStreamWrapper.readInteger:int64;
+  begin
+    //   255: int64
+    //   254: longint
+    //   253: smallInt
+    //   252: shortInt
+    //0..251: Straight!
+    result:=readByte;
+    if result=252 then result:=readShortint else
+    if result=253 then result:=readSmallInt else
+    if result=254 then result:=readLongint  else
+    if result=255 then result:=readInt64;
   end;
 
 PROCEDURE T_bufferedInputStreamWrapper.read(VAR targetBuffer; CONST count: longint);
@@ -263,6 +282,7 @@ PROCEDURE T_outputStreamWrapper.writeWord(CONST value: word);         begin writ
 PROCEDURE T_outputStreamWrapper.writeDWord(CONST value: dword);       begin write(value,sizeOf(value)); end;
 PROCEDURE T_outputStreamWrapper.writeQWord(CONST value: qword);       begin write(value,sizeOf(value)); end;
 PROCEDURE T_outputStreamWrapper.writeShortint(CONST value: shortint); begin write(value,sizeOf(value)); end;
+PROCEDURE T_outputStreamWrapper.writeSmallInt(CONST value: SmallInt); begin write(value,sizeOf(value)); end;
 PROCEDURE T_outputStreamWrapper.writeLongint(CONST value: longint);   begin write(value,sizeOf(value)); end;
 PROCEDURE T_outputStreamWrapper.writeInt64(CONST value: int64);       begin write(value,sizeOf(value)); end;
 PROCEDURE T_outputStreamWrapper.writeDouble(CONST value: double);     begin write(value,sizeOf(value)); end;
@@ -283,6 +303,20 @@ PROCEDURE T_outputStreamWrapper.writeNaturalNumber(CONST value: qword);
       writeByte((value and 127) or 128);
       writeNaturalNumber(value shr 7);
     end;
+  end;
+
+PROCEDURE T_outputStreamWrapper.writeInteger(CONST value:int64);
+  begin
+    //   255: int64
+    //   254: longint
+    //   253: smallInt
+    //   252: shortInt
+    //0..251: Straight!
+    if      (value>=          0) and (value<=       251) then       writeByte(value)
+    else if (value>=       -128) and (value<=       127) then begin writeByte(252); writeShortint(value); end
+    else if (value>=     -32768) and (value<=     32767) then begin writeByte(253); writeSmallInt(value); end
+    else if (value>=-2147483648) and (value<=2147483647) then begin writeByte(254); writeLongint (value); end
+    else                                                      begin writeByte(255); writeInt64   (value); end;
   end;
 
 PROCEDURE T_bufferedOutputStreamWrapper.flush;
