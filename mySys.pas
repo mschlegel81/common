@@ -218,7 +218,6 @@ FUNCTION findFileInfo(CONST pathOrPattern:string):T_fileInfoArray;
            if info.Attr and faReadOnly >0 then include(attributes,aReadOnly );
            if info.Attr and faHidden   >0 then include(attributes,aHidden   );
            if info.Attr and faSysFile  >0 then include(attributes,aSysFile  );
-           if info.Attr and faVolumeId >0 then include(attributes,aVolumeId );
            if info.Attr and faDirectory>0 then include(attributes,aDirectory);
            if info.Attr and faArchive  >0 then include(attributes,aArchive  );
            if info.Attr and faSymLink  >0 then include(attributes,aSymLink  );
