@@ -7,7 +7,6 @@ TYPE
                 aReadOnly ,
                 aHidden   ,
                 aSysFile  ,
-                aVolumeId ,
                 aDirectory,
                 aArchive  ,
                 aSymLink  );
@@ -17,7 +16,6 @@ CONST
     'readOnly',
     'hidden',
     'sysFile',
-    'volumeId',
     'directory',
     'archive',
     'symLink');
