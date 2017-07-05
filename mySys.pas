@@ -34,8 +34,8 @@ TYPE
     private
       criticalSection:TRTLCriticalSection;
       w,x,y,z:dword;
-      FUNCTION XOS:dword;inline;
     public
+      FUNCTION XOS:dword;inline;
       CONSTRUCTOR create;
       DESTRUCTOR destroy;
       PROCEDURE resetSeed(CONST newSeed:dword);
