@@ -382,12 +382,18 @@ FUNCTION T_xosPrng.XOS:dword;
   end;
 
 PROCEDURE T_xosPrng.resetSeed(CONST newSeed:dword);
+  CONST P:array[0..31] of dword=(102334155, 433494437,3185141890, 695895453,1845853122,4009959909, 887448560,2713352312,
+                                4204349121,1490993585,1919601489,1252772578,1126134829,1407432322,2942850377,1798021602,
+                                2032742589, 663677033, 447430277,1407736169,2048113432,2516238737,2570330033, 510369096,
+                                4127319575,3313982129, 668544240, 976072482,1798380843,3210299713,3471333957,3014961506);
   begin
     enterCriticalSection(criticalSection);
+    {$Q-}{$R-}
     w:=newSeed;
-    x:=0;
-    y:=0;
-    z:=not(w);
+    x:=(w xor P[ w    and 31]);
+    y:=(w xor P[(w+1) and 31]);
+    z:=(w xor P[(w+2) and 31]);
+    {$Q+}{$R+}
     leaveCriticalSection(criticalSection);
   end;
 
@@ -400,9 +406,11 @@ FUNCTION T_xosPrng.intRandom(CONST imax:int64):int64;
   begin
     if imax<=1 then exit(0);
     enterCriticalSection(criticalSection);
-    if imax<4294967296
+    {$Q-}{$R-}
+    if imax<=4294967296
     then result:=       XOS                           mod imax
     else result:=(int64(XOS) xor (int64(XOS) shl 31)) mod imax;
+    {$Q+}{$R+}
     leaveCriticalSection(criticalSection);
   end;
 
