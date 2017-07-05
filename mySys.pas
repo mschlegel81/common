@@ -29,6 +29,21 @@ TYPE
   end;
   T_fileInfoArray=array of T_fileInfo;
 
+TYPE
+  T_xosPrng = object
+    private
+      criticalSection:TRTLCriticalSection;
+      w,x,y,z:dword;
+      FUNCTION XOS:dword;inline;
+    public
+      CONSTRUCTOR create;
+      DESTRUCTOR destroy;
+      PROCEDURE resetSeed(CONST newSeed:dword);
+      PROCEDURE randomize;inline;
+      FUNCTION intRandom(CONST imax:int64):int64;
+      FUNCTION realRandom:double;
+  end;
+
 FUNCTION getEnvironment:T_arrayOfString;
 FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
 FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
@@ -214,11 +229,13 @@ FUNCTION findFileInfo(CONST pathOrPattern:string):T_fileInfoArray;
            size:=info.size;
            attributes:=[aExistent];
            if info.Attr and faReadOnly >0 then include(attributes,aReadOnly );
-           if info.Attr and faHidden   >0 then include(attributes,aHidden   );
-           if info.Attr and faSysFile  >0 then include(attributes,aSysFile  );
            if info.Attr and faDirectory>0 then include(attributes,aDirectory);
            if info.Attr and faArchive  >0 then include(attributes,aArchive  );
+           {$ifdef Windows}
+           if info.Attr and faHidden   >0 then include(attributes,aHidden   );
+           if info.Attr and faSysFile  >0 then include(attributes,aSysFile  );
            if info.Attr and faSymLink  >0 then include(attributes,aSymLink  );
+           {$endif}
          end;
        end;
      until (findNext(info)<>0);
@@ -337,6 +354,63 @@ FUNCTION readFile(CONST fileName:string):T_arrayOfString;
       readln(handle,result[length(result)-1]);
     end;
     close(handle);
+  end;
+
+CONSTRUCTOR T_xosPrng.create;
+  begin
+    initCriticalSection(criticalSection);
+    w:=521288629;
+    x:=0;
+    y:=0;
+    z:=362436069;
+  end;
+
+DESTRUCTOR T_xosPrng.destroy;
+  begin
+    doneCriticalSection(criticalSection);
+  end;
+
+FUNCTION T_xosPrng.XOS:dword;
+  VAR tmp:dword;
+  begin
+    tmp:=(x xor (x<<15));
+    x:=y;
+    y:=z;
+    z:=w;
+    w:=(w xor (w>>21)) xor (tmp xor(tmp>>4));
+    result := w;
+  end;
+
+PROCEDURE T_xosPrng.resetSeed(CONST newSeed:dword);
+  begin
+    enterCriticalSection(criticalSection);
+    w:=newSeed;
+    x:=0;
+    y:=0;
+    z:=not(w);
+    leaveCriticalSection(criticalSection);
+  end;
+
+PROCEDURE T_xosPrng.randomize;
+  begin
+    resetSeed(GetTickCount);
+  end;
+
+FUNCTION T_xosPrng.intRandom(CONST imax:int64):int64;
+  begin
+    if imax<=1 then exit(0);
+    enterCriticalSection(criticalSection);
+    if imax<4294967296
+    then result:=       XOS                           mod imax
+    else result:=(int64(XOS) xor (int64(XOS) shl 31)) mod imax;
+    leaveCriticalSection(criticalSection);
+  end;
+
+FUNCTION T_xosPrng.realRandom:double;
+  begin
+    enterCriticalSection(criticalSection);
+    result:=XOS*2.3283064365386963E-10;
+    leaveCriticalSection(criticalSection);
   end;
 
 FINALIZATION
