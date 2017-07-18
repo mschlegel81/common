@@ -36,8 +36,30 @@ TYPE
       PROCEDURE rotRight;
       PROCEDURE rotLeft;
       PROCEDURE crop(CONST rx0,rx1,ry0,ry1:double);
+      PROCEDURE cropAbsolute(CONST x0,x1,y0,y1:longint);
       PROCEDURE clear;
       PROCEDURE copyFromPixMap(VAR srcImage: G_pixelMap);
+      PROCEDURE simpleScaleDown(powerOfTwo:byte);
+  end;
+
+  { T_byteMap }
+
+  T_byteMap=object
+    private
+      dat:PByte;
+      dim:T_imageDimensions;
+    public
+      CONSTRUCTOR create(CONST width,height:longint);
+      DESTRUCTOR destroy;
+      PROCEDURE clear;
+      PROCEDURE hLine(x0,x1:longint; CONST y:longint; CONST col:byte);
+      PROCEDURE vLine(CONST x:longint; y0,y1:longint; CONST col:byte);
+      PROCEDURE line(x0,x1,y0,y1:longint; CONST col:byte; CONST width:word);
+      PROCEDURE xSymbol(CONST x,y:longint; CONST col:byte; CONST lineWidth,symbolDiagonal:word);
+      PROCEDURE plusSymbol(CONST x,y:longint; CONST col:byte; CONST lineWidth,symbolDiagonal:word);
+      PROCEDURE circle(CONST x,y,radius:longint; CONST col:byte);
+      PROCEDURE axisParallelRectangle(CONST x0,x1,y0,y1:longint; CONST col:byte);
+      PROCEDURE simpleScaleDown(powerOfTwo:byte);
   end;
 
 FUNCTION transpose(CONST dim:T_imageDimensions):T_imageDimensions;
@@ -65,6 +87,92 @@ FUNCTION getSmoothingKernel(CONST sigma:double):T_arrayOfDouble;
     factor:=1/sum;
     for i:=0 to radius do result[i]:=result[i]*factor;
   end;
+
+{ T_byteMap }
+
+CONSTRUCTOR T_byteMap.create(CONST width, height: longint);
+  begin
+    getMem(dat,width*height);
+    dim.width :=width;
+    dim.height:=height;
+  end;
+
+DESTRUCTOR T_byteMap.destroy;
+  begin
+    freeMem(dat,dim.width*dim.height);
+  end;
+
+PROCEDURE T_byteMap.clear;
+  VAR i:longint;
+  begin
+    for i:=0 to dim.width-1 do dat[i]:=0;
+    for i:=1 to dim.height-1 do move(dat^,(dat+i*dim.width)^,dim.width);
+  end;
+
+PROCEDURE T_byteMap.hLine(x0, x1: longint; CONST y: longint; CONST col: byte);
+  VAR x:longint;
+      p:PByte;
+  begin
+    if (y<0) or (y>=dim.height) then exit;
+    if x1<x0 then begin x:=x0;x0:=x1;x1:=x; end;
+    if (x1<0) or (x0>=dim.width) then exit;
+    if x0<0          then x0:=0;
+    if x1>=dim.width then x1:=dim.width-1;
+    p:=dat+(y*dim.width+x0);
+    for x:=x0 to x1 do begin p^:=col; inc(p); end;
+  end;
+
+PROCEDURE T_byteMap.vLine(CONST x: longint; y0, y1: longint; CONST col: byte);
+  VAR y:longint;
+      p:PByte;
+  begin
+    if (x<0) or (x>=dim.width) then exit;
+    if y1<y0 then begin y:=y0;y0:=y1;y1:=y; end;
+    if (y1<0) or (y0>=dim.height) then exit;
+    if y0<0           then y0:=0;
+    if y1>=dim.height then y1:=dim.height-1;
+    p:=dat+(y0*dim.width+x);
+    for y:=y0 to y1 do begin p^:=col; inc(p,dim.width); end;
+  end;
+
+PROCEDURE T_byteMap.line(x0, x1, y0, y1: longint; CONST col: byte; CONST width: word);
+  VAR x,y:longint;
+  begin
+    if (width=0) or (col=0) then exit;
+    if y0<y1 then begin
+      y :=y0; x :=x0;
+      y0:=y1; x0:=x1;
+      y1:=y ; x1:=x ;
+    end;
+
+  end;
+
+PROCEDURE T_byteMap.xSymbol(CONST x, y: longint; CONST col: byte; CONST lineWidth, symbolDiagonal: word);
+  begin
+
+  end;
+
+PROCEDURE T_byteMap.plusSymbol(CONST x, y: longint; CONST col: byte;
+  CONST lineWidth, symbolDiagonal: word);
+begin
+
+end;
+
+PROCEDURE T_byteMap.circle(CONST x, y, radius: longint; CONST col: byte);
+begin
+
+end;
+
+PROCEDURE T_byteMap.axisParallelRectangle(CONST x0, x1, y0, y1: longint;
+  CONST col: byte);
+begin
+
+end;
+
+PROCEDURE T_byteMap.simpleScaleDown(powerOfTwo: byte);
+begin
+
+end;
 
 FUNCTION G_pixelMap.getPixel(CONST x, y: longint): PIXEL_TYPE; begin result:=data[x+y*dim.width]; end;
 PROCEDURE G_pixelMap.setPixel(CONST x, y: longint; CONST value: PIXEL_TYPE); begin data[x+y*dim.width]:=value; end;
@@ -240,14 +348,17 @@ FUNCTION crop(CONST dim:T_imageDimensions; CONST rx0,rx1,ry0,ry1:double):T_image
   end;
 
 PROCEDURE G_pixelMap.crop(CONST rx0, rx1, ry0, ry1: double);
+  begin
+    cropAbsolute(round(rx0*dim.width),
+                 round(rx1*dim.width),
+                 round(ry0*dim.height),
+                 round(ry1*dim.height));
+  end;
+
+PROCEDURE G_pixelMap.cropAbsolute(CONST x0,x1,y0,y1:longint);
   VAR newData:PIXEL_POINTER;
       newXRes,newYRes,x,y:longint;
-      x0, x1, y0, y1: longint;
   begin
-    x0:=round(rx0*dim.width);
-    x1:=round(rx1*dim.width);
-    y0:=round(ry0*dim.height);
-    y1:=round(ry1*dim.height);
     if (x1<=x0) or (y1<=y0) then exit;
     newXRes:=x1-x0;
     newYRes:=y1-y0;
@@ -276,5 +387,46 @@ PROCEDURE G_pixelMap.copyFromPixMap(VAR srcImage: G_pixelMap);
     resize(srcImage.dim);
     for i:=0 to pixelCount-1 do data[i]:=srcImage.data[i];
   end;
+
+PROCEDURE G_pixelMap.simpleScaleDown(powerOfTwo: byte);
+  VAR nx,ny,ox,oy,nw,nh:longint;
+      newDat:PIXEL_POINTER;
+      l1,l2:PIXEL_POINTER;
+  begin
+    while powerOfTwo>1 do begin
+      nw:=dim.width  shr 1;
+      nh:=dim.height shr 1;
+      getMem(newDat,dataSize(nw,nh));
+      for ny:=0 to nh-1 do begin
+        l1:=data+((ny+ny  )*dim.height);
+        l2:=data+((ny+ny+1)*dim.height);
+        for nx:=0 to nw-1 do
+          newDat[nx+ny*nw]:=(l1[nx+nx]+l1[nx+nx+1]
+                            +l2[nx+nx]+l2[nx+nx+1])*0.25;
+      end;
+      freeMem(data,dataSize);
+      data:=newDat; newDat:=nil;
+      dim.width :=nw;
+      dim.height:=nh;
+      powerOfTwo:=powerOfTwo shr 1;
+    end;
+  end;
+
+{FUNCTION FastBitmapToBitmap(FastBitmap: TFastBitmap; Bitmap: TBitmap);
+VAR
+  X, Y: integer;
+  tempIntfImage: TLazIntfImage;
+begin
+  try
+    tempIntfImage := Bitmap.CreateIntfImage; // Temp image could be pre-created and help by owner class to avoid new creation in each frame
+    for Y := 0 to FastBitmap.size.Y - 1 do
+      for X := 0 to FastBitmap.size.X - 1 do begin
+        tempIntfImage.colors[X, Y] := TColorToFPColor(FastPixelToTColor(FastBitmap.Pixels[X, Y]));
+      end;
+    Bitmap.LoadFromIntfImage(tempIntfImage);
+  finally
+    tempIntfImage.free;
+  end;
+end;}
 
 end.

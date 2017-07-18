@@ -3,3 +3,4 @@
 *.exe
 *.bak
 git.7z
+backup/*
