@@ -42,26 +42,6 @@ TYPE
       PROCEDURE simpleScaleDown(powerOfTwo:byte);
   end;
 
-  { T_byteMap }
-
-  T_byteMap=object
-    private
-      dat:PByte;
-      dim:T_imageDimensions;
-    public
-      CONSTRUCTOR create(CONST width,height:longint);
-      DESTRUCTOR destroy;
-      PROCEDURE clear;
-      PROCEDURE hLine(x0,x1:longint; CONST y:longint; CONST col:byte);
-      PROCEDURE vLine(CONST x:longint; y0,y1:longint; CONST col:byte);
-      PROCEDURE line(x0,x1,y0,y1:longint; CONST col:byte; CONST width:word);
-      PROCEDURE xSymbol(CONST x,y:longint; CONST col:byte; CONST lineWidth,symbolDiagonal:word);
-      PROCEDURE plusSymbol(CONST x,y:longint; CONST col:byte; CONST lineWidth,symbolDiagonal:word);
-      PROCEDURE circle(CONST x,y,radius:longint; CONST col:byte);
-      PROCEDURE axisParallelRectangle(CONST x0,x1,y0,y1:longint; CONST col:byte);
-      PROCEDURE simpleScaleDown(powerOfTwo:byte);
-  end;
-
 FUNCTION transpose(CONST dim:T_imageDimensions):T_imageDimensions;
 FUNCTION crop(CONST dim:T_imageDimensions; CONST rx0,rx1,ry0,ry1:double):T_imageDimensions;
 
@@ -87,92 +67,6 @@ FUNCTION getSmoothingKernel(CONST sigma:double):T_arrayOfDouble;
     factor:=1/sum;
     for i:=0 to radius do result[i]:=result[i]*factor;
   end;
-
-{ T_byteMap }
-
-CONSTRUCTOR T_byteMap.create(CONST width, height: longint);
-  begin
-    getMem(dat,width*height);
-    dim.width :=width;
-    dim.height:=height;
-  end;
-
-DESTRUCTOR T_byteMap.destroy;
-  begin
-    freeMem(dat,dim.width*dim.height);
-  end;
-
-PROCEDURE T_byteMap.clear;
-  VAR i:longint;
-  begin
-    for i:=0 to dim.width-1 do dat[i]:=0;
-    for i:=1 to dim.height-1 do move(dat^,(dat+i*dim.width)^,dim.width);
-  end;
-
-PROCEDURE T_byteMap.hLine(x0, x1: longint; CONST y: longint; CONST col: byte);
-  VAR x:longint;
-      p:PByte;
-  begin
-    if (y<0) or (y>=dim.height) then exit;
-    if x1<x0 then begin x:=x0;x0:=x1;x1:=x; end;
-    if (x1<0) or (x0>=dim.width) then exit;
-    if x0<0          then x0:=0;
-    if x1>=dim.width then x1:=dim.width-1;
-    p:=dat+(y*dim.width+x0);
-    for x:=x0 to x1 do begin p^:=col; inc(p); end;
-  end;
-
-PROCEDURE T_byteMap.vLine(CONST x: longint; y0, y1: longint; CONST col: byte);
-  VAR y:longint;
-      p:PByte;
-  begin
-    if (x<0) or (x>=dim.width) then exit;
-    if y1<y0 then begin y:=y0;y0:=y1;y1:=y; end;
-    if (y1<0) or (y0>=dim.height) then exit;
-    if y0<0           then y0:=0;
-    if y1>=dim.height then y1:=dim.height-1;
-    p:=dat+(y0*dim.width+x);
-    for y:=y0 to y1 do begin p^:=col; inc(p,dim.width); end;
-  end;
-
-PROCEDURE T_byteMap.line(x0, x1, y0, y1: longint; CONST col: byte; CONST width: word);
-  VAR x,y:longint;
-  begin
-    if (width=0) or (col=0) then exit;
-    if y0<y1 then begin
-      y :=y0; x :=x0;
-      y0:=y1; x0:=x1;
-      y1:=y ; x1:=x ;
-    end;
-
-  end;
-
-PROCEDURE T_byteMap.xSymbol(CONST x, y: longint; CONST col: byte; CONST lineWidth, symbolDiagonal: word);
-  begin
-
-  end;
-
-PROCEDURE T_byteMap.plusSymbol(CONST x, y: longint; CONST col: byte;
-  CONST lineWidth, symbolDiagonal: word);
-begin
-
-end;
-
-PROCEDURE T_byteMap.circle(CONST x, y, radius: longint; CONST col: byte);
-begin
-
-end;
-
-PROCEDURE T_byteMap.axisParallelRectangle(CONST x0, x1, y0, y1: longint;
-  CONST col: byte);
-begin
-
-end;
-
-PROCEDURE T_byteMap.simpleScaleDown(powerOfTwo: byte);
-begin
-
-end;
 
 FUNCTION G_pixelMap.getPixel(CONST x, y: longint): PIXEL_TYPE; begin result:=data[x+y*dim.width]; end;
 PROCEDURE G_pixelMap.setPixel(CONST x, y: longint; CONST value: PIXEL_TYPE); begin data[x+y*dim.width]:=value; end;
