@@ -179,6 +179,7 @@ FUNCTION projectedColor(CONST x:T_rgbFloatColor):T_rgbFloatColor;
       aid:single;
   begin
     result:=x;
+    for j in RGB_CHANNELS do if isNan(result[j]) or isInfinite(result[j]) then result[j]:=random;
     if (result[cc_red  ]<0) or (result[cc_red  ]>1) or
        (result[cc_green]<0) or (result[cc_green]>1) or
        (result[cc_blue ]<0) or (result[cc_blue ]>1) then begin

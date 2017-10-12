@@ -283,7 +283,7 @@ PROCEDURE G_pixelMap.copyFromPixMap(VAR srcImage: G_pixelMap);
   end;
 
 PROCEDURE G_pixelMap.simpleScaleDown(powerOfTwo: byte);
-  VAR nx,ny,ox,oy,nw,nh:longint;
+  VAR nx,ny,nw,nh:longint;
       newDat:PIXEL_POINTER;
       l1,l2:PIXEL_POINTER;
   begin
