@@ -399,7 +399,7 @@ PROCEDURE T_xosPrng.resetSeed(CONST newSeed:dword);
 
 PROCEDURE T_xosPrng.randomize;
   begin
-    resetSeed(GetTickCount);
+    resetSeed(GetTickCount64);
   end;
 
 FUNCTION T_xosPrng.intRandom(CONST imax:int64):int64;

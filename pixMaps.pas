@@ -6,8 +6,6 @@ TYPE
     width,height:longint;
   end;
 
-  { G_pixelMap }
-
   generic G_pixelMap<PIXEL_TYPE>=object
     TYPE PIXEL_POINTER=^PIXEL_TYPE;
          SELF_TYPE=specialize G_pixelMap<PIXEL_TYPE>;
