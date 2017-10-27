@@ -29,6 +29,7 @@ TYPE
       FUNCTION diagonal:double;
       FUNCTION getClone:P_SELF_TYPE;
       PROCEDURE blur(CONST relativeXBlur:double; CONST relativeYBlur:double);
+      PROCEDURE boxBlur(CONST relativeXBlur:double; CONST relativeYBlur:double);
       PROCEDURE flip;
       PROCEDURE flop;
       PROCEDURE rotRight;
@@ -122,8 +123,7 @@ FUNCTION G_pixelMap.getClone: P_SELF_TYPE;
     move(data^,result^.data^,dataSize);
   end;
 
-PROCEDURE G_pixelMap.blur(CONST relativeXBlur: double;
-  CONST relativeYBlur: double);
+PROCEDURE G_pixelMap.blur(CONST relativeXBlur: double; CONST relativeYBlur: double);
   VAR kernel:T_arrayOfDouble;
       temp:SELF_TYPE;
       ptmp:PIXEL_POINTER;
@@ -162,6 +162,45 @@ PROCEDURE G_pixelMap.blur(CONST relativeXBlur: double;
     //-----------------------------------------------------:blur in y-direction
     temp.destroy;
     setLength(kernel,0);
+  end;
+
+PROCEDURE G_pixelMap.boxBlur(CONST relativeXBlur:double; CONST relativeYBlur:double);
+
+  VAR radX,radY:longint;
+      temp:SELF_TYPE;
+      ptmp:PIXEL_POINTER;
+      x,y,z:longint;
+      sum:PIXEL_TYPE;
+      sampleCount:longint;
+  begin
+    radX:=round(relativeXBlur*diagonal*0.01*sqrt(3)); if radX<0 then radX:=0;
+    radY:=round(relativeYBlur*diagonal*0.01*sqrt(3)); if radY<0 then radY:=0;
+    if (radX<=0) and (radY<=0) then exit;
+    temp.create(dim.width,dim.height);
+    ptmp:=temp.data;
+    //blur in x-direction:-----------------------------------------------
+    for y:=0 to dim.height-1 do for x:=0 to dim.width-1 do begin
+      sum:=BLACK;
+      sampleCount:=0;
+      for z:=max(-x,-radX) to min(dim.width-x-1,radX) do begin
+        sum:=sum+data[x+z+y*dim.width];
+        inc(sampleCount);
+      end;
+      ptmp[x+y*dim.width]:=sum*(1/sampleCount);
+    end;
+    //-------------------------------------------------:blur in x-direction
+    //blur in y-direction:---------------------------------------------------
+    for x:=0 to dim.width-1 do for y:=0 to dim.height-1 do begin
+      sum:=BLACK;
+      sampleCount:=0;
+      for z:=max(-y,-radY) to min(dim.height-y-1,radY) do begin
+        sum:=sum+ptmp[x+(z+y)*dim.width];
+        inc(sampleCount);
+      end;
+      data[x+y*dim.width]:=sum*(1/sampleCount);
+    end;
+    //-----------------------------------------------------:blur in y-direction
+    temp.destroy;
   end;
 
 PROCEDURE G_pixelMap.flip;
