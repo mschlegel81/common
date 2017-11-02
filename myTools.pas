@@ -117,6 +117,7 @@ CONSTRUCTOR T_progressEstimatorQueue.create(CONST child:P_progressEstimatorQueue
 DESTRUCTOR T_progressEstimatorQueue.destroy;
   begin
     cancelCalculation(true);
+    while poolThreadsRunning>0 do begin Sleep(1); ThreadSwitch; end;
     system.enterCriticalSection(cs);
     setLength(progress,0);
     system.leaveCriticalSection(cs);
