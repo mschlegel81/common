@@ -57,6 +57,7 @@ OPERATOR -(CONST x,y:T_rgbFloatColor ):T_rgbFloatColor;
 OPERATOR -(CONST x,y:T_rgbaFloatColor):T_rgbaFloatColor;
 OPERATOR *(CONST x:T_rgbFloatColor ; CONST y:double):T_rgbFloatColor;
 OPERATOR *(CONST x:T_rgbaFloatColor; CONST y:double):T_rgbaFloatColor;
+OPERATOR *(CONST x,y:T_rgbFloatColor):T_rgbFloatColor;
 FUNCTION blend(CONST below:T_rgbFloatColor; CONST atop:T_rgbaFloatColor):T_rgbFloatColor;
 FUNCTION blend(CONST below,atop:T_rgbaFloatColor):T_rgbaFloatColor;
 
@@ -75,9 +76,6 @@ FUNCTION innerProduct  (CONST x,y:T_rgbFloatColor):double;
 
 CONST HISTOGRAM_ADDITIONAL_SPREAD=128;
 TYPE
-
-  { T_histogram }
-
   T_histogram=object
     private
       isIncremental:boolean;
@@ -120,9 +118,6 @@ TYPE
   end;
 
   T_intMapOfInt=specialize G_longintKeyMap<longint>;
-
-  { T_colorTree }
-
   T_colorTree=object
     private
       hist:T_intMapOfInt;
@@ -316,9 +311,9 @@ OPERATOR+(CONST x, y: T_rgbaFloatColor): T_rgbaFloatColor; VAR c:T_colorChannel;
 OPERATOR-(CONST x, y: T_rgbFloatColor ): T_rgbFloatColor;  VAR c:T_colorChannel; begin for c in RGB_CHANNELS   do result[c]:=x[c]-y[c]; end;
 OPERATOR-(CONST x, y: T_rgbaFloatColor): T_rgbaFloatColor; VAR c:T_colorChannel; begin for c in T_colorChannel do result[c]:=x[c]-y[c]; end;
 
-OPERATOR*(CONST x: T_rgbFloatColor;  CONST y: double): T_rgbFloatColor;  VAR c:T_colorChannel; begin for c in RGB_CHANNELS   do result[c]:=x[c]*y; end;
-OPERATOR*(CONST x: T_rgbaFloatColor; CONST y: double): T_rgbaFloatColor; VAR c:T_colorChannel; begin for c in T_colorChannel do result[c]:=x[c]*y; end;
-
+OPERATOR *(CONST x: T_rgbFloatColor;  CONST y: double): T_rgbFloatColor;  VAR c:T_colorChannel; begin for c in RGB_CHANNELS   do result[c]:=x[c]*y; end;
+OPERATOR *(CONST x: T_rgbaFloatColor; CONST y: double): T_rgbaFloatColor; VAR c:T_colorChannel; begin for c in T_colorChannel do result[c]:=x[c]*y; end;
+OPERATOR *(CONST x,y:T_rgbFloatColor                 ): T_rgbFloatColor;  VAR c:T_colorChannel; begin for c in RGB_CHANNELS do result[c]:=x[c]*y[c]; end;
 FUNCTION blend(CONST below: T_rgbFloatColor; CONST atop: T_rgbaFloatColor): T_rgbFloatColor;
   VAR BF:single;
       c:T_colorChannel;
