@@ -2,9 +2,13 @@ UNIT httpUtil;
 INTERFACE
 USES Classes, blcksock, synautil, sysutils, myGenerics,myStringUtil;
 TYPE
+  T_httpRequestMethod=(htrm_no_request,htrm_GET,htrm_POST,htrm_HEAD,htrm_PUT,htrm_PATCH,htrm_DELETE,htrm_TRACE,htrm_OPTIONS,htrm_CONNECT);
+CONST
+  C_httpRequestMethodName:array[T_httpRequestMethod] of string=('','GET','POST','HEAD','PUT','PATCH','DELETE','TRACE','OPTIONS','CONNECT');
+TYPE
   T_requestTriplet=record
-    isBlank:boolean;
-    method,request,protocol:string;
+    method:T_httpRequestMethod;
+    request,protocol:string;
   end;
 
   P_socketPair=^T_socketPair;
@@ -22,9 +26,10 @@ TYPE
       PROCEDURE SendString(CONST s:ansistring);
       FUNCTION toString:ansistring;
       FUNCTION getLastListenerSocketError:longint;
+      PROPERTY isAcceptingRequest:boolean read acceptingRequest;
   end;
 
-  F_stringX3ToString=FUNCTION(CONST method,request,protocol:string):string;
+  F_stringX3ToString=FUNCTION(CONST method:T_httpRequestMethod; CONST request,protocol:string):string;
 
   P_customSocketListener=^T_customSocketListener;
   T_customSocketListener=object
@@ -40,6 +45,7 @@ TYPE
   end;
 
 CONST HTTP_404_RESPONSE='HTTP/1.0 404' + CRLF;
+      HTTP_503_RESPONSE='HTTP/1.0 503' + CRLF + 'Retry-After: 10' + CRLF;
 
 FUNCTION wrapTextInHttp(CONST OutputDataString,serverInfo:string; CONST contentType:string='Text/Html'):string;
 FUNCTION cleanIp(CONST dirtyIp:ansistring):ansistring;
@@ -121,7 +127,7 @@ PROCEDURE T_customSocketListener.attend;
   begin
     repeat
       request:=socket.getRequest(sleepTime);
-      if request.isBlank then begin
+      if request.method=htrm_no_request then begin
         sleep(sleepTime);
         inc(sleepTime);
         if sleepTime>maxSleepTime then sleepTime:=maxSleepTime;
@@ -163,27 +169,40 @@ DESTRUCTOR T_socketPair.destroy;
     ConnectionSocket.free;
   end;
 
-FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint): T_requestTriplet;
+FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint):T_requestTriplet;
   VAR s:string;
-  begin
-    if acceptingRequest then SendString(HTTP_404_RESPONSE);
-    if not(ListenerSocket.canread(timeOutInMilliseconds)) then begin
-      result.method:='';
+      receiveTimeout:longint=100;
+
+  FUNCTION parseTriplet(s:string):T_requestTriplet;
+    VAR methodPart:string;
+        htrm:T_httpRequestMethod;
+    begin
+      methodPart:=fetch(s,' ');
+      result.method:=htrm_no_request;
       result.request:='';
       result.protocol:='';
-      result.isBlank:=true;
-      exit(result);
+      for htrm in T_httpRequestMethod do if C_httpRequestMethodName[htrm]=methodPart then result.method:=htrm;
+      if result.method=htrm_no_request then exit(result);
+      result.request :=fetch(s, ' ');
+      result.protocol:=fetch(s, ' ');
     end;
+
+  begin
+    result.method:=htrm_no_request;
+    result.request:='';
+    result.protocol:='';
+    if acceptingRequest then SendString(HTTP_503_RESPONSE);
+    if not(ListenerSocket.canread(timeOutInMilliseconds)) then exit(result);
     ConnectionSocket.socket := ListenerSocket.accept;
-    acceptingRequest:=true;
-    s := ConnectionSocket.RecvString(timeOutInMilliseconds);
-    result.method  :=fetch(s, ' ');
-    result.request :=fetch(s, ' ');
-    result.protocol:=fetch(s, ' ');
-    result.isBlank :=false;
     repeat
-      s := ConnectionSocket.RecvString(timeOutInMilliseconds);
-    until s = '';
+      s := ConnectionSocket.RecvString(receiveTimeout);
+      if result.method=htrm_no_request then begin
+        result:=parseTriplet(s);
+        if result.method<>htrm_no_request then receiveTimeout:=1;
+      end;
+    until ConnectionSocket.LastError<>0;
+    acceptingRequest:=result.method<>htrm_no_request;
+    if not(acceptingRequest) then SendString(HTTP_404_RESPONSE);
   end;
 
 PROCEDURE T_socketPair.SendString(CONST s: ansistring);
