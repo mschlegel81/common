@@ -28,6 +28,14 @@ TYPE
   {$undef arrayFunctions}
   {$undef arrayOp}
 
+  FUNCTION arrayOf(CONST s0:ansistring;
+                   CONST s1:ansistring='';
+                   CONST s2:ansistring='';
+                   CONST s3:ansistring='';
+                   CONST s4:ansistring='';
+                   CONST s5:ansistring='';
+                   CONST s6:ansistring='';
+                   CONST s7:ansistring=''):T_arrayOfString;
   FUNCTION C_EMPTY_STRING_ARRAY :T_arrayOfString ;
   FUNCTION C_EMPTY_POINTER_ARRAY:T_arrayOfPointer;
   FUNCTION C_EMPTY_DOUBLE_ARRAY :T_arrayOfDouble ;
@@ -326,6 +334,26 @@ OPERATOR :=(x:M_VALUE_TYPE):M_ARRAY_TYPE;
 {$define M_ARRAY_TYPE:=T_arrayOfInt64  } {$define M_VALUE_TYPE:=int64     } arrayFunctionImpl; arrayOpImpl;
 {$undef arrayFunctionImpl}
 {$undef arrayOpImpl}
+
+FUNCTION arrayOf(CONST s0:ansistring;
+                 CONST s1:ansistring='';
+                 CONST s2:ansistring='';
+                 CONST s3:ansistring='';
+                 CONST s4:ansistring='';
+                 CONST s5:ansistring='';
+                 CONST s6:ansistring='';
+                 CONST s7:ansistring=''):T_arrayOfString;
+  begin
+    setLength(result,8);
+    result[0]:=s0;
+    if s1='' then begin setLength(result,1); exit(result); end else result[1]:=s1;
+    if s2='' then begin setLength(result,2); exit(result); end else result[2]:=s2;
+    if s3='' then begin setLength(result,3); exit(result); end else result[3]:=s3;
+    if s4='' then begin setLength(result,4); exit(result); end else result[4]:=s4;
+    if s5='' then begin setLength(result,5); exit(result); end else result[5]:=s5;
+    if s6='' then begin setLength(result,6); exit(result); end else result[6]:=s6;
+    if s7='' then begin setLength(result,7); exit(result); end else result[7]:=s7;
+  end;
 
 FUNCTION C_EMPTY_STRING_ARRAY :T_arrayOfString ; begin setLength(result,0); end;
 FUNCTION C_EMPTY_POINTER_ARRAY:T_arrayOfPointer; begin setLength(result,0); end;
