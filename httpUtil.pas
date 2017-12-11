@@ -173,7 +173,7 @@ FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint):T_request
   VAR s:string;
       receiveTimeout:longint=100;
 
-  FUNCTION parseTriplet(s:string):T_requestTriplet;
+  FUNCTION parseTriplet(VAR s:string):T_requestTriplet; inline;
     VAR methodPart:string;
         htrm:T_httpRequestMethod;
     begin
