@@ -14,14 +14,14 @@ PROCEDURE removeNonexistent;
   begin
     j:=0;
     for i:=0 to length(history)-1 do
-    if FileExistsUTF8(history[i]) then begin
+    if fileExists(history[i]) then begin
       history[j]:=history[i];
       inc(j);
     end else if pos('&',history[i])>0 then begin
       fileSet:=split(history[i],T_arrayOfString('&'));
       j2:=0;
       for i2:=0 to length(fileSet)-1 do
-      if FileExistsUTF8(fileSet[i2]) then begin
+      if fileExists(fileSet[i2]) then begin
         fileSet[j2]:=fileSet[i2];
         inc(j2);
       end;
