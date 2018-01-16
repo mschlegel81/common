@@ -674,7 +674,7 @@ FUNCTION gzip_compressString(CONST ASrc: ansistring):ansistring;
       vCompressor := TCompressionStream.create(clMax, vDest,false);
       try
 	vSource := TStringStream.create(ASrc);
-	try     vCompressor.CopyFrom(vSource, 0);
+	try     vCompressor.copyFrom(vSource, 0);
 	finally vSource.free; end;
       finally
 	vCompressor.free;
