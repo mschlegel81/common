@@ -438,8 +438,8 @@ FUNCTION split(CONST s:ansistring):T_arrayOfString;
   VAR lineSplitters:T_arrayOfString;
   begin
     lineSplitters:=(C_carriageReturnChar+C_lineBreakChar);
-    append(lineSplitters,C_lineBreakChar+C_carriageReturnChar);
-    append(lineSplitters,C_lineBreakChar);
+    append(lineSplitters,                C_lineBreakChar+C_carriageReturnChar);
+    append(lineSplitters,                C_lineBreakChar);
     result:=split(s,lineSplitters);
   end;
 
@@ -451,32 +451,63 @@ FUNCTION reSplit(CONST s:T_arrayOfString):T_arrayOfString;
   end;
 
 FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString):T_arrayOfString;
-  PROCEDURE firstSplitterPos(CONST s:ansistring; OUT splitterStart,splitterEnd:longint);
-    VAR i,p:longint;
+  PROCEDURE nextSplitterPos(CONST startSearchAt:longint; OUT splitterStart,splitterEnd:longint); inline;
+    VAR splitter:string;
+        firstSplitterChar:char;
+        thisSplitterFound:boolean;
+        i:longint;
     begin
-      splitterStart:=0;
-      for i:=0 to length(splitters)-1 do begin
-        p:=pos(splitters[i],s);
-        if (p>0) and ((splitterStart=0) or (p<splitterStart)) then begin
-          splitterStart:=p;
-          splitterEnd:=p+length(splitters[i]);
+      splitterStart:=length(s)+1;
+      splitterEnd:=splitterStart;
+      for splitter in splitters do if length(splitter)>0 then begin
+        firstSplitterChar:=splitter[1];
+        thisSplitterFound:=false;
+        i:=startSearchAt;
+        if length(splitter)=1 then begin
+          while (i<splitterStart) and not(thisSplitterFound) do begin
+            if (s[i]=firstSplitterChar) then begin
+              thisSplitterFound:=true;
+              splitterStart:=i;
+              splitterEnd:=i+1;
+            end;
+            inc(i);
+          end;
+        end else begin
+          while (i<splitterStart) and not(thisSplitterFound) do begin
+            if (s[i]=firstSplitterChar) and (copy(s,i,length(splitter))=splitter) then begin
+              thisSplitterFound:=true;
+              splitterStart:=i;
+              splitterEnd:=i+length(splitter);
+            end;
+            inc(i);
+          end;
         end;
       end;
     end;
 
-  VAR sp0,sp1:longint;
-      rest:ansistring;
+  VAR resultLen:longint=0;
+  PROCEDURE appendToResult(CONST part:string); inline;
+    begin
+      if length(result)<resultLen+1 then setLength(result,round(length(result)*1.1)+2);
+      result[resultLen]:=part;
+      inc(resultLen);
+    end;
+
+  VAR partStart:longint=1;
+      splitterStart,splitterEnd:longint;
+      endsOnSplitter:boolean=false;
   begin
     setLength(result,0);
-    firstSplitterPos(s,sp0,sp1);
-    if sp0<=0 then exit(s);
-    rest:=s;
-    while sp0>0 do begin
-      append(result,copy(rest,1,sp0-1));
-      rest:=copy(rest,sp1,length(rest));
-      firstSplitterPos(rest,sp0,sp1);
+    nextSplitterPos(partStart,splitterStart,splitterEnd);
+    endsOnSplitter:=splitterEnd>splitterStart;
+    while(partStart<=length(s)) do begin
+      appendToResult(copy(s,partStart,splitterStart-partStart));
+      partStart:=splitterEnd;
+      endsOnSplitter:=splitterEnd>splitterStart;
+      nextSplitterPos(partStart,splitterStart,splitterEnd);
     end;
-    append(result,rest);
+    if endsOnSplitter then appendToResult('');
+    setLength(result,resultLen);
   end;
 
 FUNCTION join(CONST lines:T_arrayOfString; CONST joiner:ansistring):ansistring;
