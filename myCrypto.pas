@@ -1,14 +1,14 @@
 UNIT myCrypto;
 INTERFACE
 TYPE T_ISAAC=object
-  private 
-    randrsl: ARRAY[0..256] OF CARDINAL;
+  private
+    randrsl: array[0..256] of CARDINAL;
     randcnt: cardinal;
-    mm: ARRAY[0..256] OF CARDINAL;
+    mm: array[0..256] of CARDINAL;
     aa,bb,cc: CARDINAL;
     PROCEDURE isaac;
     PROCEDURE irandInit;
-    FUNCTION iRandA: BYTE;
+    FUNCTION iRandA: byte;
   public
     CONSTRUCTOR create;
     DESTRUCTOR destroy;
@@ -17,34 +17,34 @@ TYPE T_ISAAC=object
     PROCEDURE setSeed(CONST seed:string);
     FUNCTION iRandom : Cardinal;
     { XOR encrypt on random stream. Output: ASCII string }
-    FUNCTION Vernam(CONST msg: STRING): STRING;
+    FUNCTION Vernam(CONST msg: string): string;
   end;
 
 FUNCTION sha256(CONST data:string):string;
 IMPLEMENTATION
- 
+
 PROCEDURE T_ISAAC.Isaac;
   VAR i,x,y: CARDINAL;
   begin
-    cc := cc + 1;    // cc just gets incremented once per 256 results 
-    bb := bb + cc;   // then combined with bb 
-    FOR i := 0 TO 255 DO BEGIN
+    cc := cc + 1;    // cc just gets incremented once per 256 results
+    bb := bb + cc;   // then combined with bb
+    for i := 0 to 255 do begin
       x := mm[i];
-      CASE (i mod 4) OF
+      case (i mod 4) of
          0: aa := aa xor (aa shl 13);
          1: aa := aa xor (aa shr 6 );
          2: aa := aa xor (aa shl 2 );
          3: aa := aa xor (aa shr 16);
-      END;
+      end;
       aa := mm[(i+128) mod 256] + aa;
       y  := mm[(x shr 2) mod 256] + aa + bb;
-      mm[i] := y;    
-      bb := mm[(y shr 10) mod 256] + x; 
-      randrsl[i]:= bb; 
-    END;
-    randcnt:=0;  // prepare to use the first set of results 
-  END;
- 
+      mm[i] := y;
+      bb := mm[(y shr 10) mod 256] + x;
+      randrsl[i]:= bb;
+    end;
+    randcnt:=0;  // prepare to use the first set of results
+  end;
+
 CONSTRUCTOR T_ISAAC.create;
   begin
     setSeedByTime;
@@ -53,44 +53,44 @@ CONSTRUCTOR T_ISAAC.create;
 DESTRUCTOR T_ISAAC.destroy;
   begin
   end;
-  
+
 PROCEDURE T_ISAAC.setSeedByTime;
   VAR i: CARDINAL;
-  BEGIN
+  begin
     randomize;
-    FOR i:=0 TO 255 DO mm[i]:=0;
-    FOR i:=0 TO 255 DO randrsl[i]:=random(256);
+    for i:=0 to 255 do mm[i]:=0;
+    for i:=0 to 255 do randrsl[i]:=random(256);
     iRandInit;
-  END;
+  end;
 
 PROCEDURE T_ISAAC.setSeed(CONST seed:int64);
   VAR i: CARDINAL;
       s:int64;
-  BEGIN
-    FOR i:=0 TO 255 DO mm[i]:=0;
+  begin
+    for i:=0 to 255 do mm[i]:=0;
     s:=seed;
-    FOR i:=0 TO 255 DO begin
+    for i:=0 to 255 do begin
       randrsl[i]:=s and 255;
       s:=((s*31) shr 1) xor s;
     end;
     iRandInit;
-  END;
+  end;
 
 PROCEDURE T_ISAAC.setSeed(CONST seed:string);
   VAR i,m: CARDINAL;
-  BEGIN
-    FOR i:= 0 TO 255 DO mm[i]:=0;
-    m := Length(seed)-1;
-    FOR i:= 0 TO 255 DO BEGIN
-      IF i>m THEN randrsl[i]:=0
-             ELSE randrsl[i]:=ord(seed[i+1]);
-    END;
+  begin
+    for i:= 0 to 255 do mm[i]:=0;
+    m := length(seed)-1;
+    for i:= 0 to 255 do begin
+      if i>m then randrsl[i]:=0
+             else randrsl[i]:=ord(seed[i+1]);
+    end;
     iRandInit;
-  END;
+  end;
 
 PROCEDURE T_isaac.iRandInit;
   PROCEDURE mix(VAR a,b,c,d,e,f,g,h: CARDINAL);
-    BEGIN
+    begin
       a := a xor b shl 11; d:=d+a; b:=b+c;
       b := b xor c shr  2; e:=e+b; c:=c+d;
       c := c xor d shl  8; f:=f+c; d:=d+e;
@@ -99,20 +99,20 @@ PROCEDURE T_isaac.iRandInit;
       f := f xor g shr  4; a:=a+f; g:=g+h;
       g := g xor h shl  8; b:=b+g; h:=h+a;
       h := h xor a shr  9; c:=c+h; a:=a+b;
-    END;
+    end;
 
   VAR i,a,b,c,d,e,f,g,h: CARDINAL;
-  BEGIN
+  begin
     aa:=0; bb:=0; cc:=0;
     a:=$9e3779b9;    // the golden ratio
 
     b:=a; c:=a; d:=a; e:=a; f:=a; g:=a; h:=a;
 
-    FOR i := 0 TO 3 DO          // scramble it
+    for i := 0 to 3 do          // scramble it
          mix(a,b,c,d,e,f,g,h);
 
     i:=0;
-    REPEAT  // fill in mm[] with messy stuff
+    repeat  // fill in mm[] with messy stuff
       a+=randrsl[i  ]; b+=randrsl[i+1]; c+=randrsl[i+2]; d+=randrsl[i+3];
       e+=randrsl[i+4]; f+=randrsl[i+5]; g+=randrsl[i+6]; h+=randrsl[i+7];
 
@@ -120,59 +120,59 @@ PROCEDURE T_isaac.iRandInit;
      mm[i  ]:=a; mm[i+1]:=b; mm[i+2]:=c; mm[i+3]:=d;
      mm[i+4]:=e; mm[i+5]:=f; mm[i+6]:=g; mm[i+7]:=h;
      i+=8;
-    UNTIL i>255;
+    until i>255;
 
     // do a second pass to make all of the seed affect all of mm
     i:=0;
-    REPEAT
+    repeat
      a+=mm[i  ]; b+=mm[i+1]; c+=mm[i+2]; d+=mm[i+3];
      e+=mm[i+4]; f+=mm[i+5]; g+=mm[i+6]; h+=mm[i+7];
      mix(a,b,c,d,e,f,g,h);
      mm[i  ]:=a; mm[i+1]:=b; mm[i+2]:=c; mm[i+3]:=d;
      mm[i+4]:=e; mm[i+5]:=f; mm[i+6]:=g; mm[i+7]:=h;
      i+=8;
-    UNTIL i>255;
+    until i>255;
     isaac();           // fill in the first set of results
     randcnt:=0;       // prepare to use the first set of results
-  END; {randinit}
- 
+  end; {randinit}
+
 { Get a random 32-bit value 0..MAXINT }
 FUNCTION T_isaac.iRandom : Cardinal;
-  BEGIN
+  begin
     iRandom := randrsl[randcnt];
     inc(randcnt);
-    IF (randcnt >255) THEN BEGIN
+    if (randcnt >255) then begin
         Isaac();
         randcnt := 0;
-    END;
-  END; {iRandom}
- 
+    end;
+  end; {iRandom}
+
 { Get a random character in printable ASCII range }
-FUNCTION T_isaac.iRandA: BYTE;
-  BEGIN
+FUNCTION T_isaac.iRandA: byte;
+  begin
     iRandA := iRandom mod 95 + 32;
-  END;
- 
+  end;
+
 { XOR encrypt on random stream. Output: ASCII string }
-FUNCTION T_isaac.Vernam(CONST msg: STRING): STRING;
+FUNCTION T_isaac.Vernam(CONST msg: string): string;
   VAR i: CARDINAL;
-  BEGIN
+  begin
     setLength(result,length(msg));
-    FOR i:=1 to length(msg) DO result[i]:=chr(iRandA xor ord(msg[i]));
-  END;
- 
+    for i:=1 to length(msg) do result[i]:=chr(iRandA xor ord(msg[i]));
+  end;
+
 FUNCTION sha256(CONST data:string):string;
   {$Q-}{$R-}
-  VAR CurrentHash: array[0..7] of DWord;
+  VAR CurrentHash: array[0..7] of dword;
       HashBuffer: array[0..63] of byte;
       LenHi: longword=0;
       LenLo: longword=0;
-      Index: DWord=0;
+      index: dword=0;
 
-  procedure Init;
+  PROCEDURE init;
     begin
-      FillChar(HashBuffer ,Sizeof(HashBuffer ),0);
-      FillChar(CurrentHash,Sizeof(CurrentHash),0);
+      FillChar(HashBuffer ,sizeOf(HashBuffer ),0);
+      FillChar(CurrentHash,sizeOf(CurrentHash),0);
       CurrentHash[0]:= $6a09e667;
       CurrentHash[1]:= $bb67ae85;
       CurrentHash[2]:= $3c6ef372;
@@ -183,22 +183,22 @@ FUNCTION sha256(CONST data:string):string;
       CurrentHash[7]:= $5be0cd19;
     end;
 
-  function SwapDWord(CONST a: dword): dword;
+  FUNCTION SwapDWord(CONST a: dword): dword;
     begin
-      Result:= ((a and $FF) shl 24) or ((a and $FF00) shl 8) or ((a and $FF0000) shr 8) or ((a and $FF000000) shr 24);
+      result:= ((a and $ff) shl 24) or ((a and $FF00) shl 8) or ((a and $FF0000) shr 8) or ((a and $FF000000) shr 24);
     end;
 
-  procedure compress;
-    var
-      a, b, c, d, e, f, g, h, t1, t2: DWord;
-      W: array[0..63] of DWord;
+  PROCEDURE compress;
+    VAR
+      a, b, c, d, e, f, g, h, t1, t2: dword;
+      W: array[0..63] of dword;
       i: longword;
     begin
-      Index:= 0;
-      fillChar(W, SizeOf(W), 0);
+      index:= 0;
+      fillChar(W, sizeOf(W), 0);
       a:= CurrentHash[0]; b:= CurrentHash[1]; c:= CurrentHash[2]; d:= CurrentHash[3];
       e:= CurrentHash[4]; f:= CurrentHash[5]; g:= CurrentHash[6]; h:= CurrentHash[7];
-      Move(HashBuffer,W,Sizeof(HashBuffer));
+      move(HashBuffer,W,sizeOf(HashBuffer));
       for i:= 0 to 15 do
         W[i]:= SwapDWord(W[i]);
       for i:= 16 to 63 do
@@ -278,34 +278,34 @@ FUNCTION sha256(CONST data:string):string;
       CurrentHash[5]:= CurrentHash[5] + f;
       CurrentHash[6]:= CurrentHash[6] + g;
       CurrentHash[7]:= CurrentHash[7] + h;
-      FillChar(W,Sizeof(W),0);
-      FillChar(HashBuffer,Sizeof(HashBuffer),0);
+      FillChar(W,sizeOf(W),0);
+      FillChar(HashBuffer,sizeOf(HashBuffer),0);
     end;
 
-  VAR size:Dword;
+  VAR size:dword;
       i:longint=1;
-      digest:array[0..Sizeof(CurrentHash)-1] of byte;
+      digest:array[0..sizeOf(CurrentHash)-1] of byte;
   CONST hexDig:array[0..15]of char=('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
   begin
     init;
-    size:=length(Data);
+    size:=length(data);
     LenHi:=size shr 29;
     LenLo:=size*8;
 
-    while Size> 0 do begin
-      if (Sizeof(HashBuffer)-Index)<= Size then begin
-        Move(data[i],HashBuffer[Index],Sizeof(HashBuffer)-Index);
-        Dec(Size,Sizeof(HashBuffer)-Index);
-        Inc(i   ,Sizeof(HashBuffer)-Index);
+    while size> 0 do begin
+      if (sizeOf(HashBuffer)-index)<= size then begin
+        move(data[i],HashBuffer[index],sizeOf(HashBuffer)-index);
+        dec(size,sizeOf(HashBuffer)-index);
+        inc(i   ,sizeOf(HashBuffer)-index);
         Compress;
       end else begin
-        Move(data[i],HashBuffer[Index],Size);
-        Inc(Index,Size);
-        Size:= 0;
+        move(data[i],HashBuffer[index],size);
+        inc(index,size);
+        size:= 0;
       end;
     end;
-    HashBuffer[Index]:= $80;
-    if Index>= 56 then
+    HashBuffer[index]:= $80;
+    if index>= 56 then
       Compress;
     PDWord(@HashBuffer[56])^:= SwapDWord(LenHi);
     PDWord(@HashBuffer[60])^:= SwapDWord(LenLo);
@@ -318,7 +318,7 @@ FUNCTION sha256(CONST data:string):string;
     CurrentHash[5]:= SwapDWord(CurrentHash[5]);
     CurrentHash[6]:= SwapDWord(CurrentHash[6]);
     CurrentHash[7]:= SwapDWord(CurrentHash[7]);
-    Move(CurrentHash,Digest,Sizeof(CurrentHash));
+    move(CurrentHash,digest,sizeOf(CurrentHash));
     setLength(result,length(digest)*2);
     for i:=0 to length(digest)-1 do begin
       result[2*i+1]:=hexDig[(digest[i] shr 4) and 15];
@@ -328,5 +328,5 @@ FUNCTION sha256(CONST data:string):string;
 
   end;
 
-END.
- 
+end.
+
