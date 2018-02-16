@@ -2,12 +2,12 @@ UNIT myCrypto;
 INTERFACE
 TYPE T_ISAAC=object
   private
-    randrsl: array[0..256] of CARDINAL;
+    randrsl: array[0..256] of cardinal;
     randcnt: cardinal;
-    mm: array[0..256] of CARDINAL;
-    aa,bb,cc: CARDINAL;
+    mm: array[0..256] of cardinal;
+    aa,bb,cc: cardinal;
     PROCEDURE isaac;
-    PROCEDURE irandInit;
+    PROCEDURE iRandInit;
     FUNCTION iRandA: byte;
   public
     CONSTRUCTOR create;
@@ -15,7 +15,7 @@ TYPE T_ISAAC=object
     PROCEDURE setSeedByTime;
     PROCEDURE setSeed(CONST seed:int64);
     PROCEDURE setSeed(CONST seed:string);
-    FUNCTION iRandom : Cardinal;
+    FUNCTION iRandom : cardinal;
     { XOR encrypt on random stream. Output: ASCII string }
     FUNCTION Vernam(CONST msg: string): string;
   end;
@@ -23,8 +23,8 @@ TYPE T_ISAAC=object
 FUNCTION sha256(CONST data:string):string;
 IMPLEMENTATION
 
-PROCEDURE T_ISAAC.Isaac;
-  VAR i,x,y: CARDINAL;
+PROCEDURE T_ISAAC.isaac;
+  VAR i,x,y: cardinal;
   begin
     cc := cc + 1;    // cc just gets incremented once per 256 results
     bb := bb + cc;   // then combined with bb
@@ -55,7 +55,7 @@ DESTRUCTOR T_ISAAC.destroy;
   end;
 
 PROCEDURE T_ISAAC.setSeedByTime;
-  VAR i: CARDINAL;
+  VAR i: cardinal;
   begin
     randomize;
     for i:=0 to 255 do mm[i]:=0;
@@ -64,7 +64,7 @@ PROCEDURE T_ISAAC.setSeedByTime;
   end;
 
 PROCEDURE T_ISAAC.setSeed(CONST seed:int64);
-  VAR i: CARDINAL;
+  VAR i: cardinal;
       s:int64;
   begin
     for i:=0 to 255 do mm[i]:=0;
@@ -77,7 +77,7 @@ PROCEDURE T_ISAAC.setSeed(CONST seed:int64);
   end;
 
 PROCEDURE T_ISAAC.setSeed(CONST seed:string);
-  VAR i,m: CARDINAL;
+  VAR i,m: cardinal;
   begin
     for i:= 0 to 255 do mm[i]:=0;
     m := length(seed)-1;
@@ -88,8 +88,8 @@ PROCEDURE T_ISAAC.setSeed(CONST seed:string);
     iRandInit;
   end;
 
-PROCEDURE T_isaac.iRandInit;
-  PROCEDURE mix(VAR a,b,c,d,e,f,g,h: CARDINAL);
+PROCEDURE T_ISAAC.iRandInit;
+  PROCEDURE mix(VAR a,b,c,d,e,f,g,h: cardinal);
     begin
       a := a xor b shl 11; d:=d+a; b:=b+c;
       b := b xor c shr  2; e:=e+b; c:=c+d;
@@ -101,7 +101,7 @@ PROCEDURE T_isaac.iRandInit;
       h := h xor a shr  9; c:=c+h; a:=a+b;
     end;
 
-  VAR i,a,b,c,d,e,f,g,h: CARDINAL;
+  VAR i,a,b,c,d,e,f,g,h: cardinal;
   begin
     aa:=0; bb:=0; cc:=0;
     a:=$9e3779b9;    // the golden ratio
@@ -137,25 +137,25 @@ PROCEDURE T_isaac.iRandInit;
   end; {randinit}
 
 { Get a random 32-bit value 0..MAXINT }
-FUNCTION T_isaac.iRandom : Cardinal;
+FUNCTION T_ISAAC.iRandom : cardinal;
   begin
     iRandom := randrsl[randcnt];
     inc(randcnt);
     if (randcnt >255) then begin
-        Isaac();
+        isaac();
         randcnt := 0;
     end;
   end; {iRandom}
 
 { Get a random character in printable ASCII range }
-FUNCTION T_isaac.iRandA: byte;
+FUNCTION T_ISAAC.iRandA: byte;
   begin
     iRandA := iRandom mod 95 + 32;
   end;
 
 { XOR encrypt on random stream. Output: ASCII string }
-FUNCTION T_isaac.Vernam(CONST msg: string): string;
-  VAR i: CARDINAL;
+FUNCTION T_ISAAC.Vernam(CONST msg: string): string;
+  VAR i: cardinal;
   begin
     setLength(result,length(msg));
     for i:=1 to length(msg) do result[i]:=chr(iRandA xor ord(msg[i]));
@@ -195,7 +195,7 @@ FUNCTION sha256(CONST data:string):string;
       i: longword;
     begin
       index:= 0;
-      fillChar(W, sizeOf(W), 0);
+      FillChar(W, sizeOf(W), 0);
       a:= CurrentHash[0]; b:= CurrentHash[1]; c:= CurrentHash[2]; d:= CurrentHash[3];
       e:= CurrentHash[4]; f:= CurrentHash[5]; g:= CurrentHash[6]; h:= CurrentHash[7];
       move(HashBuffer,W,sizeOf(HashBuffer));
@@ -297,7 +297,7 @@ FUNCTION sha256(CONST data:string):string;
         move(data[i],HashBuffer[index],sizeOf(HashBuffer)-index);
         dec(size,sizeOf(HashBuffer)-index);
         inc(i   ,sizeOf(HashBuffer)-index);
-        Compress;
+        compress;
       end else begin
         move(data[i],HashBuffer[index],size);
         inc(index,size);
@@ -306,10 +306,10 @@ FUNCTION sha256(CONST data:string):string;
     end;
     HashBuffer[index]:= $80;
     if index>= 56 then
-      Compress;
+      compress;
     PDWord(@HashBuffer[56])^:= SwapDWord(LenHi);
     PDWord(@HashBuffer[60])^:= SwapDWord(LenLo);
-    Compress;
+    compress;
     CurrentHash[0]:= SwapDWord(CurrentHash[0]);
     CurrentHash[1]:= SwapDWord(CurrentHash[1]);
     CurrentHash[2]:= SwapDWord(CurrentHash[2]);
