@@ -301,7 +301,6 @@ FUNCTION queueThreadPoolThread(p:pointer):ptrint;
         //The thread was busy before, mark it as idle once
         if idleCount=0 then interlockedDecrement(queue^.busyThreads);
         inc(idleCount);
-
         sleep(1);
       end else begin
         //If the thread was idle before, mark it as busy again
