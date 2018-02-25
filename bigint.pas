@@ -1,6 +1,8 @@
 UNIT bigint;
 INTERFACE
-USES sysutils,serializationUtil;
+USES sysutils,
+     math,
+     serializationUtil;
 {$define bigDigits}
 TYPE
   {$ifdef bigDigits}
@@ -29,10 +31,11 @@ CONST
 TYPE
   T_comparisonResult=(CR_EQUAL,
                       CR_LESSER,
-                      CR_GREATER);
+                      CR_GREATER,
+                      CR_INVALID_COMPARAND);
   T_roundingMode=(RM_DEFAULT,RM_UP,RM_DOWN);
 CONST
-   C_FLIPPED:array[T_comparisonResult] of T_comparisonResult=(CR_EQUAL,CR_GREATER,CR_LESSER);
+   C_FLIPPED:array[T_comparisonResult] of T_comparisonResult=(CR_EQUAL,CR_GREATER,CR_LESSER,CR_INVALID_COMPARAND);
 TYPE
   P_bigint=^T_bigint;
   T_bigint=object
@@ -47,6 +50,8 @@ TYPE
       FUNCTION compareAbsValue(CONST big:T_bigint):T_comparisonResult; inline;
       FUNCTION compareAbsValue(CONST int:int64):T_comparisonResult; inline;
     public
+      PROPERTY isNegative:boolean read negative;
+
       CONSTRUCTOR createZero;
       CONSTRUCTOR create(CONST negativeNumber:boolean; CONST digitCount_:longint);
       CONSTRUCTOR fromInt(CONST i:int64);
@@ -62,12 +67,14 @@ TYPE
       FUNCTION getBit(CONST index:longint):boolean;
 
       PROCEDURE flipSign;
+      FUNCTION negated:T_bigint;
       FUNCTION compare(CONST big:T_bigint):T_comparisonResult; inline;
       FUNCTION compare(CONST int:int64   ):T_comparisonResult; inline;
+      FUNCTION compare(CONST f:extended  ):T_comparisonResult; inline;
       FUNCTION plus (CONST big:T_bigint):T_bigint;
       FUNCTION minus(CONST big:T_bigint):T_bigint;
       FUNCTION mult (CONST big:T_bigint):T_bigint;
-      FUNCTION pot  (CONST power:dword ):T_bigint;
+      FUNCTION pow  (power:dword ):T_bigint;
       FUNCTION bitAnd(CONST big:T_bigint):T_bigint;
       FUNCTION bitOr (CONST big:T_bigint):T_bigint;
       FUNCTION bitXor(CONST big:T_bigint):T_bigint;
@@ -81,11 +88,14 @@ TYPE
       FUNCTION modulus(CONST divisor:T_bigint):T_bigint;
       FUNCTION toString:string;
       FUNCTION hash:dword;
+      FUNCTION equals(CONST b:T_bigint):boolean;
       FUNCTION isZero:boolean;
       PROCEDURE shiftRightOneBit;
 
       PROCEDURE writeToStream(CONST stream:P_outputStreamWrapper);
       CONSTRUCTOR readFromStream(CONST stream:P_inputStreamWrapper);
+      FUNCTION lowDigit:digitType;
+      FUNCTION sign:shortint;
   end;
 
 IMPLEMENTATION
@@ -146,7 +156,6 @@ PROCEDURE performSelfTest;
       writeln(bx.toString);
       writeln(bx.toFloat=999999999999999900001.0);
       bx.destroy;
-      q.destroy;
     end;
   end;
 
@@ -192,6 +201,15 @@ PROCEDURE rawDataMinus(CONST xDigits:pDigitType; CONST xDigitCount:longint;
         carry:=0;
       end;
     end;
+    for i:=yDigitCount to xDigitCount-1 do begin
+      if carry>xDigits[i] then begin
+        diffDigits[i]:=((DIGIT_MAX_VALUE+1)-carry+xDigits[i]) and DIGIT_MAX_VALUE;
+        carry:=1;
+      end else begin
+        diffDigits[i]:=xDigits[i]-carry;
+        carry:=0;
+      end;
+    end;
     while (diffDigitCount>0) and (diffDigits[diffDigitCount-1]=0) do dec(diffDigitCount);
     if diffDigitCount<>xDigitCount then ReAllocMem(diffDigits,sizeOf(digitType)*diffDigitCount);
   end;
@@ -210,6 +228,7 @@ PROCEDURE T_bigint.shlInc(CONST incFirstBit: boolean);
       nextCarry:boolean;
   begin
     carryBit:=incFirstBit;
+    nextCarry:=carryBit;
     for k:=0 to digitCount-1 do begin
       nextCarry:=(digits[k] and UPPER_DIGIT_BIT)<>0;
       {$R-}
@@ -351,6 +370,8 @@ CONSTRUCTOR T_bigint.fromFloat(CONST f: extended; CONST rounding: T_roundingMode
       k:longint;
       d:digitType;
   begin
+    if isInfinite(f) or isNan(f) then raise Exception.create('Cannot create bigint from infinite or Nan float.');
+
     negative:=f<0;
     if negative then unsigned:=-f else unsigned:=f;
     fraction:=frac(unsigned);
@@ -368,7 +389,7 @@ CONSTRUCTOR T_bigint.fromFloat(CONST f: extended; CONST rounding: T_roundingMode
       unsigned-=d;
     end;
     case rounding of
-      RM_DEFAULT: addOne:=    getBit(0) and (fraction>=0.5);
+      RM_DEFAULT: addOne:=(fraction>0.5) or (fraction=0.5) and getBit(0);
       RM_UP     : addOne:=not(negative) and (fraction<>0  );
       RM_DOWN   : addOne:=    negative  and (fraction<>0  );
     end;
@@ -417,11 +438,19 @@ FUNCTION T_bigint.canBeRepresentedAsInt64(CONST examineNicheCase: boolean
 DESTRUCTOR T_bigint.destroy;
   begin
     freeMem(digits,sizeOf(digitType)*digitCount);
+    digitCount:=0;
+    negative:=false;
   end;
 
 PROCEDURE T_bigint.flipSign;
   begin
     negative:=not(negative);
+  end;
+
+FUNCTION T_bigint.negated: T_bigint;
+  begin
+    result.create(self);
+    result.flipSign;
   end;
 
 FUNCTION T_bigint.compareAbsValue(CONST big: T_bigint): T_comparisonResult;
@@ -471,6 +500,53 @@ FUNCTION T_bigint.compare(CONST int: int64): T_comparisonResult;
     s:=toInt;
     if s>int then exit(CR_GREATER);
     if s<int then exit(CR_LESSER);
+    result:=CR_EQUAL;
+  end;
+
+FUNCTION T_bigint.compare(CONST f: extended): T_comparisonResult;
+  VAR unsigned:extended;
+      fraction:extended;
+      d:digitType;
+      k:longint;
+  begin
+    if isNan(f) then exit(CR_INVALID_COMPARAND);
+    if isInfinite(f) then begin
+      if f>0 then exit(CR_LESSER)
+             else exit(CR_GREATER);
+    end;
+    if     negative  and (f>=0) then exit(CR_LESSER);
+    if not(negative) and (f< 0) then exit(CR_GREATER);
+    //both have same sign; none is infinite
+
+    if negative then unsigned:=-f else unsigned:=f;
+    fraction:=frac(unsigned);
+
+    k:=0;
+    while unsigned>=1 do begin
+      inc(k);
+      unsigned/=(DIGIT_MAX_VALUE+1);
+    end;
+    if k>digitCount then begin
+      if negative then exit(CR_GREATER)
+                  else exit(CR_LESSER);
+    end;
+    for k:=digitCount-1 downto 0 do begin
+      unsigned*=(DIGIT_MAX_VALUE+1);
+      d:=trunc(unsigned);
+      if d<digits[k] then begin
+        if negative then exit(CR_GREATER)
+                    else exit(CR_LESSER);
+      end else if d>digits[k] then begin
+        if negative then exit(CR_LESSER)
+                    else exit(CR_GREATER);
+      end;
+      unsigned-=d;
+    end;
+    // all integer digits are equal; maybe there is a nonzero fraction...
+    if fraction>0 then begin
+      if negative then exit(CR_GREATER)
+                  else exit(CR_LESSER);
+    end;
     result:=CR_EQUAL;
   end;
 
@@ -628,7 +704,7 @@ FUNCTION T_bigint.mult(CONST big: T_bigint): T_bigint;
     for i:=0 to     digitCount-1 do
     for j:=0 to big.digitCount-1 do begin
       k:=i+j;
-      carry:=digits[i]*big.digits[j];
+      carry:=carryType(digits[i])*carryType(big.digits[j]);
       while carry>0 do begin
         //x[i]*y[i]+r[i] <= (2^n-1)*(2^n-1)+2^n-1
         //                = (2^n)^2 - 2*2^n + 1 + 2^n-1
@@ -649,7 +725,8 @@ FUNCTION T_bigint.mult(CONST big: T_bigint): T_bigint;
     result.createFromRawData(negative xor big.negative,resultDigitCount,resultDigits);
   end;
 
-FUNCTION T_bigint.pot(CONST power: dword): T_bigint;
+FUNCTION T_bigint.pow(power: dword): T_bigint;
+  VAR multiplicand:T_bigint;
   begin
     // x ** 0 = 1
     if power=0 then begin
@@ -662,7 +739,14 @@ FUNCTION T_bigint.pot(CONST power: dword): T_bigint;
       result.create(self);
       exit(result);
     end;
-    raise Exception.create('Unimplemented');
+    multiplicand.create(self);
+    result      .create(false,1); result.digits[0]:=1;
+    while power>0 do begin
+      if odd(power) then result.multWith(multiplicand);
+      multiplicand.multWith(multiplicand);
+      power:=power shr 1;
+    end;
+    multiplicand.destroy;
   end;
 
 FUNCTION T_bigint.bitAnd(CONST big: T_bigint): T_bigint;
@@ -786,8 +870,26 @@ PROCEDURE T_bigint.incAbsValue(CONST positiveIncrement: dword);
     end;
   end;
 
-FUNCTION T_bigint.divMod(CONST divisor: T_bigint; OUT quotient, rest: T_bigint
-  ): boolean;
+FUNCTION T_bigint.divMod(CONST divisor: T_bigint; OUT quotient, rest: T_bigint): boolean;
+  PROCEDURE rawDec(VAR   xDigits:pDigitType; VAR   xDigitCount:longint;
+                   CONST yDigits:pDigitType; CONST yDigitCount:longint); inline;
+    VAR carry:carryType=0;
+        i    :longint;
+    begin
+      for i:=0 to yDigitCount-1 do begin
+        carry+=yDigits[i];
+        if carry>xDigits[i] then begin
+          xDigits[i]:=((DIGIT_MAX_VALUE+1)-carry+xDigits[i]) and DIGIT_MAX_VALUE;
+          carry:=1;
+        end else begin
+          xDigits[i]:=xDigits[i]-carry;
+          carry:=0;
+        end;
+      end;
+      while (xDigitCount>0) and (xDigits[xDigitCount-1]=0) do dec(xDigitCount);
+      if xDigitCount<>xDigitCount then ReAllocMem(xDigits,sizeOf(digitType)*xDigitCount);
+    end;
+
   VAR bitIdx:longint;
   begin
     if divisor.digitCount=0 then exit(false);
@@ -796,9 +898,8 @@ FUNCTION T_bigint.divMod(CONST divisor: T_bigint; OUT quotient, rest: T_bigint
     for bitIdx:=relevantBits-1 downto 0 do begin
       rest.shlInc(getBit(bitIdx));
       if rest.compareAbsValue(divisor) in [CR_EQUAL,CR_GREATER] then begin
-        rawDataMinus(rest.digits,   rest.digitCount,
-                  divisor.digits,divisor.digitCount,
-                     rest.digits,   rest.digitCount);
+        rawDec(rest.digits,   rest.digitCount,
+            divisor.digits,divisor.digitCount);
         quotient.setBit(bitIdx,true);
       end;
     end;
@@ -850,7 +951,7 @@ FUNCTION T_bigint.toString: string;
     while temp.compareAbsValue(10000000) in [CR_EQUAL,CR_GREATER] do begin
       temp.divBy(100000000,chunkVal);
       chunkTxt:=intToStr(chunkVal);
-      result:=StringOfChar('0',7-length(chunkTxt))+chunkTxt+result;
+      result:=StringOfChar('0',8-length(chunkTxt))+chunkTxt+result;
     end;
     {$endif}
     while temp.compareAbsValue(1000) in [CR_EQUAL,CR_GREATER] do begin
@@ -875,6 +976,15 @@ FUNCTION T_bigint.hash: dword;
     if negative then inc(result);
     for k:=0 to digitCount-1 do result:=result*31+digits[k];
     {$Q+}{$R+}
+  end;
+
+FUNCTION T_bigint.equals(CONST b: T_bigint): boolean;
+  VAR k:longint;
+  begin
+    if not((negative  =b.negative) and
+           (digitCount=b.digitCount)) then exit(false);
+    for k:=0 to digitCount-1 do if (digits[k]<>b.digits[k]) then exit(false);
+    result:=true;
   end;
 
 FUNCTION T_bigint.isZero: boolean;
@@ -934,8 +1044,17 @@ CONSTRUCTOR T_bigint.readFromStream(CONST stream: P_inputStreamWrapper);
     end;
   end;
 
-INITIALIZATION
-  performSelfTest;
+FUNCTION T_bigint.lowDigit: digitType;
+  begin
+    if digitCount=0 then exit(0) else exit(digits[0]);
+  end;
+
+FUNCTION T_bigint.sign: shortint;
+  begin
+    if  digitCount=0 then exit(0)
+    else if negative then exit(-1)
+                     else exit(1);
+  end;
 
 end.
 
