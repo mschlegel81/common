@@ -3,29 +3,17 @@ INTERFACE
 USES sysutils,
      math,
      serializationUtil;
-{$define bigDigits}
 TYPE
-  {$ifdef bigDigits}
   digitType=dword;
   carryType=qword;
-  {$else}
-  digitType=word;
-  carryType=dword;
-  {$endif}
   pDigitType=^digitType;
 CONST
-  {$ifdef bigDigits}
   BITS_PER_DIGIT=32;
-  {$else}
-  BITS_PER_DIGIT=16;
-  {$endif}
   DIGIT_MAX_VALUE=(1 shl BITS_PER_DIGIT)-1;
   UPPER_DIGIT_BIT=1 shl (BITS_PER_DIGIT-1);
   WORD_BIT:array[0..BITS_PER_DIGIT-1] of digitType=
-    (1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768
-    {$ifdef bigDigits},
+    (1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,
     65536,131072,262144,524288,1048576,2097152,4194304,8388608,16777216,33554432,67108864,134217728,268435456,536870912,1073741824,2147483648
-    {$endif}
     );
 
 TYPE
@@ -251,7 +239,7 @@ CONSTRUCTOR T_bigint.create(CONST negativeNumber: boolean;
 
 CONSTRUCTOR T_bigint.fromInt(CONST i: int64);
   VAR unsigned:int64;
-      d0,d1{$ifndef bigDigits},d2,d3{$endif}:digitType;
+      d0,d1:digitType;
   begin
     negative:=i<0;
     if negative
@@ -259,33 +247,19 @@ CONSTRUCTOR T_bigint.fromInt(CONST i: int64);
     else unsigned:= i;
     d0:=(unsigned                       ) and DIGIT_MAX_VALUE;
     d1:=(unsigned shr (BITS_PER_DIGIT  )) and DIGIT_MAX_VALUE;
-    {$ifndef bigDigits}
-    d2:=(unsigned shr (BITS_PER_DIGIT*2)) and DIGIT_MAX_VALUE;
-    d3:=(unsigned shr (BITS_PER_DIGIT*3)) and DIGIT_MAX_VALUE;
-    {$endif}
-    digitCount:=4;
-    {$ifndef bigDigits}if d3=0 then{$endif} begin
+    digitCount:=2;
+    if d1=0 then begin
       dec(digitCount);
-      {$ifndef bigDigits}if d2=0 then{$endif} begin
-        dec(digitCount);
-        if d1=0 then begin
-          dec(digitCount);
-          if d0=0 then dec(digitCount);
-        end;
-      end;
+      if d0=0 then dec(digitCount);
     end;
     getMem(digits,sizeOf(digitType)*digitCount);
     if digitCount>0 then digits[0]:=d0;
     if digitCount>1 then digits[1]:=d1;
-    {$ifndef bigDigits}
-    if digitCount>2 then digits[2]:=d2;
-    if digitCount>3 then digits[3]:=d3;
-    {$endif}
   end;
 
 CONSTRUCTOR T_bigint.fromString(CONST s: string);
-  CONST MAX_CHUNK_SIZE={$ifdef bigDigits}9{$else}4{$endif};
-        CHUNK_FACTOR:array[1..MAX_CHUNK_SIZE] of longint=(10,100,1000,10000{$ifdef bigDigits},100000,1000000,10000000,100000000,1000000000{$endif});
+  CONST MAX_CHUNK_SIZE=9;
+        CHUNK_FACTOR:array[1..MAX_CHUNK_SIZE] of longint=(10,100,1000,10000,100000,1000000,10000000,100000000,1000000000);
   VAR i:longint=1;
       chunkSize:longint;
       chunkValue:digitType;
@@ -306,8 +280,7 @@ CONSTRUCTOR T_bigint.fromString(CONST s: string);
     end;
   end;
 
-CONSTRUCTOR T_bigint.fromFloat(CONST f: extended; CONST rounding: T_roundingMode
-  );
+CONSTRUCTOR T_bigint.fromFloat(CONST f: extended; CONST rounding: T_roundingMode);
   VAR unsigned:extended;
       fraction:extended;
       addOne:boolean=false;
@@ -351,10 +324,6 @@ FUNCTION T_bigint.toInt: int64;
     result:=0;
     if digitCount>0 then result:=         digits[0];
     if digitCount>1 then inc(result,int64(digits[1]) shl (BITS_PER_DIGIT  ));
-    {$ifndef bigDigits}
-    if digitCount>2 then inc(result,int64(digits[2]) shl (BITS_PER_DIGIT*2));
-    if digitCount>3 then inc(result,int64(digits[3]) shl (BITS_PER_DIGIT*3));
-    {$endif}
     if negative then result:=-result;
   end;
 
@@ -373,19 +342,19 @@ FUNCTION T_bigint.canBeRepresentedAsInt64(CONST examineNicheCase: boolean): bool
     if not(getBit(63)) then exit(true);
     if negative and examineNicheCase then begin
       //in this case we can still represent -(2^63), so there is one special case to consider:
-      result:=(digits[3]=UPPER_DIGIT_BIT) and (digits[2]=0) and (digits[1]=0) and (digits[0]=0);
+      result:=(digits[1]=UPPER_DIGIT_BIT) and (digits[0]=0);
     end else
     result:=false;
   end;
 
 FUNCTION T_bigint.canBeRepresentedAsInt32(CONST examineNicheCase: boolean): boolean;
   begin
-    if digitCount*BITS_PER_DIGIT>64 then exit(false);
-    if digitCount*BITS_PER_DIGIT<64 then exit(true);
-    if not(getBit(63)) then exit(true);
+    if digitCount*BITS_PER_DIGIT>32 then exit(false);
+    if digitCount*BITS_PER_DIGIT<32 then exit(true);
+    if not(getBit(31)) then exit(true);
     if negative and examineNicheCase then begin
       //in this case we can still represent -(2^63), so there is one special case to consider:
-      result:=(digits[3]=UPPER_DIGIT_BIT) and (digits[2]=0) and (digits[1]=0) and (digits[0]=0);
+      result:=(digits[0]=UPPER_DIGIT_BIT);
     end else
     result:=false;
   end;
@@ -859,13 +828,11 @@ FUNCTION T_bigint.toString: string;
     if digitCount=0 then exit('0');
     temp.create(self);
     result:='';
-    {$ifdef bigDigits}
     while temp.compareAbsValue(10000000) in [CR_EQUAL,CR_GREATER] do begin
       temp.divBy(100000000,chunkVal);
       chunkTxt:=intToStr(chunkVal);
       result:=StringOfChar('0',8-length(chunkTxt))+chunkTxt+result;
     end;
-    {$endif}
     while temp.compareAbsValue(1000) in [CR_EQUAL,CR_GREATER] do begin
       temp.divBy(10000,chunkVal);
       chunkTxt:=intToStr(chunkVal);
@@ -931,7 +898,7 @@ PROCEDURE T_bigint.writeToStream(CONST stream: P_outputStreamWrapper);
       then stream^.writeByte(255)
       else stream^.writeByte(254);
       stream^.writeLongint(digitCount); //number of following Dwords
-      for k:=0 to digitCount-1 do {$ifdef bigDigits}stream^.writeDWord{$else}stream^.writeWord{$endif}(digits[k]);
+      for k:=0 to digitCount-1 do stream^.writeDWord(digits[k]);
     end;
   end;
 
@@ -945,7 +912,7 @@ CONSTRUCTOR T_bigint.readFromStream(CONST stream: P_inputStreamWrapper);
         negative:=odd(markerByte);
         digitCount:=stream^.readLongint;
         getMem(digits,sizeOf(digitType)*digitCount);
-        for k:=0 to digitCount-1 do digits[k]:= {$ifdef bigDigits}stream^.readDWord{$else}stream^.readWord{$endif};
+        for k:=0 to digitCount-1 do digits[k]:=stream^.readDWord;
       end;
       253: fromInt(stream^.readInt64);
       252: fromInt(stream^.readLongint);
