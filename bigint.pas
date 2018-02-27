@@ -12,9 +12,10 @@ CONST
   DIGIT_MAX_VALUE=(1 shl BITS_PER_DIGIT)-1;
   UPPER_DIGIT_BIT=1 shl (BITS_PER_DIGIT-1);
   WORD_BIT:array[0..BITS_PER_DIGIT-1] of digitType=
-    (1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768,
-    65536,131072,262144,524288,1048576,2097152,4194304,8388608,16777216,33554432,67108864,134217728,268435456,536870912,1073741824,2147483648
-    );
+    (      1,       2,       4,        8,       16,       32,        64,       128,
+         256,     512,    1024,     2048,     4096,     8192,     16384,     32768,
+       65536,  131072,  262144,   524288,  1048576,  2097152,   4194304,   8388608,
+    16777216,33554432,67108864,134217728,268435456,536870912,1073741824,2147483648);
 
 TYPE
   T_comparisonResult=(CR_EQUAL,
@@ -78,6 +79,7 @@ TYPE
       FUNCTION divide(CONST divisor:T_bigint):T_bigint;
       FUNCTION modulus(CONST divisor:T_bigint):T_bigint;
       FUNCTION toString:string;
+      FUNCTION getDigits(CONST base:longint):T_arrayOfLongint;
       FUNCTION equals(CONST b:T_bigint):boolean;
       FUNCTION isZero:boolean;
 
@@ -581,7 +583,10 @@ FUNCTION T_bigint.mult(CONST big: T_bigint): T_bigint;
   end;
 
 FUNCTION T_bigint.pow(power: dword): T_bigint;
+  CONST BASE_THRESHOLD_FOR_EXPONENT:array[2..62] of longint=(maxLongint,2097151,55108,6208,1448,511,234,127,78,52,38,28,22,18,15,13,11,9,8,7,7,6,6,5,5,5,4,4,4,4,3,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2);
   VAR multiplicand:T_bigint;
+      m:int64;
+      r:int64;
   begin
     // x ** 0 = 1
     if power=0 then begin
@@ -594,14 +599,25 @@ FUNCTION T_bigint.pow(power: dword): T_bigint;
       result.create(self);
       exit(result);
     end;
-    multiplicand.create(self);
-    result      .create(false,1); result.digits[0]:=1;
-    while power>0 do begin
-      if odd(power) then result.multWith(multiplicand);
-      multiplicand.multWith(multiplicand);
-      power:=power shr 1;
+    if (power<=62) and (compareAbsValue(BASE_THRESHOLD_FOR_EXPONENT[power]) in [CR_EQUAL,CR_LESSER]) then begin
+      r:=1;
+      m:=toInt;
+      while power>0 do begin
+        if odd(power) then r*=m;
+        m*=m;
+        power:=power shr 1;
+      end;
+      result.fromInt(r);
+    end else begin
+      result.create(false,1); result.digits[0]:=1;
+      multiplicand.create(self);
+      while power>0 do begin
+        if odd(power) then result.multWith(multiplicand);
+        multiplicand.multWith(multiplicand);
+        power:=power shr 1;
+      end;
+      multiplicand.destroy;
     end;
-    multiplicand.destroy;
   end;
 
 FUNCTION T_bigint.bitAnd(CONST big: T_bigint): T_bigint;
