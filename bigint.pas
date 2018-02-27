@@ -2,6 +2,7 @@ UNIT bigint;
 INTERFACE
 USES sysutils,
      math,
+     myGenerics,
      serializationUtil;
 TYPE
   digitType=dword;
@@ -884,6 +885,40 @@ FUNCTION T_bigint.toString: string;
     end;
     if negative then result:='-'+result;
     temp.destroy;
+  end;
+
+FUNCTION T_bigint.getDigits(CONST base: longint): T_arrayOfLongint;
+  VAR temp:T_bigint;
+      digit:digitType;
+      iTemp:int64;
+      c:char;
+  begin
+    setLength(result,0);
+    if isZero then exit(0);
+    if canBeRepresentedAsInt64(false) then begin
+      iTemp:=toInt;
+      if negative then iTemp:=-iTemp;
+      while (iTemp>0) do begin
+        digit:=iTemp mod base;
+        itemp:=itemp div base;
+        setLength(result,length(result)+1);
+        result[length(result)-1]:=digit;
+      end;
+    end else if base=10 then begin
+      for c in toString do if c in ['0'..'9'] then begin
+        setLength(result,length(result)+1);
+        result[length(result)-1]:=ord(c)-ord('0');
+      end;
+    end else begin
+      temp.create(self);
+      if negative then temp.flipSign;
+      while temp.compareAbsValue(1) in [CR_EQUAL,CR_GREATER] do begin
+        temp.divBy(base,digit);
+        setLength(result,length(result)+1);
+        result[length(result)-1]:=digit;
+      end;
+      temp.destroy;
+    end;
   end;
 
 FUNCTION T_bigint.equals(CONST b: T_bigint): boolean;
