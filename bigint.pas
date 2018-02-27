@@ -85,6 +85,7 @@ TYPE
       FUNCTION isZero:boolean;
 
       FUNCTION isBetween(CONST lowerBoundInclusive,upperBoundInclusive:longint):boolean;
+      FUNCTION divideIfRestless(CONST divisor:digitType):boolean;
 
       PROCEDURE writeToStream(CONST stream:P_outputStreamWrapper);
       CONSTRUCTOR readFromStream(CONST stream:P_inputStreamWrapper);
@@ -603,11 +604,13 @@ FUNCTION T_bigint.pow(power: dword): T_bigint;
     if (power<=62) and (compareAbsValue(BASE_THRESHOLD_FOR_EXPONENT[power]) in [CR_EQUAL,CR_LESSER]) then begin
       r:=1;
       m:=toInt;
+      {$R-}{$Q-}
       while power>0 do begin
         if odd(power) then r*=m;
         m*=m;
         power:=power shr 1;
       end;
+      {$R+}{$Q+}
       result.fromInt(r);
     end else begin
       result.create(false,1); result.digits[0]:=1;
@@ -751,48 +754,48 @@ PROCEDURE T_bigint.incAbsValue(CONST positiveIncrement: dword);
   end;
 
 FUNCTION T_bigint.divMod(CONST divisor: T_bigint; OUT quotient, rest: T_bigint): boolean;
-  PROCEDURE rawDec(VAR   xDigits:pDigitType; VAR   xDigitCount:longint;
-                   CONST yDigits:pDigitType; CONST yDigitCount:longint); inline;
+  PROCEDURE rawDec; inline;
     VAR carry:carryType=0;
         i    :longint;
     begin
-      for i:=0 to yDigitCount-1 do begin
-        carry+=yDigits[i];
-        if carry>xDigits[i] then begin
-          xDigits[i]:=((DIGIT_MAX_VALUE+1)-carry+xDigits[i]) and DIGIT_MAX_VALUE;
+      for i:=0 to divisor.digitCount-1 do begin
+        carry+=divisor.digits[i];
+        if carry>rest.digits[i] then begin
+          rest.digits[i]:=((DIGIT_MAX_VALUE+1)-carry+rest.digits[i]) and DIGIT_MAX_VALUE;
           carry:=1;
         end else begin
-          xDigits[i]:=xDigits[i]-carry;
+          rest.digits[i]-=carry;
           carry:=0;
         end;
       end;
-      for i:=yDigitCount to xDigitCount-1 do begin
-        if carry>xDigits[i] then begin
-          xDigits[i]:=((DIGIT_MAX_VALUE+1)-carry+xDigits[i]) and DIGIT_MAX_VALUE;
+      for i:=divisor.digitCount to rest.digitCount-1 do begin
+        if carry>rest.digits[i] then begin
+          rest.digits[i]:=((DIGIT_MAX_VALUE+1)-carry+rest.digits[i]) and DIGIT_MAX_VALUE;
           carry:=1;
         end else begin
-          xDigits[i]:=xDigits[i]-carry;
+          rest.digits[i]-=carry;
           carry:=0;
         end;
       end;
-      while (xDigitCount>0) and (xDigits[xDigitCount-1]=0) do dec(xDigitCount);
-      if xDigitCount<>xDigitCount then ReAllocMem(xDigits,sizeOf(digitType)*xDigitCount);
     end;
 
   VAR bitIdx:longint;
   begin
     if divisor.digitCount=0 then exit(false);
     quotient.create(negative xor divisor.negative,0);
-    rest    .create(negative                     ,0);
-
+    rest    .create(negative,divisor.digitCount);
+    //Initialize rest with (probably) enough digits
+    for bitIdx:=0 to rest.digitCount-1 do rest.digits[bitIdx]:=0;
     for bitIdx:=relevantBits-1 downto 0 do begin
       rest.shlInc(getBit(bitIdx));
       if rest.compareAbsValue(divisor) in [CR_EQUAL,CR_GREATER] then begin
-        rawDec(rest.digits,   rest.digitCount,
-            divisor.digits,divisor.digitCount);
+        rawDec();
         quotient.setBit(bitIdx,true);
       end;
     end;
+    bitIdx:=rest.digitCount;
+    while (rest.digitCount>0) and (rest.digits[rest.digitCount-1]=0) do dec(rest.digitCount);
+    if bitIdx<>rest.digitCount then ReAllocMem(rest.digits,sizeOf(digitType)*rest.digitCount);
   end;
 
 FUNCTION T_bigint.divide(CONST divisor: T_bigint): T_bigint;
@@ -860,6 +863,32 @@ PROCEDURE T_bigint.divBy(CONST divisor: digitType; OUT rest: digitType);
     end;
   end;
 
+FUNCTION T_bigint.divideIfRestless(CONST divisor:digitType):boolean;
+  VAR bitIdx:longint;
+      quotient:T_bigint;
+      divisorLog2:longint;
+      tempRest:carryType=0;
+  begin
+    quotient.createZero;
+    for bitIdx:=relevantBits-1 downto 0 do begin
+      tempRest:=tempRest shl 1;
+      if getBit(bitIdx) then inc(tempRest);
+      if tempRest>=divisor then begin
+        dec(tempRest,divisor);
+        quotient.setBit(bitIdx,true);
+      end;
+    end;
+    if tempRest=0 then begin;
+      freeMem(digits,sizeOf(digitType)*digitCount);
+      digits:=quotient.digits;
+      digitCount:=quotient.digitCount;
+      result:=true;
+    end else begin
+      quotient.destroy;
+      result:=false;
+    end;
+  end;
+
 FUNCTION T_bigint.toString: string;
   VAR temp:T_bigint;
       chunkVal:digitType;
@@ -892,6 +921,12 @@ FUNCTION T_bigint.getDigits(CONST base: longint): T_arrayOfLongint;
       digit:digitType;
       iTemp:int64;
       c:char;
+
+      //2^ 1=    2
+      //2^ 2=    4
+      //2^ 4=   16
+      //2^ 8=  256
+      //2^16=65536
   begin
     setLength(result,0);
     if isZero then exit(0);
@@ -909,6 +944,10 @@ FUNCTION T_bigint.getDigits(CONST base: longint): T_arrayOfLongint;
         setLength(result,length(result)+1);
         result[length(result)-1]:=ord(c)-ord('0');
       end;
+    end else if base=2 then begin
+      iTemp:=relevantBits;
+      setLength(result,iTemp);
+      for digit:=0 to iTemp-1 do if getBit(digit) then result[digit]:=1 else result[digit]:=0;
     end else begin
       temp.create(self);
       if negative then temp.flipSign;
