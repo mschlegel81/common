@@ -816,24 +816,47 @@ FUNCTION T_bigint.modulus(CONST divisor: T_bigint): T_bigint;
     temp.destroy;
   end;
 
+FUNCTION isPowerOf2(CONST i:digitType; OUT log2:longint):boolean;
+  VAR k:longint;
+  begin
+    result:=false;
+    for k:=0 to length(WORD_BIT)-1 do if i=WORD_BIT[k] then begin
+      log2:=k;
+      exit(true);
+    end;
+  end;
+
 PROCEDURE T_bigint.divBy(CONST divisor: digitType; OUT rest: digitType);
   VAR bitIdx:longint;
       quotient:T_bigint;
+      divisorLog2:longint;
       tempRest:carryType=0;
   begin
-    quotient.createZero;
-    for bitIdx:=relevantBits-1 downto 0 do begin
-      tempRest:=tempRest shl 1;
-      if getBit(bitIdx) then inc(tempRest);
-      if tempRest>=divisor then begin
-        dec(tempRest,divisor);
-        quotient.setBit(bitIdx,true);
-      end;
+    if digitCount=0 then begin
+      rest:=0;
+      exit;
     end;
-    freeMem(digits,sizeOf(digitType)*digitCount);
-    digits:=quotient.digits;
-    digitCount:=quotient.digitCount;
-    rest:=tempRest;
+    if isPowerOf2(divisor,divisorLog2) then begin
+      rest:=digits[0] and (divisor-1);
+      while divisorLog2>0 do begin
+        shiftRightOneBit;
+        dec(divisorLog2);
+      end;
+    end else begin
+      quotient.createZero;
+      for bitIdx:=relevantBits-1 downto 0 do begin
+        tempRest:=tempRest shl 1;
+        if getBit(bitIdx) then inc(tempRest);
+        if tempRest>=divisor then begin
+          dec(tempRest,divisor);
+          quotient.setBit(bitIdx,true);
+        end;
+      end;
+      freeMem(digits,sizeOf(digitType)*digitCount);
+      digits:=quotient.digits;
+      digitCount:=quotient.digitCount;
+      rest:=tempRest;
+    end;
   end;
 
 FUNCTION T_bigint.toString: string;
