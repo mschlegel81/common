@@ -93,7 +93,8 @@ TYPE
 
       FUNCTION lowDigit:digitType;
       FUNCTION sign:shortint;
-  end;
+      FUNCTION greatestCommonDivider(CONST other:T_bigint):T_bigint;
+    end;
 
 IMPLEMENTATION
 PROCEDURE rawDataPlus(CONST xDigits:pDigitType; CONST xDigitCount:longint;
@@ -1077,6 +1078,29 @@ FUNCTION T_bigint.lowDigit: digitType;
 FUNCTION T_bigint.sign: shortint;
   begin
     if digitCount=0 then exit(0) else if negative then exit(-1) else exit(1);;
+  end;
+
+FUNCTION T_bigint.greatestCommonDivider(CONST other: T_bigint): T_bigint;
+  VAR b,temp:T_bigint;
+      x,y,t:int64;
+  begin
+    if canBeRepresentedAsInt64(false) and other.canBeRepresentedAsInt64(false) then begin
+      x:=      toInt;
+      y:=other.toInt;
+      while (y<>0) do begin
+        t:=x mod y; x:=y; y:=t;
+      end;
+      result.fromInt(x);
+    end else begin
+      result.create(self);
+      b.create(other);
+      while not(b.isZero) do begin
+        temp:=result.modulus(b);
+        result.destroy;
+        result:=b;
+        b:=temp;
+      end;
+    end;
   end;
 
 end.
