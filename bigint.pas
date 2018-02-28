@@ -822,9 +822,14 @@ FUNCTION T_bigint.divMod(CONST divisor: T_bigint; OUT quotient, rest: T_bigint):
 
 FUNCTION T_bigint.divide(CONST divisor: T_bigint): T_bigint;
   VAR temp:T_bigint;
+      intRest:digitType;
   begin
     if (canBeRepresentedAsInt64() and divisor.canBeRepresentedAsInt64()) then begin
       result.fromInt(toInt div divisor.toInt);
+      exit(result);
+    end else if divisor.canBeRepresentedAsInt32(false) then begin
+      result.create(self);
+      result.divBy(divisor.toInt,intRest);
       exit(result);
     end;
     divMod(divisor,result,temp);
@@ -833,9 +838,16 @@ FUNCTION T_bigint.divide(CONST divisor: T_bigint): T_bigint;
 
 FUNCTION T_bigint.modulus(CONST divisor: T_bigint): T_bigint;
   VAR temp:T_bigint;
+      intRest:digitType;
   begin
     if (canBeRepresentedAsInt64() and divisor.canBeRepresentedAsInt64()) then begin
       result.fromInt(toInt mod divisor.toInt);
+      exit(result);
+    end else if divisor.canBeRepresentedAsInt32(false) then begin
+      temp.create(self);
+      temp.divBy(divisor.toInt,intRest);
+      temp.destroy;
+      result.fromInt(intRest);
       exit(result);
     end;
     divMod(divisor,temp,result);
