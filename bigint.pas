@@ -790,6 +790,17 @@ FUNCTION T_bigint.divMod(CONST divisor: T_bigint; OUT quotient, rest: T_bigint):
       end;
     end;
 
+  FUNCTION restGeqDivisor:boolean; inline;
+    VAR i:longint;
+    begin
+      if divisor.digitCount>rest.digitCount then exit(false);
+      for i:=rest.digitCount-1 downto divisor.digitCount do if rest.digits[i]>0 then exit(true);
+      for i:=rest.digitCount-1 downto 0 do
+        if       divisor.digits[i]<rest.digits[i] then exit(true)
+        else if  divisor.digits[i]>rest.digits[i] then exit(false);
+      result:=true;
+    end;
+
   VAR bitIdx:longint;
   begin
     if divisor.digitCount=0 then exit(false);
@@ -799,7 +810,7 @@ FUNCTION T_bigint.divMod(CONST divisor: T_bigint; OUT quotient, rest: T_bigint):
     for bitIdx:=0 to rest.digitCount-1 do rest.digits[bitIdx]:=0;
     for bitIdx:=relevantBits-1 downto 0 do begin
       rest.shlInc(getBit(bitIdx));
-      if rest.compareAbsValue(divisor) in [CR_EQUAL,CR_GREATER] then begin
+      if restGeqDivisor then begin
         rawDec();
         quotient.setBit(bitIdx,true);
       end;
