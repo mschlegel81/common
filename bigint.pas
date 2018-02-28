@@ -900,7 +900,6 @@ PROCEDURE T_bigint.divBy(CONST divisor: digitType; OUT rest: digitType);
 FUNCTION T_bigint.divideIfRestless(CONST divisor:digitType):boolean;
   VAR bitIdx:longint;
       quotient:T_bigint;
-      divisorLog2:longint;
       tempRest:carryType=0;
   begin
     quotient.createZero;
@@ -954,7 +953,7 @@ FUNCTION T_bigint.getDigits(CONST base: longint): T_arrayOfLongint;
   VAR temp:T_bigint;
       digit:digitType;
       iTemp:int64;
-      c:char;
+      s:string;
 
       //2^ 1=    2
       //2^ 2=    4
@@ -974,10 +973,11 @@ FUNCTION T_bigint.getDigits(CONST base: longint): T_arrayOfLongint;
         result[length(result)-1]:=digit;
       end;
     end else if base=10 then begin
-      for c in toString do if c in ['0'..'9'] then begin
-        setLength(result,length(result)+1);
-        result[length(result)-1]:=ord(c)-ord('0');
-      end;
+      s:=toString;
+      if negative then s:=copy(s,2,length(s)-1);
+      setLength(result,length(s));
+      for digit:=1 to length(s) do
+      result[length(s)-digit]:=ord(s[digit])-ord('0');
     end else if base=2 then begin
       iTemp:=relevantBits;
       setLength(result,iTemp);
