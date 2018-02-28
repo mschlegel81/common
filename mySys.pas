@@ -34,14 +34,15 @@ TYPE
     private
       criticalSection:TRTLCriticalSection;
       w,x,y,z:dword;
-    public
       FUNCTION XOS:dword;inline;
+    public
       CONSTRUCTOR create;
       DESTRUCTOR destroy;
       PROCEDURE resetSeed(CONST newSeed:dword);
       PROCEDURE randomize;inline;
       FUNCTION intRandom(CONST imax:int64):int64;
       FUNCTION realRandom:double;
+      FUNCTION dwordRandom:dword;
   end;
 
 FUNCTION getEnvironment:T_arrayOfString;
@@ -419,6 +420,13 @@ FUNCTION T_xosPrng.realRandom:double;
     enterCriticalSection(criticalSection);
     result:=XOS*2.3283064365386963E-10;
     leaveCriticalSection(criticalSection);
+  end;
+
+FUNCTION T_xosPrng.dwordRandom:dword;
+  begin
+    EnterCriticalSection(criticalSection);
+    result:=XOS;
+    LeaveCriticalSection(criticalSection);
   end;
 
 FINALIZATION

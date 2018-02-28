@@ -27,6 +27,9 @@ TYPE
 CONST
    C_FLIPPED:array[T_comparisonResult] of T_comparisonResult=(CR_EQUAL,CR_GREATER,CR_LESSER,CR_INVALID_COMPARAND);
 TYPE
+  F_rand32Source        =FUNCTION:DWord;
+  F_rand32SourceOfObject=FUNCTION:DWord of object;
+
   P_bigint=^T_bigint;
   T_bigint=object
     private
@@ -96,7 +99,30 @@ TYPE
       FUNCTION greatestCommonDivider(CONST other:T_bigint):T_bigint;
     end;
 
+FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigint):T_bigInt;
+FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigint):T_bigInt;
+
 IMPLEMENTATION
+FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigint):T_bigInt;
+  VAR k:longint;
+      temp:T_bigint;
+  begin
+    temp.create(false,maxValExclusive.digitCount);
+    for k:=0 to temp.digitCount-1 do temp.digits[k]:=randomSource();
+    result:=temp.modulus(maxValExclusive);
+    temp.destroy;
+  end;
+
+FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigint):T_bigInt;
+  VAR k:longint;
+      temp:T_bigint;
+  begin
+    temp.create(false,maxValExclusive.digitCount);
+    for k:=0 to temp.digitCount-1 do temp.digits[k]:=randomSource();
+    result:=temp.modulus(maxValExclusive);
+    temp.destroy;
+  end;
+
 PROCEDURE rawDataPlus(CONST xDigits:pDigitType; CONST xDigitCount:longint;
                       CONST yDigits:pDigitType; CONST yDigitCount:longint;
                       OUT sumDigits:pDigitType; OUT sumDigitCount:longint); inline;
