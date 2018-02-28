@@ -54,6 +54,7 @@ TYPE
       CONSTRUCTOR fromString(CONST s:string);
       CONSTRUCTOR fromFloat(CONST f:extended; CONST rounding:T_roundingMode);
       CONSTRUCTOR create(CONST toClone:T_bigint);
+      CONSTRUCTOR createFromDigits(CONST base:longint; CONST digits_:T_arrayOfLongint);
       DESTRUCTOR destroy;
 
       FUNCTION toInt:int64;
@@ -321,6 +322,16 @@ CONSTRUCTOR T_bigint.create(CONST toClone: T_bigint);
   begin
     create(toClone.negative,toClone.digitCount);
     move(toClone.digits^,digits^,sizeOf(digitType)*digitCount);
+  end;
+
+CONSTRUCTOR T_bigint.createFromDigits(CONST base: longint; CONST digits_:T_arrayOfLongint);
+  VAR i:longint;
+  begin
+    createZero;
+    for i:=0 to length(digits_)-1 do begin
+      multWith(base);
+      incAbsValue(digits_[i]);
+    end;
   end;
 
 FUNCTION T_bigint.toInt: int64;
