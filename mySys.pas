@@ -424,9 +424,9 @@ FUNCTION T_xosPrng.realRandom:double;
 
 FUNCTION T_xosPrng.dwordRandom:dword;
   begin
-    EnterCriticalSection(criticalSection);
+    enterCriticalSection(criticalSection);
     result:=XOS;
-    LeaveCriticalSection(criticalSection);
+    leaveCriticalSection(criticalSection);
   end;
 
 FINALIZATION
