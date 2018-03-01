@@ -99,6 +99,7 @@ TYPE
       FUNCTION sign:shortint;
       FUNCTION greatestCommonDivider(CONST other:T_bigint):T_bigint;
       FUNCTION iSqrt(OUT isSquare:boolean):T_bigint;
+      FUNCTION hammingWeight:longint;
     end;
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigint):T_bigint;
@@ -1187,6 +1188,13 @@ FUNCTION T_bigint.iSqrt(OUT isSquare:boolean):T_bigint;
         result:=temp;
       end;
     until done;
+  end;
+
+FUNCTION T_bigint.hammingWeight:longint;
+  VAR i:longint;
+  begin
+    result:=0;
+    for i:=0 to digitCount*BITS_PER_DIGIT-1 do if getBit(i) then inc(result);
   end;
 
 end.
