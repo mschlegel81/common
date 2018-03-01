@@ -1166,28 +1166,52 @@ FUNCTION T_bigInt.greatestCommonDivider(CONST other: T_bigInt): T_bigInt;
 FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
   VAR resDt,temp:T_bigInt;
       done:boolean=false;
+      step:longint=0;
+      selfShl16:T_bigInt;
+      {$ifndef DEBUGMODE}intRoot:int64;{$endif}
+      floatSqrt:double;
   begin
     if negative or isZero then begin
-      isSquare:=digitCount<>0;
+      isSquare:=digitCount=0;
       result.createZero;
       exit(result);
     end;
-    result.createZero;
-    result.setBit(relevantBits shr 1+1,true);
+    {$ifndef DEBUGMODE}
+    if canBeRepresentedAsInt64 then begin
+      intRoot:=trunc(sqrt(toFloat));
+      result.fromInt(intRoot);
+      isSquare:=toInt=intRoot*intRoot;
+    end else if relevantBits<102 then begin
+      result.fromFloat(sqrt(toFloat),RM_DOWN);
+      temp:=result.mult(result);
+      isSquare:=equals(temp);
+      temp.destroy;
+    end;
+    {$endif}
+    //compute the square root of this*2^16, validate by checking lower 8 bits
+    selfShl16.create(self);
+    selfShl16.multWith(1 shl 16);
+    floatSqrt:=sqrt(toFloat)*256;
+    if isInfinite(floatSqrt) or isNan(floatSqrt) then begin
+      result.createZero;
+      result.setBit(selfShl16.relevantBits shr 1+1,true);
+    end else result.fromFloat(floatSqrt,RM_DOWN);
     repeat
-      divMod(result,resDt,temp);
+      selfShl16.divMod(result,resDt,temp);
       isSquare:=temp.isZero;
       temp.destroy;
-      done:=resDt.equals(result);
-      if done
-      then resDt.destroy
-      else begin
-        temp:=resDt.plus(result); resDt.destroy;
-        temp.shiftRightOneBit;    done:=result.equals(temp);
-        result.destroy;
-        result:=temp;
-      end;
-    until done;
+      temp:=resDt.plus(result); resDt.destroy;
+      isSquare:=isSquare and not odd(temp.digits[0]);
+      temp.shiftRightOneBit;
+      done:=result.equals(temp);
+      result.destroy;
+      result:=temp;
+      inc(step);
+    until done or (step>100);
+
+    selfShl16.destroy;
+    isSquare:=isSquare and ((result.digits[0] and 255)=0);
+    for step:=1 to 8 do result.shiftRightOneBit;
   end;
 
 FUNCTION T_bigInt.hammingWeight:longint;
