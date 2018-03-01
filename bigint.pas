@@ -84,6 +84,7 @@ TYPE
       FUNCTION divide(CONST divisor:T_bigint):T_bigint;
       FUNCTION modulus(CONST divisor:T_bigint):T_bigint;
       FUNCTION toString:string;
+      FUNCTION toHexString:string;
       FUNCTION getDigits(CONST base:longint):T_arrayOfLongint;
       FUNCTION equals(CONST b:T_bigint):boolean;
       FUNCTION isZero:boolean;
@@ -989,6 +990,29 @@ FUNCTION T_bigint.toString: string;
     end;
     if negative then result:='-'+result;
     temp.destroy;
+  end;
+
+FUNCTION T_bigint.toHexString:string;
+  CONST hexChar:array [0..15] of char=('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
+        shifts:array[0..7] of byte=(28,24,20,16,12,8,4,0);
+  VAR hasADigit:boolean=false;
+      digit :digitType;
+      hexDig:byte;
+      Shift :byte;
+      i:longint;
+  begin
+    if digitCount=0 then exit('0');
+    if negative then result:='-' else result:='';
+    for i:=digitCount-1 downto 0 do begin
+      digit:=digits[i];
+      for Shift in shifts do begin
+        hexDig:=(digit shr Shift) and 15;
+        if (hexDig>0) or hasADigit then begin
+          hasADigit:=true;
+          result+=hexChar[hexDig];
+        end;
+      end;
+    end;
   end;
 
 FUNCTION T_bigint.getDigits(CONST base: longint): T_arrayOfLongint;
