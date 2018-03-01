@@ -97,6 +97,7 @@ TYPE
       FUNCTION lowDigit:digitType;
       FUNCTION sign:shortint;
       FUNCTION greatestCommonDivider(CONST other:T_bigint):T_bigint;
+      FUNCTION iSqrt(OUT isSquare:boolean):T_bigint;
     end;
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigint):T_bigint;
@@ -1135,6 +1136,33 @@ FUNCTION T_bigint.greatestCommonDivider(CONST other: T_bigint): T_bigint;
         b:=temp;
       end;
     end;
+  end;
+
+FUNCTION T_bigint.iSqrt(OUT isSquare:boolean):T_bigint;
+  VAR resDt,temp:T_bigint;
+      done:boolean=false;
+  begin
+    if negative or isZero then begin
+      isSquare:=digitCount<>0;
+      result.createZero;
+      exit(result);
+    end;
+    result.createZero;
+    result.setBit(relevantBits shr 1+1,true);
+    repeat
+      divMod(result,resDt,temp);
+      isSquare:=temp.isZero;
+      temp.destroy;
+      done:=resDt.equals(result);
+      if done
+      then resDt.destroy
+      else begin
+        temp:=resDt.plus(result); resDt.destroy;
+        temp.shiftRightOneBit;    done:=result.equals(temp);
+        result.destroy;
+        result:=temp;
+      end;
+    until done;
   end;
 
 end.
