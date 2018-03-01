@@ -20,7 +20,9 @@ TYPE T_ISAAC=object
     FUNCTION Vernam(CONST msg: string): string;
   end;
 
-FUNCTION sha256(CONST data:string):string;
+T_sha256Hash=array[0..31] of byte;
+
+FUNCTION sha256(CONST data:string):T_sha256Hash;
 IMPLEMENTATION
 
 PROCEDURE T_ISAAC.isaac;
@@ -161,7 +163,7 @@ FUNCTION T_ISAAC.Vernam(CONST msg: string): string;
     for i:=1 to length(msg) do result[i]:=chr(iRandA xor ord(msg[i]));
   end;
 
-FUNCTION sha256(CONST data:string):string;
+FUNCTION sha256(CONST data:string):T_sha256Hash;
   {$Q-}{$R-}
   VAR CurrentHash: array[0..7] of dword;
       HashBuffer: array[0..63] of byte;
@@ -284,8 +286,6 @@ FUNCTION sha256(CONST data:string):string;
 
   VAR size:dword;
       i:longint=1;
-      digest:array[0..sizeOf(CurrentHash)-1] of byte;
-  CONST hexDig:array[0..15]of char=('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
   begin
     init;
     size:=length(data);
@@ -318,14 +318,8 @@ FUNCTION sha256(CONST data:string):string;
     CurrentHash[5]:= SwapDWord(CurrentHash[5]);
     CurrentHash[6]:= SwapDWord(CurrentHash[6]);
     CurrentHash[7]:= SwapDWord(CurrentHash[7]);
-    move(CurrentHash,digest,sizeOf(CurrentHash));
-    setLength(result,length(digest)*2);
-    for i:=0 to length(digest)-1 do begin
-      result[2*i+1]:=hexDig[(digest[i] shr 4) and 15];
-      result[2*i+2]:=hexDig[ digest[i]        and 15];
-    end;
+    move(CurrentHash,result,sizeOf(CurrentHash));
     {$Q+}{$R+}
-
   end;
 
 end.
