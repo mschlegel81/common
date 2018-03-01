@@ -835,7 +835,7 @@ FUNCTION T_bigInt.divMod(CONST divisor: T_bigInt; OUT quotient, rest: T_bigInt):
     begin
       if divisor.digitCount>rest.digitCount then exit(false);
       for i:=rest.digitCount-1 downto divisor.digitCount do if rest.digits[i]>0 then exit(true);
-      for i:=rest.digitCount-1 downto 0 do
+      for i:=divisor.digitCount-1 downto 0 do
         if       divisor.digits[i]<rest.digits[i] then exit(true)
         else if  divisor.digits[i]>rest.digits[i] then exit(false);
       result:=true;
