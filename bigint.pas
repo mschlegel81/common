@@ -588,6 +588,7 @@ FUNCTION T_bigint.mult(CONST big: T_bigint): T_bigint;
       i,j,k:longint;
       carry:carryType=0;
   begin
+    {$ifndef DEBUGMODE}
     if canBeRepresentedAsInt32() then begin
       if big.canBeRepresentedAsInt32()  then begin
         result.fromInt(toInt*big.toInt);
@@ -602,9 +603,10 @@ FUNCTION T_bigint.mult(CONST big: T_bigint): T_bigint;
       result.multWith(big.toInt);
       exit(result);
     end;
+    {$endif}
 
     resultDigitCount:=digitCount+big.digitCount;
-    getMem(resultDigits,sizeOf(DigitType)*resultDigitCount);
+    getMem(resultDigits,sizeOf(digitType)*resultDigitCount);
     for k:=0 to resultDigitCount-1 do resultDigits[k]:=0;
     for i:=0 to     digitCount-1 do
     for j:=0 to big.digitCount-1 do begin
@@ -857,34 +859,38 @@ FUNCTION T_bigint.divMod(CONST divisor: T_bigint; OUT quotient, rest: T_bigint):
 
 FUNCTION T_bigint.divide(CONST divisor: T_bigint): T_bigint;
   VAR temp:T_bigint;
-      intRest:digitType;
+      {$ifndef DEBUGMODE} intRest:digitType; {$endif}
   begin
+    {$ifndef DEBUGMODE}
     if (canBeRepresentedAsInt64() and divisor.canBeRepresentedAsInt64()) then begin
       result.fromInt(toInt div divisor.toInt);
       exit(result);
-    end else if divisor.canBeRepresentedAsInt32(false) then begin
+    end else if divisor.canBeRepresentedAsInt32(false) and not(divisor.negative) then begin
       result.create(self);
       result.divBy(divisor.toInt,intRest);
       exit(result);
     end;
+    {$endif}
     divMod(divisor,result,temp);
     temp.destroy;
   end;
 
 FUNCTION T_bigint.modulus(CONST divisor: T_bigint): T_bigint;
   VAR temp:T_bigint;
-      intRest:digitType;
+      {$ifndef DEBUGMODE} intRest:digitType; {$endif}
   begin
+    {$ifndef DEBUGMODE}
     if (canBeRepresentedAsInt64() and divisor.canBeRepresentedAsInt64()) then begin
       result.fromInt(toInt mod divisor.toInt);
       exit(result);
-    end else if divisor.canBeRepresentedAsInt32(false) then begin
+    end else if divisor.canBeRepresentedAsInt32(false) and not(divisor.negative) then begin
       temp.create(self);
       temp.divBy(divisor.toInt,intRest);
       temp.destroy;
       result.fromInt(intRest);
       exit(result);
     end;
+    {$endif}
     divMod(divisor,temp,result);
     temp.destroy;
   end;
@@ -989,12 +995,6 @@ FUNCTION T_bigint.getDigits(CONST base: longint): T_arrayOfLongint;
       digit:digitType;
       iTemp:int64;
       s:string;
-
-      //2^ 1=    2
-      //2^ 2=    4
-      //2^ 4=   16
-      //2^ 8=  256
-      //2^16=65536
   begin
     setLength(result,0);
     if isZero then exit(0);
@@ -1003,7 +1003,7 @@ FUNCTION T_bigint.getDigits(CONST base: longint): T_arrayOfLongint;
       if negative then iTemp:=-iTemp;
       while (iTemp>0) do begin
         digit:=iTemp mod base;
-        itemp:=itemp div base;
+        iTemp:=iTemp div base;
         setLength(result,length(result)+1);
         result[length(result)-1]:=digit;
       end;
