@@ -30,8 +30,8 @@ TYPE
   F_rand32Source        =FUNCTION:dword;
   F_rand32SourceOfObject=FUNCTION:dword of object;
 
-  P_bigint=^T_bigint;
-  T_bigint=object
+  P_bigint=^T_bigInt;
+  T_bigInt=object
     private
       negative:boolean;
       digitCount:longint;
@@ -40,11 +40,11 @@ TYPE
       PROCEDURE shlInc(CONST incFirstBit:boolean);
       FUNCTION relevantBits:longint;
       PROCEDURE setBit(CONST index:longint; CONST value:boolean);
-      FUNCTION compareAbsValue(CONST big:T_bigint):T_comparisonResult; inline;
+      FUNCTION compareAbsValue(CONST big:T_bigInt):T_comparisonResult; inline;
       FUNCTION compareAbsValue(CONST int:int64):T_comparisonResult; inline;
 
       PROCEDURE multWith(CONST l:longint);
-      PROCEDURE multWith(CONST b:T_bigint);
+      PROCEDURE multWith(CONST b:T_bigInt);
       PROCEDURE divBy(CONST divisor:digitType; OUT rest:digitType);
       PROCEDURE incAbsValue(CONST positiveIncrement:dword);
       PROCEDURE shiftRightOneBit;
@@ -56,7 +56,7 @@ TYPE
       CONSTRUCTOR fromInt(CONST i:int64);
       CONSTRUCTOR fromString(CONST s:string);
       CONSTRUCTOR fromFloat(CONST f:extended; CONST rounding:T_roundingMode);
-      CONSTRUCTOR create(CONST toClone:T_bigint);
+      CONSTRUCTOR create(CONST toClone:T_bigInt);
       CONSTRUCTOR createFromDigits(CONST base:longint; CONST digits_:T_arrayOfLongint);
       DESTRUCTOR destroy;
 
@@ -68,25 +68,25 @@ TYPE
       FUNCTION getBit(CONST index:longint):boolean;
 
       PROCEDURE flipSign;
-      FUNCTION negated:T_bigint;
-      FUNCTION compare(CONST big:T_bigint):T_comparisonResult; inline;
+      FUNCTION negated:T_bigInt;
+      FUNCTION compare(CONST big:T_bigInt):T_comparisonResult; inline;
       FUNCTION compare(CONST int:int64   ):T_comparisonResult; inline;
       FUNCTION compare(CONST f:extended  ):T_comparisonResult; inline;
-      FUNCTION plus (CONST big:T_bigint):T_bigint;
-      FUNCTION minus(CONST big:T_bigint):T_bigint;
-      FUNCTION mult (CONST big:T_bigint):T_bigint;
-      FUNCTION pow  (power:dword ):T_bigint;
-      FUNCTION bitAnd(CONST big:T_bigint):T_bigint;
-      FUNCTION bitOr (CONST big:T_bigint):T_bigint;
-      FUNCTION bitXor(CONST big:T_bigint):T_bigint;
+      FUNCTION plus (CONST big:T_bigInt):T_bigInt;
+      FUNCTION minus(CONST big:T_bigInt):T_bigInt;
+      FUNCTION mult (CONST big:T_bigInt):T_bigInt;
+      FUNCTION pow  (power:dword ):T_bigInt;
+      FUNCTION bitAnd(CONST big:T_bigInt):T_bigInt;
+      FUNCTION bitOr (CONST big:T_bigInt):T_bigInt;
+      FUNCTION bitXor(CONST big:T_bigInt):T_bigInt;
       {returns true on success, false on division by zero}
-      FUNCTION divMod(CONST divisor:T_bigint; OUT quotient,rest:T_bigint):boolean;
-      FUNCTION divide(CONST divisor:T_bigint):T_bigint;
-      FUNCTION modulus(CONST divisor:T_bigint):T_bigint;
+      FUNCTION divMod(CONST divisor:T_bigInt; OUT quotient,rest:T_bigInt):boolean;
+      FUNCTION divide(CONST divisor:T_bigInt):T_bigInt;
+      FUNCTION modulus(CONST divisor:T_bigInt):T_bigInt;
       FUNCTION toString:string;
       FUNCTION toHexString:string;
       FUNCTION getDigits(CONST base:longint):T_arrayOfLongint;
-      FUNCTION equals(CONST b:T_bigint):boolean;
+      FUNCTION equals(CONST b:T_bigInt):boolean;
       FUNCTION isZero:boolean;
 
       FUNCTION isBetween(CONST lowerBoundInclusive,upperBoundInclusive:longint):boolean;
@@ -97,18 +97,18 @@ TYPE
 
       FUNCTION lowDigit:digitType;
       FUNCTION sign:shortint;
-      FUNCTION greatestCommonDivider(CONST other:T_bigint):T_bigint;
-      FUNCTION iSqrt(OUT isSquare:boolean):T_bigint;
+      FUNCTION greatestCommonDivider(CONST other:T_bigInt):T_bigInt;
+      FUNCTION iSqrt(OUT isSquare:boolean):T_bigInt;
       FUNCTION hammingWeight:longint;
     end;
 
-FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigint):T_bigint;
-FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigint):T_bigint;
+FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigInt):T_bigInt;
+FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
 
 IMPLEMENTATION
-FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigint):T_bigint;
+FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigInt):T_bigInt;
   VAR k:longint;
-      temp:T_bigint;
+      temp:T_bigInt;
   begin
     if maxValExclusive.isZero then begin
       result.createZero;
@@ -120,9 +120,9 @@ FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bi
     temp.destroy;
   end;
 
-FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigint):T_bigint;
+FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
   VAR k:longint;
-      temp:T_bigint;
+      temp:T_bigInt;
   begin
     if maxValExclusive.isZero then begin
       result.createZero;
@@ -189,7 +189,7 @@ PROCEDURE rawDataMinus(CONST xDigits:pDigitType; CONST xDigitCount:longint;
     if diffDigitCount<>xDigitCount then ReAllocMem(diffDigits,sizeOf(digitType)*diffDigitCount);
   end;
 
-CONSTRUCTOR T_bigint.createFromRawData(CONST negative_: boolean;
+CONSTRUCTOR T_bigInt.createFromRawData(CONST negative_: boolean;
   CONST digitCount_: longint; CONST digits_: pDigitType);
   begin
     negative  :=negative_ and (digitCount_>0); //no such thing as a negative zero
@@ -197,7 +197,7 @@ CONSTRUCTOR T_bigint.createFromRawData(CONST negative_: boolean;
     digits    :=digits_;
   end;
 
-PROCEDURE T_bigint.shlInc(CONST incFirstBit: boolean);
+PROCEDURE T_bigInt.shlInc(CONST incFirstBit: boolean);
   VAR k:longint;
       carryBit:boolean;
       nextCarry:boolean;
@@ -219,7 +219,7 @@ PROCEDURE T_bigint.shlInc(CONST incFirstBit: boolean);
     end;
   end;
 
-FUNCTION T_bigint.relevantBits: longint;
+FUNCTION T_bigInt.relevantBits: longint;
   VAR upperDigit:digitType;
       k:longint;
   begin
@@ -232,7 +232,7 @@ FUNCTION T_bigint.relevantBits: longint;
       else exit(result);
   end;
 
-FUNCTION T_bigint.getBit(CONST index: longint): boolean;
+FUNCTION T_bigInt.getBit(CONST index: longint): boolean;
   VAR digitIndex:longint;
       bitIndex  :longint;
   begin
@@ -242,7 +242,7 @@ FUNCTION T_bigint.getBit(CONST index: longint): boolean;
     result:=(digits[digitIndex] and WORD_BIT[bitIndex])<>0;
   end;
 
-PROCEDURE T_bigint.setBit(CONST index: longint; CONST value: boolean);
+PROCEDURE T_bigInt.setBit(CONST index: longint; CONST value: boolean);
   VAR digitIndex:longint;
       bitIndex  :longint;
       k:longint;
@@ -267,12 +267,12 @@ PROCEDURE T_bigint.setBit(CONST index: longint; CONST value: boolean);
     end;
   end;
 
-CONSTRUCTOR T_bigint.createZero;
+CONSTRUCTOR T_bigInt.createZero;
   begin
     create(false,0);
   end;
 
-CONSTRUCTOR T_bigint.create(CONST negativeNumber: boolean;
+CONSTRUCTOR T_bigInt.create(CONST negativeNumber: boolean;
   CONST digitCount_: longint);
   begin
     negative:=negativeNumber;
@@ -280,7 +280,7 @@ CONSTRUCTOR T_bigint.create(CONST negativeNumber: boolean;
     getMem(digits,sizeOf(digitType)*digitCount);
   end;
 
-CONSTRUCTOR T_bigint.fromInt(CONST i: int64);
+CONSTRUCTOR T_bigInt.fromInt(CONST i: int64);
   VAR unsigned:int64;
       d0,d1:digitType;
   begin
@@ -300,7 +300,7 @@ CONSTRUCTOR T_bigint.fromInt(CONST i: int64);
     if digitCount>1 then digits[1]:=d1;
   end;
 
-CONSTRUCTOR T_bigint.fromString(CONST s: string);
+CONSTRUCTOR T_bigInt.fromString(CONST s: string);
   CONST MAX_CHUNK_SIZE=9;
         CHUNK_FACTOR:array[1..MAX_CHUNK_SIZE] of longint=(10,100,1000,10000,100000,1000000,10000000,100000000,1000000000);
   VAR i:longint=1;
@@ -323,7 +323,7 @@ CONSTRUCTOR T_bigint.fromString(CONST s: string);
     end;
   end;
 
-CONSTRUCTOR T_bigint.fromFloat(CONST f: extended; CONST rounding: T_roundingMode);
+CONSTRUCTOR T_bigInt.fromFloat(CONST f: extended; CONST rounding: T_roundingMode);
   VAR unsigned:extended;
       fraction:extended;
       addOne:boolean=false;
@@ -356,13 +356,13 @@ CONSTRUCTOR T_bigint.fromFloat(CONST f: extended; CONST rounding: T_roundingMode
     if addOne then incAbsValue(1);
   end;
 
-CONSTRUCTOR T_bigint.create(CONST toClone: T_bigint);
+CONSTRUCTOR T_bigInt.create(CONST toClone: T_bigInt);
   begin
     create(toClone.negative,toClone.digitCount);
     move(toClone.digits^,digits^,sizeOf(digitType)*digitCount);
   end;
 
-CONSTRUCTOR T_bigint.createFromDigits(CONST base: longint; CONST digits_:T_arrayOfLongint);
+CONSTRUCTOR T_bigInt.createFromDigits(CONST base: longint; CONST digits_:T_arrayOfLongint);
   VAR i:longint;
   begin
     createZero;
@@ -372,7 +372,7 @@ CONSTRUCTOR T_bigint.createFromDigits(CONST base: longint; CONST digits_:T_array
     end;
   end;
 
-FUNCTION T_bigint.toInt: int64;
+FUNCTION T_bigInt.toInt: int64;
   begin
     result:=0;
     if digitCount>0 then result:=         digits[0];
@@ -380,7 +380,7 @@ FUNCTION T_bigint.toInt: int64;
     if negative then result:=-result;
   end;
 
-FUNCTION T_bigint.toFloat: extended;
+FUNCTION T_bigInt.toFloat: extended;
   VAR k:longint;
   begin
     result:=0;
@@ -388,7 +388,7 @@ FUNCTION T_bigint.toFloat: extended;
     if negative then result:=-result;
   end;
 
-FUNCTION T_bigint.canBeRepresentedAsInt64(CONST examineNicheCase: boolean): boolean;
+FUNCTION T_bigInt.canBeRepresentedAsInt64(CONST examineNicheCase: boolean): boolean;
   begin
     if digitCount*BITS_PER_DIGIT>64 then exit(false);
     if digitCount*BITS_PER_DIGIT<64 then exit(true);
@@ -400,7 +400,7 @@ FUNCTION T_bigint.canBeRepresentedAsInt64(CONST examineNicheCase: boolean): bool
     result:=false;
   end;
 
-FUNCTION T_bigint.canBeRepresentedAsInt32(CONST examineNicheCase: boolean): boolean;
+FUNCTION T_bigInt.canBeRepresentedAsInt32(CONST examineNicheCase: boolean): boolean;
   begin
     if digitCount*BITS_PER_DIGIT>32 then exit(false);
     if digitCount*BITS_PER_DIGIT<32 then exit(true);
@@ -412,25 +412,25 @@ FUNCTION T_bigint.canBeRepresentedAsInt32(CONST examineNicheCase: boolean): bool
     result:=false;
   end;
 
-DESTRUCTOR T_bigint.destroy;
+DESTRUCTOR T_bigInt.destroy;
   begin
     freeMem(digits,sizeOf(digitType)*digitCount);
     digitCount:=0;
     negative:=false;
   end;
 
-PROCEDURE T_bigint.flipSign;
+PROCEDURE T_bigInt.flipSign;
   begin
     negative:=not(negative);
   end;
 
-FUNCTION T_bigint.negated: T_bigint;
+FUNCTION T_bigInt.negated: T_bigInt;
   begin
     result.create(self);
     result.flipSign;
   end;
 
-FUNCTION T_bigint.compareAbsValue(CONST big: T_bigint): T_comparisonResult;
+FUNCTION T_bigInt.compareAbsValue(CONST big: T_bigInt): T_comparisonResult;
   VAR i:longint;
   begin
     if digitCount<big.digitCount then exit(CR_LESSER);
@@ -443,7 +443,7 @@ FUNCTION T_bigint.compareAbsValue(CONST big: T_bigint): T_comparisonResult;
     result:=CR_EQUAL;
   end;
 
-FUNCTION T_bigint.compareAbsValue(CONST int: int64): T_comparisonResult;
+FUNCTION T_bigInt.compareAbsValue(CONST int: int64): T_comparisonResult;
   VAR s,i:int64;
   begin
     if not(canBeRepresentedAsInt64(false)) then exit(CR_GREATER);
@@ -454,7 +454,7 @@ FUNCTION T_bigint.compareAbsValue(CONST int: int64): T_comparisonResult;
     result:=CR_EQUAL;
   end;
 
-FUNCTION T_bigint.compare(CONST big: T_bigint): T_comparisonResult;
+FUNCTION T_bigInt.compare(CONST big: T_bigInt): T_comparisonResult;
   begin
     if negative and not(big.negative) then exit(CR_LESSER);
     if not(negative) and big.negative then exit(CR_GREATER);
@@ -462,7 +462,7 @@ FUNCTION T_bigint.compare(CONST big: T_bigint): T_comparisonResult;
                 else exit(          compareAbsValue(big) );
   end;
 
-FUNCTION T_bigint.compare(CONST int: int64): T_comparisonResult;
+FUNCTION T_bigInt.compare(CONST int: int64): T_comparisonResult;
   VAR s:int64;
   begin
     if int=0 then begin
@@ -480,7 +480,7 @@ FUNCTION T_bigint.compare(CONST int: int64): T_comparisonResult;
     result:=CR_EQUAL;
   end;
 
-FUNCTION T_bigint.compare(CONST f: extended): T_comparisonResult;
+FUNCTION T_bigInt.compare(CONST f: extended): T_comparisonResult;
   VAR unsigned:extended;
       fraction:extended;
       d:digitType;
@@ -530,7 +530,7 @@ FUNCTION T_bigint.compare(CONST f: extended): T_comparisonResult;
     result:=CR_EQUAL;
   end;
 
-FUNCTION T_bigint.plus(CONST big: T_bigint): T_bigint;
+FUNCTION T_bigInt.plus(CONST big: T_bigInt): T_bigInt;
   VAR resultDigits:pDigitType;
       resultDigitCount:longint;
   begin
@@ -556,7 +556,7 @@ FUNCTION T_bigint.plus(CONST big: T_bigint): T_bigint;
     end;
   end;
 
-FUNCTION T_bigint.minus(CONST big: T_bigint): T_bigint;
+FUNCTION T_bigInt.minus(CONST big: T_bigInt): T_bigInt;
   VAR resultDigits:pDigitType;
       resultDigitCount:longint;
   begin
@@ -585,7 +585,7 @@ FUNCTION T_bigint.minus(CONST big: T_bigint): T_bigint;
     end;
   end;
 
-FUNCTION T_bigint.mult(CONST big: T_bigint): T_bigint;
+FUNCTION T_bigInt.mult(CONST big: T_bigInt): T_bigInt;
   VAR resultDigits:pDigitType;
       resultDigitCount:longint;
       i,j,k:longint;
@@ -635,9 +635,9 @@ FUNCTION T_bigint.mult(CONST big: T_bigint): T_bigint;
     result.createFromRawData(negative xor big.negative,resultDigitCount,resultDigits);
   end;
 
-FUNCTION T_bigint.pow(power: dword): T_bigint;
+FUNCTION T_bigInt.pow(power: dword): T_bigInt;
   CONST BASE_THRESHOLD_FOR_EXPONENT:array[2..62] of longint=(maxLongint,2097151,55108,6208,1448,511,234,127,78,52,38,28,22,18,15,13,11,9,8,7,7,6,6,5,5,5,4,4,4,4,3,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2);
-  VAR multiplicand:T_bigint;
+  VAR multiplicand:T_bigInt;
       m:int64;
       r:int64;
   begin
@@ -675,7 +675,7 @@ FUNCTION T_bigint.pow(power: dword): T_bigint;
     end;
   end;
 
-FUNCTION T_bigint.bitAnd(CONST big: T_bigint): T_bigint;
+FUNCTION T_bigInt.bitAnd(CONST big: T_bigInt): T_bigInt;
   VAR k:longint;
   begin
     if big.digitCount<digitCount
@@ -694,7 +694,7 @@ FUNCTION T_bigint.bitAnd(CONST big: T_bigint): T_bigint;
     end;
   end;
 
-FUNCTION T_bigint.bitOr(CONST big: T_bigint): T_bigint;
+FUNCTION T_bigInt.bitOr(CONST big: T_bigInt): T_bigInt;
   VAR k:longint;
   begin
     if big.digitCount>digitCount
@@ -717,7 +717,7 @@ FUNCTION T_bigint.bitOr(CONST big: T_bigint): T_bigint;
     end;
   end;
 
-FUNCTION T_bigint.bitXor(CONST big: T_bigint): T_bigint;
+FUNCTION T_bigInt.bitXor(CONST big: T_bigInt): T_bigInt;
   VAR k:longint;
   begin
     if big.digitCount>digitCount
@@ -740,7 +740,7 @@ FUNCTION T_bigint.bitXor(CONST big: T_bigint): T_bigint;
     end;
   end;
 
-PROCEDURE T_bigint.multWith(CONST l: longint);
+PROCEDURE T_bigInt.multWith(CONST l: longint);
   VAR carry:carryType=0;
       factor:digitType;
       k:longint;
@@ -776,8 +776,8 @@ PROCEDURE T_bigint.multWith(CONST l: longint);
     end;
   end;
 
-PROCEDURE T_bigint.multWith(CONST b: T_bigint);
-  VAR temp:T_bigint;
+PROCEDURE T_bigInt.multWith(CONST b: T_bigInt);
+  VAR temp:T_bigInt;
   begin
     temp:=mult(b);
     freeMem(digits,sizeOf(digitType)*digitCount);
@@ -786,7 +786,7 @@ PROCEDURE T_bigint.multWith(CONST b: T_bigint);
     negative  :=temp.negative;
   end;
 
-PROCEDURE T_bigint.incAbsValue(CONST positiveIncrement: dword);
+PROCEDURE T_bigInt.incAbsValue(CONST positiveIncrement: dword);
   VAR carry:int64;
       k:longint;
   begin
@@ -804,7 +804,7 @@ PROCEDURE T_bigint.incAbsValue(CONST positiveIncrement: dword);
     end;
   end;
 
-FUNCTION T_bigint.divMod(CONST divisor: T_bigint; OUT quotient, rest: T_bigint): boolean;
+FUNCTION T_bigInt.divMod(CONST divisor: T_bigInt; OUT quotient, rest: T_bigInt): boolean;
   PROCEDURE rawDec; inline;
     VAR carry:carryType=0;
         i    :longint;
@@ -860,8 +860,8 @@ FUNCTION T_bigint.divMod(CONST divisor: T_bigint; OUT quotient, rest: T_bigint):
     if bitIdx<>rest.digitCount then ReAllocMem(rest.digits,sizeOf(digitType)*rest.digitCount);
   end;
 
-FUNCTION T_bigint.divide(CONST divisor: T_bigint): T_bigint;
-  VAR temp:T_bigint;
+FUNCTION T_bigInt.divide(CONST divisor: T_bigInt): T_bigInt;
+  VAR temp:T_bigInt;
       {$ifndef DEBUGMODE} intRest:digitType; {$endif}
   begin
     {$ifndef DEBUGMODE}
@@ -878,8 +878,8 @@ FUNCTION T_bigint.divide(CONST divisor: T_bigint): T_bigint;
     temp.destroy;
   end;
 
-FUNCTION T_bigint.modulus(CONST divisor: T_bigint): T_bigint;
-  VAR temp:T_bigint;
+FUNCTION T_bigInt.modulus(CONST divisor: T_bigInt): T_bigInt;
+  VAR temp:T_bigInt;
       {$ifndef DEBUGMODE} intRest:digitType; {$endif}
   begin
     {$ifndef DEBUGMODE}
@@ -908,9 +908,9 @@ FUNCTION isPowerOf2(CONST i:digitType; OUT log2:longint):boolean;
     end;
   end;
 
-PROCEDURE T_bigint.divBy(CONST divisor: digitType; OUT rest: digitType);
+PROCEDURE T_bigInt.divBy(CONST divisor: digitType; OUT rest: digitType);
   VAR bitIdx:longint;
-      quotient:T_bigint;
+      quotient:T_bigInt;
       divisorLog2:longint;
       tempRest:carryType=0;
   begin
@@ -941,9 +941,9 @@ PROCEDURE T_bigint.divBy(CONST divisor: digitType; OUT rest: digitType);
     end;
   end;
 
-FUNCTION T_bigint.divideIfRestless(CONST divisor:digitType):boolean;
+FUNCTION T_bigInt.divideIfRestless(CONST divisor:digitType):boolean;
   VAR bitIdx:longint;
-      quotient:T_bigint;
+      quotient:T_bigInt;
       tempRest:carryType=0;
   begin
     quotient.createZero;
@@ -966,8 +966,8 @@ FUNCTION T_bigint.divideIfRestless(CONST divisor:digitType):boolean;
     end;
   end;
 
-FUNCTION T_bigint.toString: string;
-  VAR temp:T_bigint;
+FUNCTION T_bigInt.toString: string;
+  VAR temp:T_bigInt;
       chunkVal:digitType;
       chunkTxt:string;
   begin
@@ -993,7 +993,7 @@ FUNCTION T_bigint.toString: string;
     temp.destroy;
   end;
 
-FUNCTION T_bigint.toHexString:string;
+FUNCTION T_bigInt.toHexString:string;
   CONST hexChar:array [0..15] of char=('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
         shifts:array[0..7] of byte=(28,24,20,16,12,8,4,0);
   VAR hasADigit:boolean=false;
@@ -1016,8 +1016,8 @@ FUNCTION T_bigint.toHexString:string;
     end;
   end;
 
-FUNCTION T_bigint.getDigits(CONST base: longint): T_arrayOfLongint;
-  VAR temp:T_bigint;
+FUNCTION T_bigInt.getDigits(CONST base: longint): T_arrayOfLongint;
+  VAR temp:T_bigInt;
       digit:digitType;
       iTemp:int64;
       s:string;
@@ -1055,7 +1055,7 @@ FUNCTION T_bigint.getDigits(CONST base: longint): T_arrayOfLongint;
     end;
   end;
 
-FUNCTION T_bigint.equals(CONST b: T_bigint): boolean;
+FUNCTION T_bigInt.equals(CONST b: T_bigInt): boolean;
   VAR k:longint;
   begin
     if (negative  <>b.negative) or
@@ -1064,12 +1064,12 @@ FUNCTION T_bigint.equals(CONST b: T_bigint): boolean;
     result:=true;
   end;
 
-FUNCTION T_bigint.isZero: boolean;
+FUNCTION T_bigInt.isZero: boolean;
   begin
     result:=digitCount=0;
   end;
 
-FUNCTION T_bigint.isBetween(CONST lowerBoundInclusive, upperBoundInclusive: longint): boolean;
+FUNCTION T_bigInt.isBetween(CONST lowerBoundInclusive, upperBoundInclusive: longint): boolean;
   VAR i:int64;
   begin
     if not(canBeRepresentedAsInt32()) then exit(false);
@@ -1077,7 +1077,7 @@ FUNCTION T_bigint.isBetween(CONST lowerBoundInclusive, upperBoundInclusive: long
     result:=(i>=lowerBoundInclusive) and (i<=upperBoundInclusive);
   end;
 
-PROCEDURE T_bigint.shiftRightOneBit;
+PROCEDURE T_bigInt.shiftRightOneBit;
   VAR k:longint;
   begin
     for k:=0 to digitCount-1 do begin
@@ -1090,7 +1090,7 @@ PROCEDURE T_bigint.shiftRightOneBit;
     end;
   end;
 
-PROCEDURE T_bigint.writeToStream(CONST stream: P_outputStreamWrapper);
+PROCEDURE T_bigInt.writeToStream(CONST stream: P_outputStreamWrapper);
   VAR value:int64;
       k:longint;
   begin
@@ -1110,7 +1110,7 @@ PROCEDURE T_bigint.writeToStream(CONST stream: P_outputStreamWrapper);
     end;
   end;
 
-CONSTRUCTOR T_bigint.readFromStream(CONST stream: P_inputStreamWrapper);
+CONSTRUCTOR T_bigInt.readFromStream(CONST stream: P_inputStreamWrapper);
   VAR markerByte:byte;
       k:longint;
   begin
@@ -1130,18 +1130,18 @@ CONSTRUCTOR T_bigint.readFromStream(CONST stream: P_inputStreamWrapper);
     end;
   end;
 
-FUNCTION T_bigint.lowDigit: digitType;
+FUNCTION T_bigInt.lowDigit: digitType;
   begin
     if digitCount=0 then exit(0) else exit(digits[0]);
   end;
 
-FUNCTION T_bigint.sign: shortint;
+FUNCTION T_bigInt.sign: shortint;
   begin
     if digitCount=0 then exit(0) else if negative then exit(-1) else exit(1);;
   end;
 
-FUNCTION T_bigint.greatestCommonDivider(CONST other: T_bigint): T_bigint;
-  VAR b,temp:T_bigint;
+FUNCTION T_bigInt.greatestCommonDivider(CONST other: T_bigInt): T_bigInt;
+  VAR b,temp:T_bigInt;
       x,y,t:int64;
   begin
     if canBeRepresentedAsInt64(false) and other.canBeRepresentedAsInt64(false) then begin
@@ -1163,8 +1163,8 @@ FUNCTION T_bigint.greatestCommonDivider(CONST other: T_bigint): T_bigint;
     end;
   end;
 
-FUNCTION T_bigint.iSqrt(OUT isSquare:boolean):T_bigint;
-  VAR resDt,temp:T_bigint;
+FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
+  VAR resDt,temp:T_bigInt;
       done:boolean=false;
   begin
     if negative or isZero then begin
@@ -1190,7 +1190,7 @@ FUNCTION T_bigint.iSqrt(OUT isSquare:boolean):T_bigint;
     until done;
   end;
 
-FUNCTION T_bigint.hammingWeight:longint;
+FUNCTION T_bigInt.hammingWeight:longint;
   VAR i:longint;
   begin
     result:=0;
