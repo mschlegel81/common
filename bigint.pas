@@ -30,7 +30,6 @@ TYPE
   F_rand32Source        =FUNCTION:dword;
   F_rand32SourceOfObject=FUNCTION:dword of object;
 
-  P_bigint=^T_bigInt;
   T_bigInt=object
     private
       negative:boolean;
@@ -102,9 +101,14 @@ TYPE
       FUNCTION hammingWeight:longint;
     end;
 
+  T_factorizationResult=record
+    smallFactors:T_arrayOfLongint;
+    bigFactors:array of T_bigInt;
+  end;
+
 FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
-
+FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
 IMPLEMENTATION
 FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigInt):T_bigInt;
   VAR k:longint;
@@ -1142,8 +1146,11 @@ FUNCTION T_bigInt.sign: shortint;
 
 FUNCTION T_bigInt.greatestCommonDivider(CONST other: T_bigInt): T_bigInt;
   VAR b,temp:T_bigInt;
+      {$ifndef DEBUGMODE}
       x,y,t:int64;
+      {$endif}
   begin
+    {$ifndef DEBUGMODE}
     if canBeRepresentedAsInt64(false) and other.canBeRepresentedAsInt64(false) then begin
       x:=      toInt;
       y:=other.toInt;
@@ -1151,7 +1158,9 @@ FUNCTION T_bigInt.greatestCommonDivider(CONST other: T_bigInt): T_bigInt;
         t:=x mod y; x:=y; y:=t;
       end;
       result.fromInt(x);
-    end else begin
+    end else
+    {$endif}
+    begin
       result.create(self);
       b.create(other);
       while not(b.isZero) do begin
@@ -1221,5 +1230,265 @@ FUNCTION T_bigInt.hammingWeight:longint;
     for i:=0 to digitCount*BITS_PER_DIGIT-1 do if getBit(i) then inc(result);
   end;
 
-end.
+FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
+  CONST primes:array[0..144] of word=(3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839);
+  CONST skip:array[0..47] of byte=(10,2,4,2,4,6,2,6,4,2,4,6,6,2,6,4,2,6,4,6,8,4,2,4,2,4,8,6,4,6,2,4,6,2,6,6,4,2,4,6,2,6,4,2,4,2,10,2);
+  FUNCTION factorizeSmall(n:int64):T_arrayOfLongint;
+    VAR p:longint;
+        skipIdx:longint=0;
+    begin
+      setLength(result,0);
+      while (n>0) and not(odd(n)) do begin
+        n:=n shr 1;
+        append(result,2);
+      end;
+      for p in primes do begin
+        if (p*p>n) then begin
+          if n>1 then append(result,n);
+          exit;
+        end;
+        while n mod p=0 do begin
+          n:=n div p;
+          append(result,p);
+        end;
+      end;
+      p:=primes[length(primes)-1]+skip[length(skip)-1]; //=841
+      while p*p<=n do begin
+        while n mod p=0 do begin
+          n:=n div p;
+          append(result,p);
+        end;
+        inc(p,skip[skipIdx]);
+        skipIdx:=(skipIdx+1) mod length(skip);
+      end;
+      if n>1 then append(result,n);
+    end;
 
+  FUNCTION basicFactorize(VAR inputAndRest:T_bigInt; OUT furtherFactorsPossible:boolean):T_arrayOfLongint;
+    VAR workInInt64:boolean=false;
+        n:int64=9223358842721533952; //to simplify conditions
+    FUNCTION trySwitchToInt64:boolean; inline;
+      begin
+        if workInInt64 then exit(true);
+        if inputAndRest.canBeRepresentedAsInt64() then begin
+          n:=inputAndRest.toInt;
+          workInInt64:=true;
+        end;
+        result:=workInInt64;
+      end;
+
+    FUNCTION longDivideIfRestless(CONST divider:T_bigInt):boolean;
+      VAR quotient,rest:T_bigInt;
+      begin
+        inputAndRest.divMod(divider,quotient,rest);
+        if rest.isZero then begin
+          result:=true;
+          inputAndRest.destroy;
+          inputAndRest:=quotient;
+        end else begin
+          result:=false;
+          quotient.destroy;
+        end;
+        rest.destroy;
+      end;
+
+    VAR p:longint;
+        bigP:T_bigInt;
+        skipIdx:longint=0;
+        thirdRootOfInputAndRest:double;
+    begin
+      furtherFactorsPossible:=true;
+      inputAndRest.negative:=false;
+      setLength(result,0);
+      //2:
+      if trySwitchToInt64 then begin
+        while (n>0) and not(odd(n)) do begin
+          n:=n shr 1;
+          append(result,2);
+        end;
+      end else begin
+        while (inputAndRest.digitCount>0) and not(inputAndRest.getBit(0)) do begin
+          inputAndRest.shiftRightOneBit;
+          append(result,2);
+        end;
+      end;
+      //By list of primes:
+      for p in primes do begin
+        if (p*p>n) then begin
+          inputAndRest.destroy;
+          inputAndRest.fromInt(n);
+          furtherFactorsPossible:=false;
+          exit;
+        end;
+        if trySwitchToInt64 then begin
+          while n mod p=0 do begin
+            n:=n div p;
+            append(result,p);
+          end;
+        end else begin
+          while inputAndRest.divideIfRestless(p) do append(result,p);
+        end;
+      end;
+      //By skipping:
+      p:=primes[length(primes)-1]+skip[length(skip)-1]; //=841
+      while p<2097151 do begin
+        if workInInt64 and ((int64(p)*p*p>n)) then begin
+          inputAndRest.destroy;
+          inputAndRest.fromInt(n);
+          furtherFactorsPossible:=p*p<=n;
+          exit;
+        end;
+        if trySwitchToInt64 then begin
+          while n mod p=0 do begin
+            n:=n div p;
+            append(result,p);
+          end;
+        end else begin
+          while inputAndRest.divideIfRestless(p) do append(result,p);
+        end;
+        inc(p,skip[skipIdx]);
+        skipIdx:=(skipIdx+1) mod length(skip);
+      end;
+      thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
+      while (p<maxLongint-10) and (p<thirdRootOfInputAndRest) do begin
+        if trySwitchToInt64 then begin
+          while n mod p=0 do begin
+            n:=n div p;
+            append(result,p);
+            thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
+          end;
+        end else begin
+          while inputAndRest.divideIfRestless(p) do begin
+            append(result,p);
+            thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
+          end;
+        end;
+        inc(p,skip[skipIdx]);
+        skipIdx:=(skipIdx+1) mod length(skip);
+      end;
+      if workInInt64 then begin
+        inputAndRest.destroy;
+        inputAndRest.fromInt(n);
+        workInInt64:=false;
+      end;
+      if p<thirdRootOfInputAndRest then begin
+        bigP.fromInt(p);
+        while (bigP.compare(thirdRootOfInputAndRest)=CR_LESSER) do begin
+          while longDivideIfRestless(bigP) do begin
+            append(result,p);
+            thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
+          end;
+          bigP.incAbsValue(skip[skipIdx]);
+          skipIdx:=(skipIdx+1) mod length(skip);
+        end;
+        bigP.destroy;
+      end;
+    end;
+
+  VAR fourKN:T_bigInt;
+  FUNCTION squareOfMinus4kn(CONST z:int64):T_bigInt;
+    VAR temp:T_bigInt;
+    begin
+      if z<maxLongint then begin
+        result.fromInt(sqr(z)-fourKN.toInt);
+      end else begin
+        result.fromInt(z);
+        temp:=result.mult(result);
+        result.destroy;
+        result:=temp.minus(fourKN);
+        temp.destroy;
+      end;
+    end;
+
+  PROCEDURE myInc(VAR y:T_bigInt; CONST increment:int64);
+    VAR temp1,temp2:T_bigInt;
+    begin
+      if increment<DIGIT_MAX_VALUE then y.incAbsValue(increment)
+      else begin
+        temp1.fromInt(increment);
+        temp2:=temp1.plus(y);
+        temp1.destroy;
+        y.destroy;
+        y:=temp2;
+      end;
+    end;
+
+  FUNCTION floor64(CONST d:double):int64; begin result:=trunc(d); if frac(d)<0 then dec(result); end;
+  FUNCTION ceil64 (CONST d:double):int64; begin result:=trunc(d); if frac(d)>0 then inc(result); end;
+
+  VAR r:T_bigInt;
+      sixthRootOfR:double;
+
+      furtherFactorsPossible:boolean;
+      temp:double;
+
+      k:{$ifdef CPU32}longint{$else}int64{$endif};
+      x:int64;
+      xMax:int64;
+      y:T_bigInt;
+      rootOfY:T_bigInt;
+      yIsSquare:boolean;
+      lehmannTestCompleted:boolean=false;
+  begin
+    setLength(result.bigFactors,0);
+    if B.isZero or (B.compareAbsValue(1)=CR_EQUAL) then begin
+      setLength(result.smallFactors,1);
+      result.smallFactors[0]:=B.toInt;
+      exit;
+    end;
+    r.create(B);
+    if r.negative then begin
+      setLength(result.smallFactors,1);
+      result.smallFactors[0]:=-1;
+      r.negative:=false;
+    end;
+    if r.canBeRepresentedAsInt32 then begin
+      result.smallFactors:=factorizeSmall(r.toInt);
+      exit;
+    end else begin
+      result.smallFactors:=basicFactorize(r,furtherFactorsPossible);
+      if not(furtherFactorsPossible) then begin
+        if r.compareAbsValue(1)=CR_GREATER then begin
+          setLength(result.bigFactors,1);
+          result.bigFactors[0]:=r;
+        end else r.destroy;
+        exit;
+      end;
+    end;
+
+    sixthRootOfR:=power(r.toFloat,1/6);
+    for k:=1 to trunc(power(r.toFloat,1/3)) do if not(lehmannTestCompleted) then begin
+      fourKN.create(r);
+      fourKN.multWith(k);
+      fourKN.shlInc(false);
+      fourKN.shlInc(false);
+      temp:=sqrt(fourKN.toFloat);
+      x:=ceil64(temp);
+      xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //no overflow for r < 2^92
+      while x<=xMax do begin
+        y:=squareOfMinus4kn(x);
+        rootOfY:=y.iSqrt(yIsSquare);
+        y.destroy;
+        if yIsSquare then begin
+          myInc(rootOfY,x); //= sqrt(y)+x
+          y:=rootOfY.greatestCommonDivider(r); //=gcd(sqrt(y)+x,r)
+          rootOfY.destroy;
+          rootOfY:=r.divide(y);
+          setLength(result.bigFactors,length(result.bigFactors)+2);
+          result.bigFactors[length(result.bigFactors)-2]:=y;
+          result.bigFactors[length(result.bigFactors)-1]:=rootOfY;
+          lehmannTestCompleted:=true;
+          x:=xMax;
+        end else rootOfY.destroy;
+        inc(x);
+      end;
+      fourKN.destroy;
+    end;
+    if lehmannTestCompleted then r.destroy
+    else begin
+      setLength(result.bigFactors,length(result.bigFactors)+1);
+      result.bigFactors[length(result.bigFactors)-1]:=r;
+    end;
+  end;
+
+end.
