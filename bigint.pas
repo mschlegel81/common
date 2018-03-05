@@ -75,6 +75,7 @@ TYPE
       FUNCTION minus(CONST big:T_bigInt):T_bigInt;
       FUNCTION mult (CONST big:T_bigInt):T_bigInt;
       FUNCTION pow  (power:dword ):T_bigInt;
+      FUNCTION powMod(CONST power,modul:T_bigInt):T_bigInt;
       FUNCTION bitAnd(CONST big:T_bigInt):T_bigInt;
       FUNCTION bitOr (CONST big:T_bigInt):T_bigInt;
       FUNCTION bitXor(CONST big:T_bigInt):T_bigInt;
@@ -679,6 +680,41 @@ FUNCTION T_bigInt.pow(power: dword): T_bigInt;
     end;
   end;
 
+FUNCTION T_bigInt.powMod(CONST power,modul:T_bigInt):T_bigInt;
+  PROCEDURE doModulus(VAR inOut:T_bigInt);
+    VAR temp:T_bigInt;
+    begin
+      if inOut.compareAbsValue(modul)=CR_LESSER then exit;
+      temp:=inOut.modulus(modul);
+      inOut.destroy;
+      inOut:=temp;
+    end;
+
+  VAR p,f:T_bigInt;
+  begin
+    if (power.isZero) or (power.negative) or
+       (modul.negative) or (modul.isZero) then begin
+      result.fromInt(1);
+      exit(result);
+    end;
+    if (power.compare(1)=CR_EQUAL) or (modul.compare(1)=CR_EQUAL) then begin
+      result:=modulus(modul);
+      exit(result);
+    end;
+    p.create(power);
+    f:=modulus(modul);
+    result.fromInt(1);
+    while not(p.isZero) do begin
+      if p.getBit(0) then begin
+        result.multWith(f); doModulus(result);
+      end;
+      f.multWith(f);  doModulus(f);
+      p.shiftRightOneBit;
+    end;
+    p.destroy;
+    f.destroy;
+  end;
+
 FUNCTION T_bigInt.bitAnd(CONST big: T_bigInt): T_bigInt;
   VAR k:longint;
   begin
@@ -1243,7 +1279,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
         append(result,2);
       end;
       for p in primes do begin
-        if (p*p>n) then begin
+        if (int64(p)*p>n) then begin
           if n>1 then append(result,n);
           exit;
         end;
@@ -1253,7 +1289,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
         end;
       end;
       p:=primes[length(primes)-1]+skip[length(skip)-1]; //=841
-      while p*p<=n do begin
+      while int64(p)*p<=n do begin
         while n mod p=0 do begin
           n:=n div p;
           append(result,p);
@@ -1314,7 +1350,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       end;
       //By list of primes:
       for p in primes do begin
-        if (p*p>n) then begin
+        if (int64(p)*p>n) then begin
           inputAndRest.destroy;
           inputAndRest.fromInt(n);
           furtherFactorsPossible:=false;
@@ -1335,7 +1371,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
         if workInInt64 and ((int64(p)*p*p>n)) then begin
           inputAndRest.destroy;
           inputAndRest.fromInt(n);
-          furtherFactorsPossible:=p*p<=n;
+          furtherFactorsPossible:=int64(p)*p<=n;
           exit;
         end;
         if trySwitchToInt64 then begin
@@ -1444,6 +1480,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
     end;
     if r.canBeRepresentedAsInt32 then begin
       result.smallFactors:=factorizeSmall(r.toInt);
+      r.destroy;
       exit;
     end else begin
       result.smallFactors:=basicFactorize(r,furtherFactorsPossible);
