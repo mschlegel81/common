@@ -1283,11 +1283,13 @@ FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
       intRoot:=trunc(sqrt(toFloat));
       result.fromInt(intRoot);
       isSquare:=toInt=intRoot*intRoot;
+      exit;
     end else if relevantBits<102 then begin
       result.fromFloat(sqrt(toFloat),RM_DOWN);
       temp:=result.mult(result);
       isSquare:=equals(temp);
       temp.destroy;
+      exit;
     end;
     {$endif}
     //compute the square root of this*2^16, validate by checking lower 8 bits
