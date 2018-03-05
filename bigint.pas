@@ -63,6 +63,7 @@ TYPE
       FUNCTION toFloat:extended;
       {if examineNicheCase is true, the case of -2^63 is considered; otherwise the function is symmetrical}
       FUNCTION canBeRepresentedAsInt64(CONST examineNicheCase: boolean=true): boolean;
+      FUNCTION canBeRepresentedAsInt62:boolean;
       FUNCTION canBeRepresentedAsInt32(CONST examineNicheCase: boolean=true): boolean;
       FUNCTION getBit(CONST index:longint):boolean;
 
@@ -403,6 +404,14 @@ FUNCTION T_bigInt.canBeRepresentedAsInt64(CONST examineNicheCase: boolean): bool
       result:=(digits[1]=UPPER_DIGIT_BIT) and (digits[0]=0);
     end else
     result:=false;
+  end;
+
+FUNCTION T_bigInt.canBeRepresentedAsInt62:boolean;
+  CONST UPPER_TWO_BITS=3 shl (BITS_PER_DIGIT-2);
+  begin
+    if digitCount*BITS_PER_DIGIT>62 then exit(false);
+    if digitCount*BITS_PER_DIGIT<62 then exit(true);
+    result:=digits[1] and UPPER_TWO_BITS=0;
   end;
 
 FUNCTION T_bigInt.canBeRepresentedAsInt32(CONST examineNicheCase: boolean): boolean;
