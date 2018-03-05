@@ -110,7 +110,7 @@ TYPE
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
-FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
+FUNCTION factorize(CONST B:T_bigInt; CONST onlyCheckForPrimality:boolean):T_factorizationResult;
 IMPLEMENTATION
 FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigInt):T_bigInt;
   VAR k:longint;
@@ -1275,7 +1275,7 @@ FUNCTION T_bigInt.hammingWeight:longint;
     for i:=0 to digitCount*BITS_PER_DIGIT-1 do if getBit(i) then inc(result);
   end;
 
-FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
+FUNCTION factorize(CONST B:T_bigInt; CONST onlyCheckForPrimality:boolean):T_factorizationResult;
   CONST primes:array[0..144] of word=(3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839);
   CONST skip:array[0..47] of byte=(10,2,4,2,4,6,2,6,4,2,4,6,6,2,6,4,2,6,4,6,8,4,2,4,2,4,8,6,4,6,2,4,6,2,6,6,4,2,4,6,2,6,4,2,4,2,10,2);
   FUNCTION factorizeSmall(n:int64):T_arrayOfLongint;
@@ -1309,7 +1309,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       if n>1 then append(result,n);
     end;
 
-  FUNCTION basicFactorize(VAR inputAndRest:T_bigInt; OUT furtherFactorsPossible:boolean):T_arrayOfLongint;
+  FUNCTION basicFactorize(VAR inputAndRest:T_bigInt; OUT furtherFactorsPossible:boolean):T_factorizationResult;
     VAR workInInt64:boolean=false;
         n:int64=9223358842721533952; //to simplify conditions
     FUNCTION trySwitchToInt64:boolean; inline;
@@ -1344,17 +1344,18 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
     begin
       furtherFactorsPossible:=true;
       inputAndRest.negative:=false;
-      setLength(result,0);
+      setLength(result.smallFactors,0);
+      setLength(result.bigFactors,0);
       //2:
       if trySwitchToInt64 then begin
         while (n>0) and not(odd(n)) do begin
           n:=n shr 1;
-          append(result,2);
+          append(result.smallFactors,2);
         end;
       end else begin
         while (inputAndRest.digitCount>0) and not(inputAndRest.getBit(0)) do begin
           inputAndRest.shiftRightOneBit;
-          append(result,2);
+          append(result.smallFactors,2);
         end;
       end;
       //By list of primes:
@@ -1368,11 +1369,19 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
         if trySwitchToInt64 then begin
           while n mod p=0 do begin
             n:=n div p;
-            append(result,p);
+            append(result.smallFactors,p);
           end;
         end else begin
-          while inputAndRest.divideIfRestless(p) do append(result,p);
+          while inputAndRest.divideIfRestless(p) do append(result.smallFactors,p);
         end;
+      end;
+      if onlyCheckForPrimality and (length(result.smallFactors)>1) then begin
+        if workInInt64 then begin
+          inputAndRest.destroy;
+          inputAndRest.fromInt(n);
+        end;
+        furtherFactorsPossible:=true;
+        exit;
       end;
       //By skipping:
       p:=primes[length(primes)-1]+skip[length(skip)-1]; //=841
@@ -1386,31 +1395,51 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
         if trySwitchToInt64 then begin
           while n mod p=0 do begin
             n:=n div p;
-            append(result,p);
+            append(result.smallFactors,p);
           end;
         end else begin
-          while inputAndRest.divideIfRestless(p) do append(result,p);
+          while inputAndRest.divideIfRestless(p) do append(result.smallFactors,p);
         end;
         inc(p,skip[skipIdx]);
         skipIdx:=(skipIdx+1) mod length(skip);
       end;
+
+      if onlyCheckForPrimality and (length(result.smallFactors)>1) then begin
+        if workInInt64 then begin
+          inputAndRest.destroy;
+          inputAndRest.fromInt(n);
+        end;
+        furtherFactorsPossible:=true;
+        exit;
+      end;
+
       thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
       while (p<maxLongint-10) and (p<thirdRootOfInputAndRest) do begin
         if trySwitchToInt64 then begin
           while n mod p=0 do begin
             n:=n div p;
-            append(result,p);
+            append(result.smallFactors,p);
             thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
           end;
         end else begin
           while inputAndRest.divideIfRestless(p) do begin
-            append(result,p);
+            append(result.smallFactors,p);
             thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
           end;
         end;
         inc(p,skip[skipIdx]);
         skipIdx:=(skipIdx+1) mod length(skip);
       end;
+
+      if onlyCheckForPrimality and (length(result.smallFactors)>1) then begin
+        if workInInt64 then begin
+          inputAndRest.destroy;
+          inputAndRest.fromInt(n);
+        end;
+        furtherFactorsPossible:=true;
+        exit;
+      end;
+
       if workInInt64 then begin
         inputAndRest.destroy;
         inputAndRest.fromInt(n);
@@ -1420,7 +1449,8 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
         bigP.fromInt(p);
         while (bigP.compare(thirdRootOfInputAndRest)=CR_LESSER) do begin
           while longDivideIfRestless(bigP) do begin
-            append(result,p);
+            setLength(result.bigFactors,length(result.bigFactors)+1);
+            result.bigFactors[length(result.bigFactors)-1].create(bigP);
             thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
           end;
           bigP.incAbsValue(skip[skipIdx]);
@@ -1492,11 +1522,11 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       r.destroy;
       exit;
     end else begin
-      result.smallFactors:=basicFactorize(r,furtherFactorsPossible);
-      if not(furtherFactorsPossible) then begin
+      result:=basicFactorize(r,furtherFactorsPossible);
+      if not(furtherFactorsPossible) or onlyCheckForPrimality and (length(result.smallFactors)+length(result.bigFactors)>0) then begin
         if r.compareAbsValue(1)=CR_GREATER then begin
-          setLength(result.bigFactors,1);
-          result.bigFactors[0]:=r;
+          setLength(result.bigFactors,length(result.bigFactors)+1);
+          result.bigFactors[length(result.bigFactors)-1]:=r;
         end else r.destroy;
         exit;
       end;
