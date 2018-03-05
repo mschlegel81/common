@@ -99,6 +99,7 @@ TYPE
       FUNCTION lowDigit:digitType;
       FUNCTION sign:shortint;
       FUNCTION greatestCommonDivider(CONST other:T_bigInt):T_bigInt;
+      FUNCTION modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInverse:boolean):T_bigInt;
       FUNCTION iSqrt(OUT isSquare:boolean):T_bigInt;
       FUNCTION hammingWeight:longint;
     end;
@@ -1214,6 +1215,53 @@ FUNCTION T_bigInt.greatestCommonDivider(CONST other: T_bigInt): T_bigInt;
         result:=b;
         b:=temp;
       end;
+    end;
+  end;
+
+FUNCTION T_bigInt.modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInverse:boolean):T_bigInt;
+  VAR r0,r1,
+      t0,t1,
+      quotient,rest:T_bigInt;
+      {$ifndef DEBUGMODE}
+      iq,ir0,ir1,tmp:int64;
+      it0:int64=0;
+      it1:int64=1;
+      {$endif}
+
+  begin
+    {$ifndef DEBUGMODE}
+    if canBeRepresentedAsInt64(false) and modul.canBeRepresentedAsInt64(false) then begin
+      ir0:=abs(modul.toInt);
+      ir1:=abs(      toInt);
+      while(ir1<>0) do begin
+        iq:=ir0 div ir1;
+        tmp:=ir1; ir1:=ir0-ir1*iq; ir0:=tmp;
+        tmp:=it1; it1:=it0-it1*iq; it0:=tmp;
+      end;
+      thereIsAModularInverse:=ir0<=1;
+      if it0<0 then inc(it0,modul.toInt);
+      result.fromInt(it0);
+    end else
+    {$endif}
+    begin
+      t0.createZero;
+      t1.fromInt(1);
+      r0.create(modul); r0.negative:=false;
+      r1.create(self);  r1.negative:=false;
+      while not(r1.isZero) do begin
+        r0.divMod(r1,quotient,rest);
+        r0.destroy; r0:=r1; r1:=rest;
+        rest:=quotient.mult(t1); quotient.destroy; quotient:=t0.minus(rest); rest.destroy;
+        t0.destroy; t0:=t1; t1:=quotient;
+      end;
+      thereIsAModularInverse:=r0.compare(1) in [CR_LESSER,CR_EQUAL];
+      r0.destroy;
+      r1.destroy;
+      t1.destroy;
+      if (t0.isNegative) then begin
+        result:=t0.plus(modul);
+        t0.destroy;
+      end else  result:=t0;
     end;
   end;
 
