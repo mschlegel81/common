@@ -29,6 +29,7 @@ CONST
 TYPE
   F_rand32Source        =FUNCTION:dword;
   F_rand32SourceOfObject=FUNCTION:dword of object;
+  T_arrayOfByte=array of byte;
 
   T_bigInt=object
     private
@@ -102,6 +103,7 @@ TYPE
       FUNCTION modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInverse:boolean):T_bigInt;
       FUNCTION iSqrt(OUT isSquare:boolean):T_bigInt;
       FUNCTION hammingWeight:longint;
+      FUNCTION getRawBytes:T_arrayOfByte;
     end;
 
   T_factorizationResult=record
@@ -1332,6 +1334,20 @@ FUNCTION T_bigInt.hammingWeight:longint;
   begin
     result:=0;
     for i:=0 to digitCount*BITS_PER_DIGIT-1 do if getBit(i) then inc(result);
+  end;
+
+FUNCTION T_bigInt.getRawBytes: T_arrayOfByte;
+  VAR i:longint;
+      tmp:dword;
+  begin
+    i:=relevantBits shr 3;
+    if i*8<relevantBits then inc(i);
+    setLength(result,i);
+    for i:=0 to length(result)-1 do begin
+      if i and 3=0 then tmp:=digits[i shr 2]
+                   else tmp:=tmp shr 8;
+      result[i]:=tmp and 255;
+    end;
   end;
 
 FUNCTION factorize(CONST B:T_bigInt; CONST onlyCheckForPrimality:boolean):T_factorizationResult;
