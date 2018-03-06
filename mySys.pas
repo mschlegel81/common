@@ -39,6 +39,7 @@ TYPE
       CONSTRUCTOR create;
       DESTRUCTOR destroy;
       PROCEDURE resetSeed(CONST newSeed:dword);
+      PROCEDURE resetSeed(CONST s:array of byte);
       PROCEDURE randomize;inline;
       FUNCTION intRandom(CONST imax:int64):int64;
       FUNCTION realRandom:double;
@@ -395,6 +396,23 @@ PROCEDURE T_xosPrng.resetSeed(CONST newSeed:dword);
     y:=(w xor P[(w+1) and 31]);
     z:=(w xor P[(w+2) and 31]);
     {$Q+}{$R+}
+    leaveCriticalSection(criticalSection);
+  end;
+
+PROCEDURE T_xosPrng.resetSeed(CONST s:array of byte);
+  VAR fullBytes:array[0..15] of byte;
+      k:longint;
+  begin
+    enterCriticalSection(criticalSection);
+    for k:=0 to 15 do fullBytes[k]:=0;
+    if length(s)<length(fullBytes)
+    then for k:=0 to length(fullBytes)-1 do fullBytes[k]:=s[k mod length(s)]
+    else for k:=0 to length(s)-1 do fullBytes[k mod length(fullBytes)]:=fullBytes[k mod length(fullBytes)] xor s[k];
+
+    move(fullBytes[ 0],w,4);
+    move(fullBytes[ 4],x,4);
+    move(fullBytes[ 8],y,4);
+    move(fullBytes[12],z,4);
     leaveCriticalSection(criticalSection);
   end;
 
