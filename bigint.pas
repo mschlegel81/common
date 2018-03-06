@@ -1071,18 +1071,21 @@ FUNCTION T_bigInt.getDigits(CONST base: longint): T_arrayOfLongint;
       digit:digitType;
       iTemp:int64;
       s:string;
+      resLen:longint=0;
   begin
     setLength(result,0);
     if isZero then exit(0);
     if canBeRepresentedAsInt64(false) then begin
+      setLength(result,64);
       iTemp:=toInt;
       if negative then iTemp:=-iTemp;
       while (iTemp>0) do begin
         digit:=iTemp mod base;
         iTemp:=iTemp div base;
-        setLength(result,length(result)+1);
-        result[length(result)-1]:=digit;
+        result[resLen]:=digit;
+        inc(resLen);
       end;
+      setLength(result,resLen);
     end else if base=10 then begin
       s:=toString;
       if negative then s:=copy(s,2,length(s)-1);
