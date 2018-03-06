@@ -2,10 +2,10 @@ UNIT myCrypto;
 INTERFACE
 TYPE T_ISAAC=object
   private
-    randrsl: array[0..256] of cardinal;
-    randcnt: cardinal;
-    mm: array[0..256] of cardinal;
-    aa,bb,cc: cardinal;
+    randrsl: array[0..256] of dword;
+    randcnt: dword;
+    mm: array[0..256] of dword;
+    aa,bb,cc: dword;
     PROCEDURE isaac;
     PROCEDURE iRandInit;
     FUNCTION iRandA: byte;
@@ -15,7 +15,8 @@ TYPE T_ISAAC=object
     PROCEDURE setSeedByTime;
     PROCEDURE setSeed(CONST seed:int64);
     PROCEDURE setSeed(CONST seed:string);
-    FUNCTION iRandom : cardinal;
+    PROCEDURE setSeed(CONST seed:array of byte);
+    FUNCTION iRandom : dword;
     { XOR encrypt on random stream. Output: ASCII string }
     FUNCTION Vernam(CONST msg: string): string;
   end;
@@ -26,8 +27,9 @@ FUNCTION sha256(CONST data:string):T_sha256Hash;
 IMPLEMENTATION
 
 PROCEDURE T_ISAAC.isaac;
-  VAR i,x,y: cardinal;
+  VAR i,x,y: dword;
   begin
+    {$Q-}{$R-}
     cc := cc + 1;    // cc just gets incremented once per 256 results
     bb := bb + cc;   // then combined with bb
     for i := 0 to 255 do begin
@@ -45,6 +47,7 @@ PROCEDURE T_ISAAC.isaac;
       randrsl[i]:= bb;
     end;
     randcnt:=0;  // prepare to use the first set of results
+    {$Q+}{$R+}
   end;
 
 CONSTRUCTOR T_ISAAC.create;
@@ -57,7 +60,7 @@ DESTRUCTOR T_ISAAC.destroy;
   end;
 
 PROCEDURE T_ISAAC.setSeedByTime;
-  VAR i: cardinal;
+  VAR i: dword;
   begin
     randomize;
     for i:=0 to 255 do mm[i]:=0;
@@ -66,7 +69,7 @@ PROCEDURE T_ISAAC.setSeedByTime;
   end;
 
 PROCEDURE T_ISAAC.setSeed(CONST seed:int64);
-  VAR i: cardinal;
+  VAR i: dword;
       s:int64;
   begin
     for i:=0 to 255 do mm[i]:=0;
@@ -79,7 +82,7 @@ PROCEDURE T_ISAAC.setSeed(CONST seed:int64);
   end;
 
 PROCEDURE T_ISAAC.setSeed(CONST seed:string);
-  VAR i,m: cardinal;
+  VAR i,m: dword;
   begin
     for i:= 0 to 255 do mm[i]:=0;
     m := length(seed)-1;
@@ -90,8 +93,20 @@ PROCEDURE T_ISAAC.setSeed(CONST seed:string);
     iRandInit;
   end;
 
+PROCEDURE T_ISAAC.setSeed(CONST seed:array of byte);
+  VAR i: dword;
+  begin
+    for i:= 0 to 255 do mm[i]:=0;
+    for i:= 0 to 255 do begin
+      if i>=length(seed) then randrsl[i]:=0
+                         else randrsl[i]:=seed[i];
+    end;
+    iRandInit;
+  end;
+
 PROCEDURE T_ISAAC.iRandInit;
-  PROCEDURE mix(VAR a,b,c,d,e,f,g,h: cardinal);
+  {$Q-}{$R-}
+  PROCEDURE mix(VAR a,b,c,d,e,f,g,h: dword);
     begin
       a := a xor b shl 11; d:=d+a; b:=b+c;
       b := b xor c shr  2; e:=e+b; c:=c+d;
@@ -103,7 +118,7 @@ PROCEDURE T_ISAAC.iRandInit;
       h := h xor a shr  9; c:=c+h; a:=a+b;
     end;
 
-  VAR i,a,b,c,d,e,f,g,h: cardinal;
+  VAR i,a,b,c,d,e,f,g,h: dword;
   begin
     aa:=0; bb:=0; cc:=0;
     a:=$9e3779b9;    // the golden ratio
@@ -136,10 +151,11 @@ PROCEDURE T_ISAAC.iRandInit;
     until i>255;
     isaac();           // fill in the first set of results
     randcnt:=0;       // prepare to use the first set of results
+    {$Q+}{$R+}
   end; {randinit}
 
 { Get a random 32-bit value 0..MAXINT }
-FUNCTION T_ISAAC.iRandom : cardinal;
+FUNCTION T_ISAAC.iRandom : dword;
   begin
     iRandom := randrsl[randcnt];
     inc(randcnt);
@@ -157,7 +173,7 @@ FUNCTION T_ISAAC.iRandA: byte;
 
 { XOR encrypt on random stream. Output: ASCII string }
 FUNCTION T_ISAAC.Vernam(CONST msg: string): string;
-  VAR i: cardinal;
+  VAR i: dword;
   begin
     setLength(result,length(msg));
     for i:=1 to length(msg) do result[i]:=chr(iRandA xor ord(msg[i]));
