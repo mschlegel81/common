@@ -1225,6 +1225,7 @@ FUNCTION T_bigInt.greatestCommonDivider(CONST other: T_bigInt): T_bigInt;
         result:=b;
         b:=temp;
       end;
+      b.destroy;
     end;
   end;
 
