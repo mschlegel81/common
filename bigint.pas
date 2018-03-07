@@ -52,6 +52,7 @@ TYPE
       PROCEDURE incAbsValue(CONST positiveIncrement:dword);
       PROCEDURE shiftRightOneBit;
     public
+      PROCEDURE shiftRight(CONST rightShift:longint);
       PROPERTY isNegative:boolean read negative;
 
       CONSTRUCTOR createZero;
@@ -170,6 +171,17 @@ PROCEDURE rawDataPlus(CONST xDigits:pDigitType; CONST xDigitCount:longint;
     end;
   end;
 
+PROCEDURE trimLeadingZeros(VAR digitCount:longint; VAR digits:pDigitType); inline;
+  VAR i:longint;
+  begin
+    i:=digitCount;
+    while (i>0) and (digits[i-1]=0) do dec(i);
+    if i<>digitCount then begin
+      digitCount:=i;
+      ReAllocMem(digits,sizeOf(digitType)*digitCount);
+    end;
+  end;
+
 {Precondition: x>y}
 PROCEDURE rawDataMinus(CONST xDigits:pDigitType; CONST xDigitCount:longint;
                        CONST yDigits:pDigitType; CONST yDigitCount:longint;
@@ -198,8 +210,7 @@ PROCEDURE rawDataMinus(CONST xDigits:pDigitType; CONST xDigitCount:longint;
         carry:=0;
       end;
     end;
-    while (diffDigitCount>0) and (diffDigits[diffDigitCount-1]=0) do dec(diffDigitCount);
-    if diffDigitCount<>xDigitCount then ReAllocMem(diffDigits,sizeOf(digitType)*diffDigitCount);
+    trimLeadingZeros(diffDigitCount,diffDigits);
   end;
 
 CONSTRUCTOR T_bigInt.createFromRawData(CONST negative_: boolean; CONST digitCount_: longint; CONST digits_: pDigitType);
@@ -290,8 +301,7 @@ PROCEDURE T_bigInt.setBit(CONST index: longint; CONST value: boolean);
       if digitIndex>=digitCount then exit;
       digits[digitIndex]:=digits[digitIndex] and not(WORD_BIT[bitIndex]);
       k:=digitCount;
-      while (digitCount>0) and (digits[digitCount-1]=0) do dec(digitCount);
-      if k<>digitCount then ReAllocMem(digits,sizeOf(digitType)*digitCount);
+      trimLeadingZeros(digitCount,digits);
     end;
   end;
 
@@ -912,9 +922,7 @@ FUNCTION T_bigInt.divMod(CONST divisor: T_bigInt; OUT quotient, rest: T_bigInt):
         quotient.setBit(bitIdx,true);
       end;
     end;
-    bitIdx:=rest.digitCount;
-    while (rest.digitCount>0) and (rest.digits[rest.digitCount-1]=0) do dec(rest.digitCount);
-    if bitIdx<>rest.digitCount then ReAllocMem(rest.digits,sizeOf(digitType)*rest.digitCount);
+    trimLeadingZeros(rest.digitCount,rest.digits);
   end;
 
 FUNCTION T_bigInt.divide(CONST divisor: T_bigInt): T_bigInt;
@@ -977,10 +985,8 @@ PROCEDURE T_bigInt.divBy(CONST divisor: digitType; OUT rest: digitType);
     end;
     if isPowerOf2(divisor,divisorLog2) then begin
       rest:=digits[0] and (divisor-1);
-      while divisorLog2>0 do begin
-        shiftRightOneBit;
-        dec(divisorLog2);
-      end;
+      shiftRight(divisorLog2);
+      exit;
     end else begin
       quotient.createZero;
       for bitIdx:=relevantBits-1 downto 0 do begin
@@ -1144,9 +1150,58 @@ PROCEDURE T_bigInt.shiftRightOneBit;
       if (k>0) and odd(digits[k]) then digits[k-1]:=digits[k-1] or UPPER_DIGIT_BIT;
       digits[k]:=digits[k] shr 1;
     end;
-    if digits[digitCount-1]=0 then begin
+    if (digitCount>0) and (digits[digitCount-1]=0) then begin
       dec(digitCount);
       ReAllocMem(digits,sizeOf(digitType)*digitCount);
+    end;
+  end;
+
+PROCEDURE T_bigInt.shiftRight(CONST rightShift:longint);
+  VAR digitsToShift:longint;
+      bitsToShift  :longint;
+      newBitCount  :longint;
+      newDigitCount:longint;
+      carry,nextCarry:digitType;
+      k:longint;
+  begin
+    if rightShift=0 then exit;
+    bitsToShift  :=abs(rightShift);
+    digitsToShift:=bitsToShift div BITS_PER_DIGIT;
+    bitsToShift  -=digitsToShift * BITS_PER_DIGIT;
+    if rightShift>0 then begin
+      if digitsToShift>0 then begin
+        for k:=0 to digitCount-digitsToShift-1 do digits[k]:=digits[k+digitsToShift];
+        for k:=digitCount-digitsToShift to digitCount-1 do digits[k]:=0;
+      end;
+      if bitsToShift>0 then begin
+        carry:=0;
+        for k:=digitCount-digitsToShift-1 downto 0 do begin
+          nextCarry:=digits[k];
+          digits[k]:=(digits[k] shr bitsToShift) or (carry shl (BITS_PER_DIGIT-bitsToShift));
+          carry:=nextCarry;
+        end;
+      end;
+      trimLeadingZeros(digitCount,digits);
+    end else begin
+      newBitCount:=relevantBits-rightShift;
+      newDigitCount:=newBitCount div BITS_PER_DIGIT; if newDigitCount*BITS_PER_DIGIT<newBitCount then inc(newDigitCount);
+      if newDigitCount>digitCount then begin
+        ReAllocMem(digits,newDigitCount*sizeOf(digitType));
+        for k:=digitCount to newDigitCount-1 do digits[k]:=0;
+        digitCount:=newDigitCount;
+      end;
+      if digitsToShift>0 then begin
+        for k:=digitCount-1 downto digitsToShift do digits[k]:=digits[k-digitsToShift];
+        for k:=digitsToShift-1 downto 0 do digits[k]:=0;
+      end;
+      if bitsToShift>0 then begin
+        carry:=0;
+        for k:=0 to digitCount-1 do begin
+          nextCarry:=digits[k] shr (BITS_PER_DIGIT-bitsToShift);
+          digits[k]:=(digits[k] shl bitsToShift) or carry;
+          carry:=nextCarry;
+        end;
+      end;
     end;
   end;
 
@@ -1332,7 +1387,11 @@ FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
 
     selfShl16.destroy;
     isSquare:=isSquare and ((result.digits[0] and 255)=0);
-    for step:=1 to 8 do result.shiftRightOneBit;
+    if isSquare then result.shiftRight(8)
+                else begin
+                  result.digitCount:=0;
+                  ReAllocMem(result.digits,0);
+                end;
   end;
 
 FUNCTION T_bigInt.hammingWeight:longint;
