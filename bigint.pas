@@ -777,7 +777,8 @@ FUNCTION T_bigInt.bitOr(CONST big: T_bigInt; CONST consideredBits:longint): T_bi
                          else k:=consideredBits;
     result.createWithAllTrueBits(k);
     for i:=0 to result.digitCount-1 do begin
-      if (i<    digitCount) then result.digits[i]:=digits[i];
+      if (i<    digitCount) then result.digits[i]:=digits[i]
+                            else result.digits[i]:=0;
       if (i<big.digitCount) then result.digits[i]:=result.digits[i] or big.digits[i];
     end;
     result.nullBits(k);
@@ -790,7 +791,7 @@ FUNCTION T_bigInt.bitXor(CONST big: T_bigInt; CONST consideredBits:longint): T_b
                          else k:=consideredBits;
     result.createWithAllTrueBits(k);
     for i:=0 to result.digitCount-1 do begin
-      if (i<    digitCount) then result.digits[i]:=result.digits[i] xor     digits[i]
+      if (i<    digitCount) then result.digits[i]:=digits[i]
                             else result.digits[i]:=0;
       if (i<big.digitCount) then result.digits[i]:=result.digits[i] xor big.digits[i];
     end;
