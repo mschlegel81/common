@@ -1770,7 +1770,7 @@ FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
     end;
 
   CONST checked:set of byte=[2,5,7,11,13,17,19,23,29,31,37,41];
-  VAR a:Byte;
+  VAR a:byte;
   begin
     if n.negative then exit(false);
     relBits:=n.relevantBits;
