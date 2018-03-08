@@ -79,6 +79,7 @@ TYPE
       FUNCTION compare(CONST f:extended  ):T_comparisonResult; inline;
       FUNCTION plus (CONST big:T_bigInt):T_bigInt;
       FUNCTION minus(CONST big:T_bigInt):T_bigInt;
+      FUNCTION minus(CONST small:digitType):T_bigInt;
       FUNCTION mult (CONST big:T_bigInt):T_bigInt;
       FUNCTION pow  (power:dword ):T_bigInt;
       FUNCTION powMod(CONST power,modul:T_bigInt):T_bigInt;
@@ -118,7 +119,8 @@ TYPE
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
-FUNCTION factorize(CONST B:T_bigInt; CONST onlyCheckForPrimality:boolean):T_factorizationResult;
+FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
+FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
 IMPLEMENTATION
 FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigInt):T_bigInt;
   VAR k:longint;
@@ -627,6 +629,35 @@ FUNCTION T_bigInt.minus(CONST big: T_bigInt): T_bigInt;
                  big.digits,  big.digitCount,
                resultDigits,resultDigitCount);
         result.createFromRawData(negative,resultDigitCount,resultDigits);
+      end;
+    end;
+  end;
+
+FUNCTION T_bigInt.minus(CONST small:digitType):T_bigInt;
+  VAR resultDigits:pDigitType;
+      resultDigitCount:longint;
+  begin
+    if negative then begin
+      //(-x)-y = -(x+y)
+      //x-(-y) =   x+y
+      rawDataPlus(digits,    digitCount,
+              @small,1,
+                  resultDigits,resultDigitCount);
+      result.createFromRawData(negative,resultDigitCount,resultDigits);
+    end else case compareAbsValue(small) of
+      CR_EQUAL  : result.createZero;
+      CR_LESSER : begin
+        // x-y = -(y-x) //opposed sign as y
+        rawDataMinus(@small,  1,
+                         digits,      digitCount,
+                   resultDigits,resultDigitCount);
+        result.createFromRawData(true,resultDigitCount,resultDigits);
+      end;
+      CR_GREATER: begin
+        rawDataMinus(digits,      digitCount,
+                 @small,  1,
+               resultDigits,resultDigitCount);
+        result.createFromRawData(false,resultDigitCount,resultDigits);
       end;
     end;
   end;
@@ -1416,7 +1447,7 @@ FUNCTION T_bigInt.getRawBytes: T_arrayOfByte;
     end;
   end;
 
-FUNCTION factorize(CONST B:T_bigInt; CONST onlyCheckForPrimality:boolean):T_factorizationResult;
+FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
   CONST primes:array[0..144] of word=(3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839);
   CONST skip:array[0..47] of byte=(10,2,4,2,4,6,2,6,4,2,4,6,6,2,6,4,2,6,4,6,8,4,2,4,2,4,8,6,4,6,2,4,6,2,6,6,4,2,4,6,2,6,4,2,4,2,10,2);
   FUNCTION factorizeSmall(n:int64):T_arrayOfLongint;
@@ -1516,14 +1547,6 @@ FUNCTION factorize(CONST B:T_bigInt; CONST onlyCheckForPrimality:boolean):T_fact
           while inputAndRest.divideIfRestless(p) do append(result.smallFactors,p);
         end;
       end;
-      if onlyCheckForPrimality and (length(result.smallFactors)>1) then begin
-        if workInInt64 then begin
-          inputAndRest.destroy;
-          inputAndRest.fromInt(n);
-        end;
-        furtherFactorsPossible:=true;
-        exit;
-      end;
       //By skipping:
       p:=primes[length(primes)-1]+skip[length(skip)-1]; //=841
       while p<2097151 do begin
@@ -1544,16 +1567,6 @@ FUNCTION factorize(CONST B:T_bigInt; CONST onlyCheckForPrimality:boolean):T_fact
         inc(p,skip[skipIdx]);
         skipIdx:=(skipIdx+1) mod length(skip);
       end;
-
-      if onlyCheckForPrimality and (length(result.smallFactors)>1) then begin
-        if workInInt64 then begin
-          inputAndRest.destroy;
-          inputAndRest.fromInt(n);
-        end;
-        furtherFactorsPossible:=true;
-        exit;
-      end;
-
       thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
       while (p<maxLongint-10) and (p<thirdRootOfInputAndRest) do begin
         if trySwitchToInt64 then begin
@@ -1571,16 +1584,6 @@ FUNCTION factorize(CONST B:T_bigInt; CONST onlyCheckForPrimality:boolean):T_fact
         inc(p,skip[skipIdx]);
         skipIdx:=(skipIdx+1) mod length(skip);
       end;
-
-      if onlyCheckForPrimality and (length(result.smallFactors)>1) then begin
-        if workInInt64 then begin
-          inputAndRest.destroy;
-          inputAndRest.fromInt(n);
-        end;
-        furtherFactorsPossible:=true;
-        exit;
-      end;
-
       if workInInt64 then begin
         inputAndRest.destroy;
         inputAndRest.fromInt(n);
@@ -1664,7 +1667,7 @@ FUNCTION factorize(CONST B:T_bigInt; CONST onlyCheckForPrimality:boolean):T_fact
       exit;
     end else begin
       result:=basicFactorize(r,furtherFactorsPossible);
-      if not(furtherFactorsPossible) or onlyCheckForPrimality and (length(result.smallFactors)+length(result.bigFactors)>0) then begin
+      if not(furtherFactorsPossible) then begin
         if r.compareAbsValue(1)=CR_GREATER then begin
           setLength(result.bigFactors,length(result.bigFactors)+1);
           result.bigFactors[length(result.bigFactors)-1]:=r;
@@ -1706,6 +1709,96 @@ FUNCTION factorize(CONST B:T_bigInt; CONST onlyCheckForPrimality:boolean):T_fact
       setLength(result.bigFactors,length(result.bigFactors)+1);
       result.bigFactors[length(result.bigFactors)-1]:=r;
     end;
+  end;
+
+FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
+  VAR nAsInt:int64;
+      relBits :longint;
+
+  FUNCTION mrt(CONST a:int64):boolean;
+    VAR n1,d,t,p:int64;
+        j:longint=1;
+	k:longint;
+    begin
+      n1:=nAsInt-1;
+      d :=nAsInt shr 1;
+      while not(odd(d)) do begin
+        d:=d shr 1;
+        inc(j);
+      end;
+      t:=a;
+      p:=a;
+      while (d>1) do begin
+        d:=d shr 1;
+        p:=p*p mod nAsInt;
+        if odd(d) then t:=t*p mod nAsInt;
+      end;
+      if (t=1) or (t=n1) then exit(true);
+      for k:=1 to j-1 do begin
+        t:=t*t mod nAsInt;
+        if t=n1 then exit(true);
+	if t<=1 then break;
+      end;
+      result:=false;
+    end;
+
+  FUNCTION bMrt(CONST a:int64):boolean;
+    VAR n1,d,bigA,t:T_bigInt;
+        j:longint=1;
+        k:longint;
+    begin
+      n1:=n.minus(1);
+      d.create(n1);
+      while not(d.getBit(0)) do begin
+        d.shiftRightOneBit;
+        inc(j);
+      end;
+      bigA.fromInt(a);
+      t:=bigA.powMod(d,n);
+      bigA.destroy;
+      d.destroy;
+      result:=(t.compare( 1)=CR_EQUAL) or
+              (t.compare(n1)=CR_EQUAL);
+      for k:=1 to j-1 do if not(result) then begin
+        d:=t.mult(t);    t.destroy;
+        t:=d.modulus(n); d.destroy;
+        if (t.compare(n1)=CR_EQUAL) then result:=true;
+        if t.compare(1) in [CR_EQUAL,CR_LESSER] then break;
+      end;
+      t.destroy;
+      n1.destroy;
+    end;
+
+  CONST checked:set of byte=[2,5,7,11,13,17,19,23,29,31,37,41];
+  VAR a:Byte;
+  begin
+    if n.negative then exit(false);
+    relBits:=n.relevantBits;
+    if (relBits<=1) or not(n.getBit(0)) then exit(false);
+    if n.canBeRepresentedAsInt32() then begin
+      nAsInt:=n.toInt;
+      if (nAsInt>3) and (nAsInt mod 3=0) or
+         (nAsInt>5) and (nAsInt mod 5=0) or
+         (nAsInt>7) and (nAsInt mod 7=0) then exit(false);
+      if nAsInt<1373653 then exit(mrt(2)  and mrt(3));
+      if nAsInt<9080191 then exit(mrt(31) and mrt(37));
+      exit(mrt(2) and mrt(7) and mrt(61));
+    end;
+    if n.compareAbsValue(4759123141)=CR_LESSER then exit(bmrt(2) and bmrt(7) and bmrt(61));
+    result:=bMrt(2) and bMrt(5) and bMrt(7) and bMrt(11);
+    if not(result) or (n.compareAbsValue(2152302898747)=CR_LESSER) then exit;
+    result:=bMrt(13);
+    if not(result) or (n.compareAbsValue(3474749660383)=CR_LESSER) then exit;
+    result:=bMrt(17);
+    if not(result) or (n.compareAbsValue(341550071728321)=CR_LESSER) then exit;
+    result:=bMrt(19) and bMrt(23);
+    if not(result) or (n.compareAbsValue(3825123056546413051)=CR_LESSER) then exit;
+    result:=bMrt(29) and bMrt(31) and bMrt(37);
+    if not(result) or (relBits<79) then exit;
+    result:=bMrt(41);
+    if not(result) or (relBits<82) then exit;
+    for a:=3 to 255 do if not(a in checked) and not(bMrt(a)) then exit(false);
+    result:=true;
   end;
 
 end.
