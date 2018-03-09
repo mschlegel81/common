@@ -112,15 +112,18 @@ TYPE
       FUNCTION getRawBytes:T_arrayOfByte;
     end;
 
+  T_arrayOfBigint=array of T_bigInt;
   T_factorizationResult=record
     smallFactors:T_arrayOfLongint;
-    bigFactors:array of T_bigInt;
+    bigFactors:T_arrayOfBigint;
   end;
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
 FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
+FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
+FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_bigInt;
 IMPLEMENTATION
 FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigInt):T_bigInt;
   VAR k:longint;
@@ -409,6 +412,31 @@ CONSTRUCTOR T_bigInt.createFromDigits(CONST base: longint; CONST digits_:T_array
     for i:=0 to length(digits_)-1 do begin
       multWith(base);
       incAbsValue(digits_[i]);
+    end;
+  end;
+
+FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_bigInt;
+  VAR i:longint;
+      tmp:T_bigInt;
+      allSmall:boolean;
+      baseAsInt:longint;
+  begin
+    allSmall:=(base.canBeRepresentedAsInt32()) and not(base.negative);
+    for i:=0 to length(digits)-1 do allSmall:=allSmall and (digits[i].digitCount<=1) and not(digits[i].negative);
+    result.createZero;
+    if allSmall then begin
+      baseAsInt:=base.toInt;
+      for i:=0 to length(digits)-1 do begin
+        result.multWith(baseAsInt);
+        if digits[i].digitCount>0 then result.incAbsValue(digits[i].digits[0]);
+      end;
+    end else begin
+      for i:=0 to length(digits)-1 do begin
+        tmp:=result.mult(base);
+        result.destroy;
+        result:=tmp.plus(digits[i]);
+        tmp.destroy;
+      end;
     end;
   end;
 
@@ -1148,6 +1176,28 @@ FUNCTION T_bigInt.getDigits(CONST base: longint): T_arrayOfLongint;
         temp.divBy(base,digit);
         setLength(result,length(result)+1);
         result[length(result)-1]:=digit;
+      end;
+      temp.destroy;
+    end;
+  end;
+
+FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
+  VAR temp,quotient,rest:T_bigInt;
+      smallDigits:T_arrayOfLongint;
+      k:longint;
+  begin
+    if base.canBeRepresentedAsInt32 then begin
+      smallDigits:=value.getDigits(base.toInt);
+      setLength(result,length(smallDigits));
+      for k:=0 to length(smallDigits)-1 do result[k].fromInt(smallDigits[k]);
+    end else begin
+      temp.create(value);
+      temp.negative:=false;
+      while temp.compareAbsValue(1) in [CR_EQUAL,CR_GREATER] do begin
+        temp.divMod(base,quotient,rest);
+        result[length(result)-1]:=rest;
+        temp.destroy;
+        temp:=quotient;
       end;
       temp.destroy;
     end;
