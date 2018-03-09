@@ -51,6 +51,7 @@ TYPE
       PROCEDURE divBy(CONST divisor:digitType; OUT rest:digitType);
       PROCEDURE incAbsValue(CONST positiveIncrement:dword);
       PROCEDURE shiftRightOneBit;
+      FUNCTION getDigits(CONST base:longint):T_arrayOfLongint;
     public
       PROCEDURE shiftRight(CONST rightShift:longint);
       PROPERTY isNegative:boolean read negative;
@@ -93,7 +94,6 @@ TYPE
       FUNCTION modulus(CONST divisor:T_bigInt):T_bigInt;
       FUNCTION toString:string;
       FUNCTION toHexString:string;
-      FUNCTION getDigits(CONST base:longint):T_arrayOfLongint;
       FUNCTION equals(CONST b:T_bigInt):boolean;
       FUNCTION isZero:boolean;
 
