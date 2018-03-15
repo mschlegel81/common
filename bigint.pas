@@ -1835,7 +1835,7 @@ FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
       if nAsInt<9080191 then exit(mrt(31) and mrt(37));
       exit(mrt(2) and mrt(7) and mrt(61));
     end;
-    if n.compareAbsValue(4759123141)=CR_LESSER then exit(bmrt(2) and bmrt(7) and bmrt(61));
+    if n.compareAbsValue(4759123141)=CR_LESSER then exit(bMrt(2) and bMrt(7) and bMrt(61));
     result:=bMrt(2) and bMrt(5) and bMrt(7) and bMrt(11);
     if not(result) or (n.compareAbsValue(2152302898747)=CR_LESSER) then exit;
     result:=bMrt(13);
