@@ -1195,6 +1195,7 @@ FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
       temp.negative:=false;
       while temp.compareAbsValue(1) in [CR_EQUAL,CR_GREATER] do begin
         temp.divMod(base,quotient,rest);
+		setLength(result,length(result)+1);
         result[length(result)-1]:=rest;
         temp.destroy;
         temp:=quotient;
