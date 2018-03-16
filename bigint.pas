@@ -1185,21 +1185,24 @@ FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
   VAR temp,quotient,rest:T_bigInt;
       smallDigits:T_arrayOfLongint;
       k:longint;
+      resSize:longint=0;
   begin
     if base.canBeRepresentedAsInt32 then begin
       smallDigits:=value.getDigits(base.toInt);
       setLength(result,length(smallDigits));
       for k:=0 to length(smallDigits)-1 do result[k].fromInt(smallDigits[k]);
+      setLength(smallDigits,0);
     end else begin
+      setLength(result,round(1+1.01*value.digitCount));
       temp.create(value);
       temp.negative:=false;
       while temp.compareAbsValue(1) in [CR_EQUAL,CR_GREATER] do begin
         temp.divMod(base,quotient,rest);
-		setLength(result,length(result)+1);
-        result[length(result)-1]:=rest;
+        result[resSize]:=rest; inc(resSize);
         temp.destroy;
         temp:=quotient;
       end;
+      setLength(result,resSize);
       temp.destroy;
     end;
   end;
