@@ -971,6 +971,7 @@ FUNCTION T_bigInt.divMod(CONST divisor: T_bigInt; OUT quotient, rest: T_bigInt):
   VAR bitIdx:longint;
   begin
     if divisor.digitCount=0 then exit(false);
+    result:=true;
     quotient.create(negative xor divisor.negative,0);
     rest    .create(negative,divisor.digitCount);
     //Initialize rest with (probably) enough digits
@@ -1489,7 +1490,7 @@ FUNCTION T_bigInt.hammingWeight:longint;
 
 FUNCTION T_bigInt.getRawBytes: T_arrayOfByte;
   VAR i:longint;
-      tmp:dword;
+      tmp:dword=0;
   begin
     i:=relevantBits shr 3;
     if i*8<relevantBits then inc(i);

@@ -69,7 +69,7 @@ PROCEDURE T_ISAAC.setSeedByTime;
   end;
 
 PROCEDURE T_ISAAC.setSeed(CONST seed:int64);
-  VAR i: dword;
+  VAR i:longint;
       s:int64;
   begin
     for i:=0 to 255 do mm[i]:=0;
@@ -82,7 +82,7 @@ PROCEDURE T_ISAAC.setSeed(CONST seed:int64);
   end;
 
 PROCEDURE T_ISAAC.setSeed(CONST seed:string);
-  VAR i,m: dword;
+  VAR i,m: longint;
   begin
     for i:= 0 to 255 do mm[i]:=0;
     m := length(seed)-1;
@@ -94,7 +94,7 @@ PROCEDURE T_ISAAC.setSeed(CONST seed:string);
   end;
 
 PROCEDURE T_ISAAC.setSeed(CONST seed:array of byte);
-  VAR i: dword;
+  VAR i: longint;
   begin
     for i:= 0 to 255 do mm[i]:=0;
     for i:= 0 to 255 do begin
