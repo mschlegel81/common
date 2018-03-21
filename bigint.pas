@@ -108,6 +108,7 @@ TYPE
       FUNCTION greatestCommonDivider(CONST other:T_bigInt):T_bigInt;
       FUNCTION modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInverse:boolean):T_bigInt;
       FUNCTION iSqrt(OUT isSquare:boolean):T_bigInt;
+      FUNCTION iLog2(OUT isPowerOfTwo:boolean):longint;
       FUNCTION hammingWeight:longint;
       FUNCTION getRawBytes:T_arrayOfByte;
     end;
@@ -1479,6 +1480,19 @@ FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
                   result.digitCount:=0;
                   ReAllocMem(result.digits,0);
                 end;
+  end;
+
+FUNCTION T_bigInt.iLog2(OUT isPowerOfTwo:boolean):longint;
+  VAR i:longint;
+  begin
+    isPowerOfTwo:=false;
+    if digitCount=0 then exit(0);
+    i:=digitCount-1;
+    if isPowerOf2(digits[digitCount-1],result) then begin
+      inc(result,BITS_PER_DIGIT*(digitCount-1));
+      isPowerOfTwo:=true;
+      for i:=digitCount-2 downto 0 do isPowerOfTwo:=isPowerOfTwo and (digits[i]=0);
+    end else result:=0;
   end;
 
 FUNCTION T_bigInt.hammingWeight:longint;
