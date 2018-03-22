@@ -512,9 +512,29 @@ FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString):T_arrayOfStr
 
 FUNCTION join(CONST lines:T_arrayOfString; CONST joiner:ansistring):ansistring;
   VAR i:longint;
+      k:longint=0;
+      hasJoiner:boolean;
   begin
-    if length(lines)>0 then result:=lines[0] else result:='';
-    for i:=1 to length(lines)-1 do result:=result+joiner+lines[i];
+    if length(lines)=0 then exit('');
+    hasJoiner:=length(joiner)>0;
+    for i:=0 to length(lines)-1 do inc(k,length(lines[i]));
+    inc(k,length(joiner)*(length(lines)-1));
+    setLength(result,k);
+    k:=1;
+    if length(lines[0])>0 then begin
+      move(lines[0][1],result[k],length(lines[0]));
+      inc(k,length(lines[0]));
+    end;
+    if hasJoiner then for i:=1 to length(lines)-1 do begin
+      move(joiner  [1],result[k],length(joiner  )); inc(k,length(joiner  ));
+      if length(lines[i])>0 then begin
+        move(lines[i][1],result[k],length(lines[i])); inc(k,length(lines[i]));
+      end;
+    end else for i:=1 to length(lines)-1 do begin
+      if length(lines[i])>0 then begin
+        move(lines[i][1],result[k],length(lines[i])); inc(k,length(lines[i]));
+      end;
+    end
   end;
 
 FUNCTION cleanString(CONST s:ansistring; CONST whiteList:T_charSet; CONST instead:char):ansistring;
