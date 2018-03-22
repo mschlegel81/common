@@ -51,7 +51,6 @@ TYPE
       PROCEDURE divBy(CONST divisor:digitType; OUT rest:digitType);
       PROCEDURE incAbsValue(CONST positiveIncrement:dword);
       PROCEDURE shiftRightOneBit;
-      FUNCTION getDigits(CONST base:longint):T_arrayOfLongint;
     public
       PROCEDURE shiftRight(CONST rightShift:longint);
       PROPERTY isNegative:boolean read negative;
@@ -72,6 +71,7 @@ TYPE
       FUNCTION canBeRepresentedAsInt62:boolean;
       FUNCTION canBeRepresentedAsInt32(CONST examineNicheCase: boolean=true): boolean;
       FUNCTION getBit(CONST index:longint):boolean;
+      FUNCTION getDigits(CONST base:longint):T_arrayOfLongint;
 
       PROCEDURE flipSign;
       FUNCTION negated:T_bigInt;
@@ -483,7 +483,7 @@ FUNCTION T_bigInt.canBeRepresentedAsInt32(CONST examineNicheCase: boolean): bool
     if digitCount*BITS_PER_DIGIT<32 then exit(true);
     if not(getBit(31)) then exit(true);
     if negative and examineNicheCase then begin
-      //in this case we can still represent -(2^63), so there is one special case to consider:
+      //in this case we can still represent -(2^31), so there is one special case to consider:
       result:=(digits[0]=UPPER_DIGIT_BIT);
     end else
     result:=false;
@@ -713,7 +713,6 @@ FUNCTION T_bigInt.mult(CONST big: T_bigInt): T_bigInt;
       exit(result);
     end;
     {$endif}
-
     resultDigitCount:=digitCount+big.digitCount;
     getMem(resultDigits,sizeOf(digitType)*resultDigitCount);
     for k:=0 to resultDigitCount-1 do resultDigits[k]:=0;
@@ -868,6 +867,16 @@ FUNCTION T_bigInt.bitNegate(CONST consideredBits:longint):T_bigInt;
     result.nullBits(k);
   end;
 
+FUNCTION isPowerOf2(CONST i:digitType; OUT log2:longint):boolean; inline;
+  VAR k:longint;
+  begin
+    result:=false;
+    for k:=0 to length(WORD_BIT)-1 do if i=WORD_BIT[k] then begin
+      log2:=k;
+      exit(true);
+    end;
+  end;
+
 PROCEDURE T_bigInt.multWith(CONST l: longint);
   VAR carry:carryType=0;
       factor:digitType;
@@ -883,6 +892,11 @@ PROCEDURE T_bigInt.multWith(CONST l: longint);
       factor:=-l;
       negative:=not(negative);
     end else factor:=l;
+    if isPowerOf2(factor,k) then begin
+      shiftRight(-k);
+      exit;
+    end;
+
     for k:=0 to digitCount-1 do begin
       carry+=carryType(factor)*carryType(digits[k]);
       digits[k]:=carry and DIGIT_MAX_VALUE;
@@ -970,8 +984,18 @@ FUNCTION T_bigInt.divMod(CONST divisor: T_bigInt; OUT quotient, rest: T_bigInt):
     end;
 
   VAR bitIdx:longint;
+      divIsPow2:boolean;
   begin
     if divisor.digitCount=0 then exit(false);
+    bitIdx:=divisor.iLog2(divIsPow2);
+    if divIsPow2 then begin
+      rest.create(self);
+      rest.nullBits(bitIdx);
+      quotient.create(self);
+      quotient.shiftRight(bitIdx);
+      exit(true);
+    end;
+
     result:=true;
     quotient.create(negative xor divisor.negative,0);
     rest    .create(negative,divisor.digitCount);
@@ -1023,16 +1047,6 @@ FUNCTION T_bigInt.modulus(CONST divisor: T_bigInt): T_bigInt;
     {$endif}
     divMod(divisor,temp,result);
     temp.destroy;
-  end;
-
-FUNCTION isPowerOf2(CONST i:digitType; OUT log2:longint):boolean;
-  VAR k:longint;
-  begin
-    result:=false;
-    for k:=0 to length(WORD_BIT)-1 do if i=WORD_BIT[k] then begin
-      log2:=k;
-      exit(true);
-    end;
   end;
 
 PROCEDURE T_bigInt.divBy(CONST divisor: digitType; OUT rest: digitType);
