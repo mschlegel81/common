@@ -4,6 +4,7 @@ USES sysutils;
 {$MACRO ON}
 TYPE
   T_arrayOfString =array of ansistring;
+  T_arrayOfShortString =array of shortString;
   T_arrayOfPointer=array of pointer   ;
   T_arrayOfDouble =array of double    ;
   T_arrayOfLongint=array of longint   ;
@@ -21,6 +22,7 @@ TYPE
   PROCEDURE sort(VAR entry:M_ARRAY_TYPE);
   PROCEDURE sortUnique(VAR entry:M_ARRAY_TYPE)}
   {$define M_ARRAY_TYPE:=T_arrayOfString } {$define M_VALUE_TYPE:=ansistring} arrayFunctions; arrayOp;
+  {$define M_ARRAY_TYPE:=T_arrayOfShortString } {$define M_VALUE_TYPE:=shortstring} arrayFunctions; arrayOp;
   {$define M_ARRAY_TYPE:=T_arrayOfPointer} {$define M_VALUE_TYPE:=pointer   } arrayFunctions;
   {$define M_ARRAY_TYPE:=T_arrayOfDouble } {$define M_VALUE_TYPE:=double    } arrayFunctions; arrayOp;
   {$define M_ARRAY_TYPE:=T_arrayOfLongint} {$define M_VALUE_TYPE:=longint   } arrayFunctions; arrayOp;
@@ -95,6 +97,14 @@ TYPE
   {$define M_HASH_FUNC:=hashOfAnsistring}
   generic G_stringKeyMap<VALUE_TYPE>=someKeyMapInterface;
   T_setOfString=someSetInterface;
+
+  {$define M_KEY_TYPE:=shortstring}
+  {$define M_MAP_TYPE:=G_shortStringKeyMap}
+  {$define M_SET_TYPE:=T_setOfShortString}
+  {$define M_KEY_ARRAY_TYPE:=T_arrayOfShortString}
+  {$define M_HASH_FUNC:=hashOfAnsistring}
+  generic G_shortStringKeyMap<VALUE_TYPE>=someKeyMapInterface;
+  T_setOfShortString=someSetInterface;
 
   {$define M_KEY_TYPE:=pointer}
   {$define M_MAP_TYPE:=G_pointerKeyMap}
@@ -320,6 +330,7 @@ OPERATOR :=(x:M_VALUE_TYPE):M_ARRAY_TYPE;
   end}
 
 {$define M_ARRAY_TYPE:=T_arrayOfString } {$define M_VALUE_TYPE:=ansistring} arrayFunctionImpl; arrayOpImpl;
+{$define M_ARRAY_TYPE:=T_arrayOfShortString } {$define M_VALUE_TYPE:=shortString} arrayFunctionImpl; arrayOpImpl;
 {$define M_ARRAY_TYPE:=T_arrayOfPointer} {$define M_VALUE_TYPE:=pointer   } arrayFunctionImpl;
 {$define M_ARRAY_TYPE:=T_arrayOfDouble } {$define M_VALUE_TYPE:=double    } arrayFunctionImpl; arrayOpImpl;
 {$define M_ARRAY_TYPE:=T_arrayOfLongint} {$define M_VALUE_TYPE:=longint   } arrayFunctionImpl; arrayOpImpl;
@@ -822,6 +833,14 @@ FUNCTION M_SET_TYPE.size:longint; begin result:=map.size; end}
 {$define M_MAP_TYPE:=G_stringKeyMap}
 {$define M_SET_TYPE:=T_setOfString}
 {$define M_KEY_ARRAY_TYPE:=T_arrayOfString}
+{$define M_HASH_FUNC:=hashOfAnsistring}
+someKeyMapImplementation;
+someSetImplementation;
+
+{$define M_KEY_TYPE:=shortstring}
+{$define M_MAP_TYPE:=G_shortStringKeyMap}
+{$define M_SET_TYPE:=T_setOfShortString}
+{$define M_KEY_ARRAY_TYPE:=T_arrayOfShortString}
 {$define M_HASH_FUNC:=hashOfAnsistring}
 someKeyMapImplementation;
 someSetImplementation;
