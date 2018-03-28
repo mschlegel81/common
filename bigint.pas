@@ -316,8 +316,7 @@ CONSTRUCTOR T_bigInt.createZero;
     create(false,0);
   end;
 
-CONSTRUCTOR T_bigInt.create(CONST negativeNumber: boolean;
-  CONST digitCount_: longint);
+CONSTRUCTOR T_bigInt.create(CONST negativeNumber: boolean; CONST digitCount_: longint);
   begin
     negative:=negativeNumber;
     digitCount:=digitCount_;
@@ -1271,6 +1270,12 @@ PROCEDURE T_bigInt.shiftRight(CONST rightShift:longint);
     digitsToShift:=bitsToShift div BITS_PER_DIGIT;
     bitsToShift  -=digitsToShift * BITS_PER_DIGIT;
     if rightShift>0 then begin
+      if rightShift>=relevantBits then begin
+        digitCount:=0;
+        ReAllocMem(digits,0);
+        negative:=false;
+        exit;
+      end;
       if digitsToShift>0 then begin
         for k:=0 to digitCount-digitsToShift-1 do digits[k]:=digits[k+digitsToShift];
         for k:=digitCount-digitsToShift to digitCount-1 do digits[k]:=0;
@@ -1852,17 +1857,15 @@ FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
       n1.destroy;
     end;
 
-  CONST checked:set of byte=[2,5,7,11,13,17,19,23,29,31,37,41];
+  CONST pr:array[0..41] of byte=(3,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251);
   VAR a:byte;
   begin
     if n.negative then exit(false);
     relBits:=n.relevantBits;
-    if (relBits<=1) or not(n.getBit(0)) then exit(false);
     if n.canBeRepresentedAsInt32() then begin
       nAsInt:=n.toInt;
-      if (nAsInt>3) and (nAsInt mod 3=0) or
-         (nAsInt>5) and (nAsInt mod 5=0) or
-         (nAsInt>7) and (nAsInt mod 7=0) then exit(false);
+      if (nAsInt    =2)   or (nAsInt    =3  ) or (nAsInt    =5  ) or (nAsInt    =7  ) then exit(true);
+      if (nAsInt mod 2=0) or (nAsInt mod 3=0) or (nAsInt mod 5=0) or (nAsInt mod 7=0) then exit(false);
       if nAsInt<1373653 then exit(mrt(2)  and mrt(3));
       if nAsInt<9080191 then exit(mrt(31) and mrt(37));
       exit(mrt(2) and mrt(7) and mrt(61));
@@ -1880,7 +1883,7 @@ FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
     if not(result) or (relBits<79) then exit;
     result:=bMrt(41);
     if not(result) or (relBits<82) then exit;
-    for a:=3 to 255 do if not(a in checked) and not(bMrt(a)) then exit(false);
+    for a in pr do if not(bMrt(a)) then exit(false);
     result:=true;
   end;
 
