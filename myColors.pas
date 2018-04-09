@@ -435,7 +435,7 @@ FUNCTION innerProduct  (CONST x,y:T_rgbFloatColor):double;
   VAR i:T_colorChannel;
   begin
     result:=0;
-    for i in RGB_CHANNELS do result:=result+x[i]*y[i];
+    for i in RGB_CHANNELS do result+=x[i]*y[i];
   end;
 
 PROCEDURE T_histogram.switch;
