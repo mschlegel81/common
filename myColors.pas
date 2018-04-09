@@ -164,10 +164,10 @@ FUNCTION hsvaColor(CONST h,s,v,a:single):T_hsvaColor;
     result[hc_alpha     ]:=a;
   end;
 
-OPERATOR:=(CONST x: T_rgbColor     ): T_rgbaColor;      VAR c:T_colorChannel; begin for c in RGB_CHANNELS do result[c]:=x[c]; result[cc_alpha]:=255; end;
-OPERATOR:=(CONST x: T_rgbFloatColor): T_rgbaFloatColor; VAR c:T_colorChannel; begin for c in RGB_CHANNELS do result[c]:=x[c]; result[cc_alpha]:=1;   end;
-OPERATOR:=(CONST x: T_rgbColor     ): T_rgbFloatColor;  VAR c:T_colorChannel; begin for c in RGB_CHANNELS   do result[c]:=x[c]*by255; end;
-OPERATOR:=(CONST x: T_rgbaColor    ): T_rgbaFloatColor; VAR c:T_colorChannel; begin for c in T_colorChannel do result[c]:=x[c]*by255; end;
+OPERATOR:=(CONST x: T_rgbColor     ): T_rgbaColor;      VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS do result[c]:=x[c]; result[cc_alpha]:=255; end;
+OPERATOR:=(CONST x: T_rgbFloatColor): T_rgbaFloatColor; VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS do result[c]:=x[c]; result[cc_alpha]:=1;   end;
+OPERATOR:=(CONST x: T_rgbColor     ): T_rgbFloatColor;  VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS   do result[c]:=x[c]*by255; end;
+OPERATOR:=(CONST x: T_rgbaColor    ): T_rgbaFloatColor; VAR c:T_colorChannel; begin initialize(result); for c in T_colorChannel do result[c]:=x[c]*by255; end;
 
 FUNCTION projectedColor(CONST x:T_rgbFloatColor):T_rgbFloatColor;
   VAR k1,k2,k3,j:T_colorChannel;
@@ -215,6 +215,7 @@ FUNCTION projectedColor(CONST x:T_rgbFloatColor):T_rgbFloatColor;
 OPERATOR:=(x: T_rgbFloatColor): T_rgbColor;
   VAR c:T_colorChannel;
   begin
+    initialize(result);
     x:=projectedColor(x);
     for c in RGB_CHANNELS do result[c]:=round(255*x[c]);
   end;
@@ -222,6 +223,7 @@ OPERATOR:=(x: T_rgbFloatColor): T_rgbColor;
 OPERATOR:=(CONST x: T_rgbaFloatColor): T_rgbaColor;
   VAR c:T_colorChannel;
   begin
+    initialize(result);
     for c in T_colorChannel do
     if isNan(x[c]) or (x[c]<0) then result[c]:=0
     else           if  x[c]>1  then result[c]:=255
@@ -231,12 +233,14 @@ OPERATOR:=(CONST x: T_rgbaFloatColor): T_rgbaColor;
 OPERATOR :=(CONST x:T_hsvColor      ):T_hsvaColor;
   VAR c:T_hsvChannel;
   begin
+    initialize(result);
     for c in HSV_CHANNELS do result[c]:=x[c]; result[hc_alpha]:=1;
   end;
 
 OPERATOR :=(CONST x:T_rgbFloatColor ):T_hsvColor;
   VAR brightChannel:T_colorChannel;
   begin
+    initialize(result);
     if x[cc_red]>x[cc_green]       then begin result[hc_value]:=x[cc_red];   brightChannel:=cc_red  ; end
                                    else begin result[hc_value]:=x[cc_green]; brightChannel:=cc_green; end;
     if x[cc_blue]>result[hc_value] then begin result[hc_value]:=x[cc_blue];  brightChannel:=cc_blue ; end;
@@ -262,6 +266,7 @@ OPERATOR :=(CONST x:T_rgbaFloatColor):T_hsvaColor;
   VAR tmp:T_rgbFloatColor;
       c:T_colorChannel;
   begin
+    initialize(tmp);
     for c in RGB_CHANNELS do tmp[c]:=x[c];
     result:=T_hsvColor(tmp);
     result[hc_alpha]:=x[cc_alpha];
@@ -271,6 +276,7 @@ OPERATOR :=(      x:T_hsvColor      ):T_rgbFloatColor;
   VAR hi:byte;
       p,q,t:single;
   begin
+    initialize(result);
     if isInfinite(x[hc_hue]) or isNan(x[hc_hue]) then exit(rgbColor(random,random,random));
     if x[hc_hue]>1 then x[hc_hue]:=frac(x[hc_hue])
     else if x[hc_hue]<0 then x[hc_hue]:=1+frac(x[hc_hue]);
@@ -296,6 +302,7 @@ OPERATOR :=(CONST x:T_hsvaColor     ):T_rgbaFloatColor;
   VAR tmp:T_hsvColor;
       c:T_hsvChannel;
   begin
+    initialize(tmp);
     for c in HSV_CHANNELS do tmp[c]:=x[c];
     result:=T_rgbFloatColor(tmp);
     result[cc_alpha]:=x[hc_alpha];
@@ -306,18 +313,19 @@ OPERATOR =(CONST x,y:T_rgbaFloatColor):boolean; VAR c:T_colorChannel; begin for 
 OPERATOR =(CONST x,y:T_hsvColor      ):boolean; VAR c:T_hsvChannel;   begin for c in HSV_CHANNELS   do if x[c]<>y[c] then exit(false); result:=true; end;
 OPERATOR =(CONST x,y:T_hsvaColor     ):boolean; VAR c:T_hsvChannel;   begin for c in T_hsvChannel   do if x[c]<>y[c] then exit(false); result:=true; end;
 
-OPERATOR+(CONST x, y: T_rgbFloatColor ): T_rgbFloatColor;  VAR c:T_colorChannel; begin for c in RGB_CHANNELS   do result[c]:=x[c]+y[c]; end;
-OPERATOR+(CONST x, y: T_rgbaFloatColor): T_rgbaFloatColor; VAR c:T_colorChannel; begin for c in T_colorChannel do result[c]:=x[c]+y[c]; end;
-OPERATOR-(CONST x, y: T_rgbFloatColor ): T_rgbFloatColor;  VAR c:T_colorChannel; begin for c in RGB_CHANNELS   do result[c]:=x[c]-y[c]; end;
-OPERATOR-(CONST x, y: T_rgbaFloatColor): T_rgbaFloatColor; VAR c:T_colorChannel; begin for c in T_colorChannel do result[c]:=x[c]-y[c]; end;
+OPERATOR+(CONST x, y: T_rgbFloatColor ): T_rgbFloatColor;  VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS   do result[c]:=x[c]+y[c]; end;
+OPERATOR+(CONST x, y: T_rgbaFloatColor): T_rgbaFloatColor; VAR c:T_colorChannel; begin initialize(result); for c in T_colorChannel do result[c]:=x[c]+y[c]; end;
+OPERATOR-(CONST x, y: T_rgbFloatColor ): T_rgbFloatColor;  VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS   do result[c]:=x[c]-y[c]; end;
+OPERATOR-(CONST x, y: T_rgbaFloatColor): T_rgbaFloatColor; VAR c:T_colorChannel; begin initialize(result); for c in T_colorChannel do result[c]:=x[c]-y[c]; end;
 
-OPERATOR *(CONST x: T_rgbFloatColor;  CONST y: double): T_rgbFloatColor;  VAR c:T_colorChannel; begin for c in RGB_CHANNELS   do result[c]:=x[c]*y; end;
-OPERATOR *(CONST x: T_rgbaFloatColor; CONST y: double): T_rgbaFloatColor; VAR c:T_colorChannel; begin for c in T_colorChannel do result[c]:=x[c]*y; end;
-OPERATOR *(CONST x,y:T_rgbFloatColor                 ): T_rgbFloatColor;  VAR c:T_colorChannel; begin for c in RGB_CHANNELS do result[c]:=x[c]*y[c]; end;
+OPERATOR *(CONST x: T_rgbFloatColor;  CONST y: double): T_rgbFloatColor;  VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS   do result[c]:=x[c]*y; end;
+OPERATOR *(CONST x: T_rgbaFloatColor; CONST y: double): T_rgbaFloatColor; VAR c:T_colorChannel; begin initialize(result); for c in T_colorChannel do result[c]:=x[c]*y; end;
+OPERATOR *(CONST x,y:T_rgbFloatColor                 ): T_rgbFloatColor;  VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS do result[c]:=x[c]*y[c]; end;
 FUNCTION blend(CONST below: T_rgbFloatColor; CONST atop: T_rgbaFloatColor): T_rgbFloatColor;
   VAR BF:single;
       c:T_colorChannel;
   begin
+    initialize(result);
     BF:=1-atop[cc_alpha];
     for c in RGB_CHANNELS do result[c]:=atop[c]*atop[cc_alpha]+below[c]*BF;
   end;
@@ -326,6 +334,7 @@ FUNCTION blend(CONST below, atop: T_rgbaFloatColor): T_rgbaFloatColor;
   VAR af,BF:single;
       c:T_colorChannel;
   begin
+    initialize(result);
     af:=       atop [cc_alpha];
     BF:=(1-af)*below[cc_alpha];
     result[cc_alpha]:=af+BF;
@@ -337,6 +346,7 @@ FUNCTION blend(CONST below, atop: T_rgbaFloatColor): T_rgbaFloatColor;
 FUNCTION getOverbright(VAR x:T_rgbFloatColor):T_rgbFloatColor;
   VAR b:single;
   begin
+    initialize(result);
     if x[cc_red]>x[cc_green] then b:=x[cc_red]  //find brightest channel
                              else b:=x[cc_green];
     if x[cc_blue]>b          then b:=x[cc_blue];
@@ -403,6 +413,7 @@ FUNCTION invert(CONST c:T_rgbFloatColor):T_rgbFloatColor;
 FUNCTION absCol(CONST c:T_rgbFloatColor):T_rgbFloatColor;
   VAR i:T_colorChannel;
   begin
+    initialize(result);
     for i in RGB_CHANNELS do if c[i]<0 then result[i]:=-c[i] else result[i]:=c[i];
   end;
 
@@ -593,6 +604,7 @@ FUNCTION T_histogram.lookup(CONST value: T_rgbFloatColor): T_rgbFloatColor;
   VAR i:longint;
       c:T_colorChannel;
   begin
+    initialize(result);
     if not(isIncremental) then switch;
     for c in RGB_CHANNELS do begin
       i:=round(255*value[c]);

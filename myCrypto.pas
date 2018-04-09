@@ -213,6 +213,7 @@ FUNCTION sha256(CONST data:string):T_sha256Hash;
       i: longword;
     begin
       index:= 0;
+      initialize(w);
       FillChar(W, sizeOf(W), 0);
       a:= CurrentHash[0]; b:= CurrentHash[1]; c:= CurrentHash[2]; d:= CurrentHash[3];
       e:= CurrentHash[4]; f:= CurrentHash[5]; g:= CurrentHash[6]; h:= CurrentHash[7];
@@ -304,6 +305,7 @@ FUNCTION sha256(CONST data:string):T_sha256Hash;
       i:longint=1;
   begin
     init;
+    initialize(HashBuffer);
     size:=length(data);
     LenHi:=size shr 29;
     LenLo:=size*8;
@@ -326,6 +328,8 @@ FUNCTION sha256(CONST data:string):T_sha256Hash;
     PDWord(@HashBuffer[56])^:= SwapDWord(LenHi);
     PDWord(@HashBuffer[60])^:= SwapDWord(LenLo);
     compress;
+    initialize(CurrentHash);
+    initialize(result);
     CurrentHash[0]:= SwapDWord(CurrentHash[0]);
     CurrentHash[1]:= SwapDWord(CurrentHash[1]);
     CurrentHash[2]:= SwapDWord(CurrentHash[2]);
