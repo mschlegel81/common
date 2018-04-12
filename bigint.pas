@@ -696,7 +696,7 @@ FUNCTION T_bigInt.mult(CONST big: T_bigInt): T_bigInt;
       i,j,k:longint;
       carry:carryType=0;
   begin
-    {$ifndef DEBUGMODE}
+    {$ifndef debugMode}
     if canBeRepresentedAsInt32() then begin
       if big.canBeRepresentedAsInt32()  then begin
         result.fromInt(toInt*big.toInt);
@@ -1012,9 +1012,9 @@ FUNCTION T_bigInt.divMod(CONST divisor: T_bigInt; OUT quotient, rest: T_bigInt):
 
 FUNCTION T_bigInt.divide(CONST divisor: T_bigInt): T_bigInt;
   VAR temp:T_bigInt;
-      {$ifndef DEBUGMODE} intRest:digitType; {$endif}
+      {$ifndef debugMode} intRest:digitType; {$endif}
   begin
-    {$ifndef DEBUGMODE}
+    {$ifndef debugMode}
     if (canBeRepresentedAsInt64() and divisor.canBeRepresentedAsInt64()) then begin
       result.fromInt(toInt div divisor.toInt);
       exit(result);
@@ -1030,9 +1030,9 @@ FUNCTION T_bigInt.divide(CONST divisor: T_bigInt): T_bigInt;
 
 FUNCTION T_bigInt.modulus(CONST divisor: T_bigInt): T_bigInt;
   VAR temp:T_bigInt;
-      {$ifndef DEBUGMODE} intRest:digitType; {$endif}
+      {$ifndef debugMode} intRest:digitType; {$endif}
   begin
-    {$ifndef DEBUGMODE}
+    {$ifndef debugMode}
     if (canBeRepresentedAsInt64() and divisor.canBeRepresentedAsInt64()) then begin
       result.fromInt(toInt mod divisor.toInt);
       exit(result);
@@ -1364,11 +1364,11 @@ FUNCTION T_bigInt.sign: shortint;
 
 FUNCTION T_bigInt.greatestCommonDivider(CONST other: T_bigInt): T_bigInt;
   VAR b,temp:T_bigInt;
-      {$ifndef DEBUGMODE}
+      {$ifndef debugMode}
       x,y,t:int64;
       {$endif}
   begin
-    {$ifndef DEBUGMODE}
+    {$ifndef debugMode}
     if canBeRepresentedAsInt64(false) and other.canBeRepresentedAsInt64(false) then begin
       x:=      toInt;
       y:=other.toInt;
@@ -1395,14 +1395,14 @@ FUNCTION T_bigInt.modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInvers
   VAR r0,r1,
       t0,t1,
       quotient,rest:T_bigInt;
-      {$ifndef DEBUGMODE}
+      {$ifndef debugMode}
       iq,ir0,ir1,tmp:int64;
       it0:int64=0;
       it1:int64=1;
       {$endif}
 
   begin
-    {$ifndef DEBUGMODE}
+    {$ifndef debugMode}
     if canBeRepresentedAsInt64(false) and modul.canBeRepresentedAsInt64(false) then begin
       ir0:=abs(modul.toInt);
       ir1:=abs(      toInt);
@@ -1444,7 +1444,7 @@ FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
       done:boolean=false;
       step:longint=0;
       selfShl16:T_bigInt;
-      {$ifndef DEBUGMODE}intRoot:int64;{$endif}
+      {$ifndef debugMode}intRoot:int64;{$endif}
       floatSqrt:double;
   begin
     if negative or isZero then begin
@@ -1457,7 +1457,7 @@ FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
       result.createZero;
       exit;
     end;
-    {$ifndef DEBUGMODE}
+    {$ifndef debugMode}
     if canBeRepresentedAsInt64 then begin
       intRoot:=trunc(sqrt(toFloat));
       result.fromInt(intRoot);

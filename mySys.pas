@@ -57,7 +57,7 @@ FUNCTION getNumberOfCPUs:longint;
 FUNCTION MemoryUsed: int64;
 {$ifdef Windows}
   PROCEDURE deleteMyselfOnExit;
-  {$ifndef DEBUGMODE}
+  {$ifndef debugMode}
   FUNCTION GetConsoleWindow: HWND; stdcall; external kernel32;
   {$endif}
 {$endif}
@@ -268,7 +268,7 @@ PROCEDURE showConsole;
   begin
     inc(consoleShowing);
     if consoleShowing<1 then consoleShowing:=1;
-    {$ifdef Windows}{$ifndef DEBUGMODE}
+    {$ifdef Windows}{$ifndef debugMode}
     ShowWindow(GetConsoleWindow, SW_SHOW);
     {$endif}{$endif}
   end;
@@ -277,7 +277,7 @@ PROCEDURE hideConsole;
   begin
     dec(consoleShowing);
     if consoleShowing<=0 then begin
-      {$ifdef Windows}{$ifndef DEBUGMODE}
+      {$ifdef Windows}{$ifndef debugMode}
       ShowWindow(GetConsoleWindow, SW_HIDE);
       {$endif}{$endif}
       if consoleShowing<0 then consoleShowing:=0;
