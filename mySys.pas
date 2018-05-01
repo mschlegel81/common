@@ -403,6 +403,10 @@ PROCEDURE T_xosPrng.resetSeed(CONST s:array of byte);
   VAR fullBytes:array[0..15] of byte;
       k:longint;
   begin
+    if length(s)=0 then begin
+      resetSeed(0);
+      exit;
+    end;
     enterCriticalSection(criticalSection);
     for k:=0 to 15 do fullBytes[k]:=0;
     if length(s)<length(fullBytes)
