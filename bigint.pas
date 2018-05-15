@@ -96,6 +96,7 @@ TYPE
       FUNCTION toHexString:string;
       FUNCTION equals(CONST b:T_bigInt):boolean;
       FUNCTION isZero:boolean;
+      FUNCTION isOne:boolean;
 
       FUNCTION isBetween(CONST lowerBoundInclusive,upperBoundInclusive:longint):boolean;
       FUNCTION divideIfRestless(CONST divisor:digitType):boolean;
@@ -1234,6 +1235,11 @@ FUNCTION T_bigInt.equals(CONST b: T_bigInt): boolean;
 FUNCTION T_bigInt.isZero: boolean;
   begin
     result:=digitCount=0;
+  end;
+
+FUNCTION T_bigInt.isOne: boolean;
+  begin
+    result:=(digitCount=1) and not(isNegative) and (digits[0]=1);
   end;
 
 FUNCTION T_bigInt.isBetween(CONST lowerBoundInclusive, upperBoundInclusive: longint): boolean;
