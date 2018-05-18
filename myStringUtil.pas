@@ -984,10 +984,12 @@ FUNCTION typingSimilarity(CONST s1,s2:shortString):longint;
     j:=1;
     i:=1;
     while (i<=length(s1)) and (j<=length(s2)) do begin
-      if                s1[i]=           s2[j]  then begin inc(result,2); inc(i); inc(j); end
-      else if uppercase(s1[i])=uppercase(s2[j]) then begin inc(result  ); inc(i); inc(j); end
+      if                s1[i]=           s2[j]  then begin inc(result,4); inc(i); inc(j); end
+      else if uppercase(s1[i])=uppercase(s2[j]) then begin inc(result,2); inc(i); inc(j); end
       else begin dec(result); inc(j); end;
     end;
+    dec(result,length(s1)+1-i);
+    dec(result,length(s2)+1-i);
   end;
 
 PROCEDURE sortByTypingSimilarity(target:shortString; VAR list:T_arrayOfString);
