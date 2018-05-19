@@ -45,8 +45,8 @@ FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
 FUNCTION tokenSplit(CONST stringToSplit:ansistring; CONST language:string='MNH'):T_arrayOfString;
 FUNCTION anistringInfo(VAR s:ansistring):string;
-FUNCTION typingSimilarity(CONST s1,s2:shortString):longint;
-PROCEDURE sortByTypingSimilarity(target:shortString; VAR list:T_arrayOfString);
+FUNCTION typingSimilarity(CONST s1,s2:shortstring):longint;
+PROCEDURE sortByTypingSimilarity(target:shortstring; VAR list:T_arrayOfString);
 IMPLEMENTATION
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
@@ -541,7 +541,7 @@ FUNCTION join(CONST lines:T_arrayOfString; CONST joiner:ansistring):ansistring;
 
 FUNCTION cleanString(CONST s:ansistring; CONST whiteList:T_charSet; CONST instead:char):ansistring;
   VAR k:longint;
-      tmp:shortString;
+      tmp:shortstring;
   begin
     if length(s)<=255 then begin
       tmp:=s;
@@ -977,22 +977,25 @@ FUNCTION anistringInfo(VAR s:ansistring):string;
        +' '+s;
   end;
 
-FUNCTION typingSimilarity(CONST s1,s2:shortString):longint;
-  VAR i,j:longint;
+FUNCTION typingSimilarity(CONST s1,s2:shortstring):longint;
+  VAR i:longint=1;
+      j:longint=1;
   begin
     result:=0;
-    j:=1;
-    i:=1;
     while (i<=length(s1)) and (j<=length(s2)) do begin
+      //matching character: +4
       if                s1[i]=           s2[j]  then begin inc(result,4); inc(i); inc(j); end
+      //character in wrong case: +2
       else if uppercase(s1[i])=uppercase(s2[j]) then begin inc(result,2); inc(i); inc(j); end
+      //mismatch: -1
       else begin dec(result); inc(j); end;
     end;
+    //mismatches, because s2 is too short
     dec(result,length(s1)+1-i);
-    dec(result,length(s2)+1-i);
+    //Ignore mismatches due to too short s1; we are typing s1
   end;
 
-PROCEDURE sortByTypingSimilarity(target:shortString; VAR list:T_arrayOfString);
+PROCEDURE sortByTypingSimilarity(target:shortstring; VAR list:T_arrayOfString);
   VAR temp1,temp2:array of record similarity:longint; s:string; end;
       scale:longint=1;
       i,j0,j1,k:longint;
@@ -1015,9 +1018,9 @@ PROCEDURE sortByTypingSimilarity(target:shortString; VAR list:T_arrayOfString);
         j1:=i+scale;
         k :=i;
         while (j0<i+scale) and (j1<i+scale+scale) and (j1<length(list)) do begin
-          if temp1[j0].similarity>=temp1[j1].similarity
-            then begin temp2[k]:=temp1[j0]; inc(k); inc(j0); end
-            else begin temp2[k]:=temp1[j1]; inc(k); inc(j1); end;
+          if (temp1[j0].similarity>=temp1[j1].similarity)
+          then begin temp2[k]:=temp1[j0]; inc(k); inc(j0); end
+          else begin temp2[k]:=temp1[j1]; inc(k); inc(j1); end;
         end;
         while (j0<i+scale)       and (j0<length(list)) do begin temp2[k]:=temp1[j0]; inc(k); inc(j0); end;
         while (j1<i+scale+scale) and (j1<length(list)) do begin temp2[k]:=temp1[j1]; inc(k); inc(j1); end;
@@ -1035,9 +1038,9 @@ PROCEDURE sortByTypingSimilarity(target:shortString; VAR list:T_arrayOfString);
           j1:=i+scale;
           k :=i;
           while (j0<i+scale) and (j1<i+scale+scale) and (j1<length(list)) do begin
-            if temp2[j0].similarity>=temp2[j1].similarity
-              then begin temp1[k]:=temp2[j0]; inc(k); inc(j0); end
-              else begin temp1[k]:=temp2[j1]; inc(k); inc(j1); end;
+            if (temp2[j0].similarity>=temp2[j1].similarity)
+            then begin temp1[k]:=temp2[j0]; inc(k); inc(j0); end
+            else begin temp1[k]:=temp2[j1]; inc(k); inc(j1); end;
           end;
           while (j0<i+scale)       and (j0<length(list)) do begin temp1[k]:=temp2[j0]; inc(k); inc(j0); end;
           while (j1<i+scale+scale) and (j1<length(list)) do begin temp1[k]:=temp2[j1]; inc(k); inc(j1); end;
