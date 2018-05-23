@@ -443,10 +443,11 @@ FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_b
 
 FUNCTION T_bigInt.toInt: int64;
   begin
-    result:=0;
-    if digitCount>0 then result:=         digits[0];
-    if digitCount>1 then inc(result,int64(digits[1]) shl (BITS_PER_DIGIT  ));
-    if negative then result:=-result;
+    if digitCount>0 then begin
+      result:=digits[0];
+      if digitCount>1 then inc(result,int64(digits[1]) shl BITS_PER_DIGIT);
+      if negative then result:=-result;
+    end else result:=0;
   end;
 
 FUNCTION T_bigInt.toFloat: extended;
