@@ -103,10 +103,11 @@ TYPE
 
       PROCEDURE writeToStream(CONST stream:P_outputStreamWrapper);
       CONSTRUCTOR readFromStream(CONST stream:P_inputStreamWrapper);
-
+      CONSTRUCTOR readFromStream(CONST markerByte:byte; CONST stream:P_inputStreamWrapper);
       FUNCTION lowDigit:digitType;
       FUNCTION sign:shortint;
       FUNCTION greatestCommonDivider(CONST other:T_bigInt):T_bigInt;
+      FUNCTION greatestCommonDivider(CONST other:int64):int64;
       FUNCTION modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInverse:boolean):T_bigInt;
       FUNCTION iSqrt(OUT isSquare:boolean):T_bigInt;
       FUNCTION iLog2(OUT isPowerOfTwo:boolean):longint;
@@ -126,6 +127,19 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
 FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
 FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
 FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_bigInt;
+{For compatibility with constructor T_bigInt.readFromStream}
+FUNCTION readLongintFromStream(CONST markerByte:byte; CONST stream:P_inputStreamWrapper):longint;
+PROCEDURE writeLongintToStream(CONST value:longint; CONST stream:P_outputStreamWrapper);
+
+FUNCTION plus   (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+FUNCTION minus  (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+FUNCTION minus  (CONST x:int64; CONST y:T_bigInt):T_bigInt;
+FUNCTION mult   (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+FUNCTION divide (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+FUNCTION divide (CONST x:int64; CONST y:T_bigInt):T_bigInt;
+FUNCTION modulus(CONST x:T_bigInt; CONST y:int64):T_bigInt;
+FUNCTION modulus(CONST x:int64; CONST y:T_bigInt):T_bigInt;
+
 IMPLEMENTATION
 FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigInt):T_bigInt;
   VAR k:longint;
@@ -153,6 +167,70 @@ FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclus
     for k:=0 to temp.digitCount-1 do temp.digits[k]:=randomSource();
     result:=temp.modulus(maxValExclusive);
     temp.destroy;
+  end;
+
+FUNCTION plus   (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+  VAR bigY:T_bigInt;
+  begin
+    bigY.fromInt(y);
+    result:=x.plus(bigY);
+    bigY.destroy;
+  end;
+
+FUNCTION minus  (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+  VAR bigY:T_bigInt;
+  begin
+    bigY.fromInt(y);
+    result:=x.minus(bigY);
+    bigY.destroy;
+  end;
+
+FUNCTION minus  (CONST x:int64; CONST y:T_bigInt):T_bigInt;
+  VAR bigX:T_bigInt;
+  begin
+    bigX.fromInt(x);
+    result:=bigX.minus(y);
+    bigX.destroy;
+  end;
+
+FUNCTION mult   (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+  VAR bigY:T_bigInt;
+  begin
+    bigY.fromInt(y);
+    result:=x.mult(bigY);
+    bigY.destroy;
+  end;
+
+FUNCTION divide (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+  VAR bigY:T_bigInt;
+  begin
+    bigY.fromInt(y);
+    result:=x.divide(bigY);
+    bigY.destroy;
+  end;
+
+FUNCTION divide (CONST x:int64; CONST y:T_bigInt):T_bigInt;
+  VAR bigX:T_bigInt;
+  begin
+    bigX.fromInt(x);
+    result:=bigX.divide(y);
+    bigX.destroy;
+  end;
+
+FUNCTION modulus(CONST x:T_bigInt; CONST y:int64):T_bigInt;
+  VAR bigY:T_bigInt;
+  begin
+    bigY.fromInt(y);
+    result:=x.modulus(bigY);
+    bigY.destroy;
+  end;
+
+FUNCTION modulus(CONST x:int64; CONST y:T_bigInt):T_bigInt;
+  VAR bigX:T_bigInt;
+  begin
+    bigX.fromInt(x);
+    result:=bigX.modulus(y);
+    bigX.destroy;
   end;
 
 PROCEDURE rawDataPlus(CONST xDigits:pDigitType; CONST xDigitCount:longint;
@@ -1339,11 +1417,28 @@ PROCEDURE T_bigInt.writeToStream(CONST stream: P_outputStreamWrapper);
     end;
   end;
 
-CONSTRUCTOR T_bigInt.readFromStream(CONST stream: P_inputStreamWrapper);
-  VAR markerByte:byte;
-      k:longint;
+FUNCTION readLongintFromStream(CONST markerByte:byte; CONST stream:P_inputStreamWrapper):longint;
   begin
-    markerByte:=stream^.readByte;
+    case markerByte of
+      253..255: raise Exception.create('Could not read longint from stream; the number is too big.');
+      252: result:=stream^.readLongint;
+      251: result:=stream^.readSmallInt;
+      250: result:=stream^.readShortint;
+      else result:=markerByte;
+    end;
+  end;
+
+PROCEDURE writeLongintToStream(CONST value:longint; CONST stream:P_outputStreamWrapper);
+  begin
+    if      (value>=          0) and (value<=       249) then       stream^.writeByte(value)
+    else if (value>=       -128) and (value<=       127) then begin stream^.writeByte(250); stream^.writeShortint(value); end
+    else if (value>=     -32768) and (value<=     32767) then begin stream^.writeByte(251); stream^.writeSmallInt(value); end
+    else                                                      begin stream^.writeByte(252); stream^.writeLongint (value); end;
+  end;
+
+CONSTRUCTOR T_bigInt.readFromStream(CONST markerByte:byte; CONST stream:P_inputStreamWrapper);
+  VAR k:longint;
+  begin
     case markerByte of
       254,255: begin
         negative:=odd(markerByte);
@@ -1359,6 +1454,11 @@ CONSTRUCTOR T_bigInt.readFromStream(CONST stream: P_inputStreamWrapper);
     end;
   end;
 
+CONSTRUCTOR T_bigInt.readFromStream(CONST stream: P_inputStreamWrapper);
+  begin
+    readFromStream(stream^.readByte,stream);
+  end;
+
 FUNCTION T_bigInt.lowDigit: digitType;
   begin
     if digitCount=0 then exit(0) else exit(digits[0]);
@@ -1371,11 +1471,8 @@ FUNCTION T_bigInt.sign: shortint;
 
 FUNCTION T_bigInt.greatestCommonDivider(CONST other: T_bigInt): T_bigInt;
   VAR b,temp:T_bigInt;
-      {$ifndef debugMode}
       x,y,t:int64;
-      {$endif}
   begin
-    {$ifndef debugMode}
     if canBeRepresentedAsInt64(false) and other.canBeRepresentedAsInt64(false) then begin
       x:=      toInt;
       y:=other.toInt;
@@ -1383,9 +1480,7 @@ FUNCTION T_bigInt.greatestCommonDivider(CONST other: T_bigInt): T_bigInt;
         t:=x mod y; x:=y; y:=t;
       end;
       result.fromInt(x);
-    end else
-    {$endif}
-    begin
+    end else begin
       result.create(self);
       b.create(other);
       while not(b.isZero) do begin
@@ -1395,6 +1490,25 @@ FUNCTION T_bigInt.greatestCommonDivider(CONST other: T_bigInt): T_bigInt;
         b:=temp;
       end;
       b.destroy;
+    end;
+  end;
+
+FUNCTION T_bigInt.greatestCommonDivider(CONST other:int64):int64;
+  VAR y,t:int64;
+      tempO,tempR:T_bigInt;
+  begin
+    if canBeRepresentedAsInt64(false) then begin
+      result:=toInt;
+      y:=other;
+      while (y<>0) do begin
+        t:=result mod y; result:=y; y:=t;
+      end;
+    end else begin
+      tempO.fromInt(other);
+      tempR:=greatestCommonDivider(tempO);
+      tempO.destroy;
+      result:=tempR.toInt;
+      tempR.destroy;
     end;
   end;
 
