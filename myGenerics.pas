@@ -342,8 +342,6 @@ FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; inline;
     {$Q+}{$R+}
   end;
 
-{ G_instanceRegistry }
-
 CONSTRUCTOR G_instanceRegistry.create;
   begin
     initCriticalSection(cs);

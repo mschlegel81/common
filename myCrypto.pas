@@ -76,7 +76,9 @@ PROCEDURE T_ISAAC.setSeed(CONST seed:int64);
     s:=seed;
     for i:=0 to 255 do begin
       randrsl[i]:=s and 255;
+      {$R-}{$Q-}
       s:=((s*31) shr 1) xor s;
+      {$R+}{$Q+}
     end;
     iRandInit;
   end;
