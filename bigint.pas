@@ -37,7 +37,6 @@ TYPE
       digitCount:longint;
       digits:pDigitType;
       CONSTRUCTOR createFromRawData(CONST negative_:boolean; CONST digitCount_:longint; CONST digits_:pDigitType);
-      CONSTRUCTOR createWithAllTrueBits(CONST numberOfBits:longint);
       PROCEDURE nullBits(CONST numberOfBitsToKeep:longint);
 
       PROCEDURE shlInc(CONST incFirstBit:boolean);
@@ -84,9 +83,12 @@ TYPE
       FUNCTION mult (CONST big:T_bigInt):T_bigInt;
       FUNCTION pow  (power:dword ):T_bigInt;
       FUNCTION powMod(CONST power,modul:T_bigInt):T_bigInt;
-      FUNCTION bitAnd(CONST big:T_bigInt; CONST consideredBits:longint):T_bigInt;
-      FUNCTION bitOr (CONST big:T_bigInt; CONST consideredBits:longint):T_bigInt;
-      FUNCTION bitXor(CONST big:T_bigInt; CONST consideredBits:longint):T_bigInt;
+      FUNCTION bitAnd(CONST big:T_bigInt):T_bigInt;
+      FUNCTION bitAnd(CONST small:int64 ):T_bigInt;
+      FUNCTION bitOr (CONST big:T_bigInt):T_bigInt;
+      FUNCTION bitOr (CONST small:int64 ):T_bigInt;
+      FUNCTION bitXor(CONST big:T_bigInt):T_bigInt;
+      FUNCTION bitXor(CONST small:int64 ):T_bigInt;
       FUNCTION bitNegate(CONST consideredBits:longint):T_bigInt;
       {returns true on success, false on division by zero}
       FUNCTION divMod(CONST divisor:T_bigInt; OUT quotient,rest:T_bigInt):boolean;
@@ -303,16 +305,6 @@ CONSTRUCTOR T_bigInt.createFromRawData(CONST negative_: boolean; CONST digitCoun
     negative  :=negative_ and (digitCount_>0); //no such thing as a negative zero
     digitCount:=digitCount_;
     digits    :=digits_;
-  end;
-
-CONSTRUCTOR T_bigInt.createWithAllTrueBits(CONST numberOfBits:longint);
-  VAR i:longint;
-  begin
-    digitCount:=numberOfBits div BITS_PER_DIGIT;
-    if digitCount*BITS_PER_DIGIT<numberOfBits then inc(digitCount);
-    getMem(digits,digitCount*sizeOf(digitType));
-    for i:=0 to digitCount-1 do digits[i]:=DIGIT_MAX_VALUE;
-    negative:=false;
   end;
 
 PROCEDURE T_bigInt.nullBits(CONST numberOfBitsToKeep:longint);
@@ -894,54 +886,51 @@ FUNCTION T_bigInt.powMod(CONST power,modul:T_bigInt):T_bigInt;
     f.destroy;
   end;
 
-FUNCTION T_bigInt.bitAnd(CONST big: T_bigInt; CONST consideredBits:longint): T_bigInt;
+FUNCTION T_bigInt.bitAnd(CONST big: T_bigInt): T_bigInt;
   VAR k,i:longint;
   begin
-    if consideredBits<=0 then k:=max(relevantBits,big.relevantBits)
-                         else k:=consideredBits;
-    result.createWithAllTrueBits(k);
-    for i:=0 to result.digitCount-1 do begin
-      if (i>=big.digitCount) or (i>=digitCount)
-      then result.digits[i]:=0
-      else result.digits[i]:=digits[i] and big.digits[i];
-    end;
-    result.nullBits(k);
+    k:=min(digitCount,big.digitCount);
+    result.create(isNegative and big.isNegative,k);
+    for i:=0 to result.digitCount-1 do result.digits[i]:=digits[i] and big.digits[i];
+    trimLeadingZeros(result.digitCount,result.digits);
   end;
 
-FUNCTION T_bigInt.bitOr(CONST big: T_bigInt; CONST consideredBits:longint): T_bigInt;
+FUNCTION T_bigInt.bitOr(CONST big: T_bigInt): T_bigInt;
   VAR k,i:longint;
   begin
-    if consideredBits<=0 then k:=max(relevantBits,big.relevantBits)
-                         else k:=consideredBits;
-    result.createWithAllTrueBits(k);
+    k:=max(digitCount,big.digitCount);
+    result.create(isNegative or big.isNegative,k);
     for i:=0 to result.digitCount-1 do begin
       if (i<    digitCount) then result.digits[i]:=digits[i]
                             else result.digits[i]:=0;
       if (i<big.digitCount) then result.digits[i]:=result.digits[i] or big.digits[i];
     end;
-    result.nullBits(k);
+    trimLeadingZeros(result.digitCount,result.digits);
   end;
 
-FUNCTION T_bigInt.bitXor(CONST big: T_bigInt; CONST consideredBits:longint): T_bigInt;
+FUNCTION T_bigInt.bitXor(CONST big: T_bigInt): T_bigInt;
   VAR k,i:longint;
   begin
-    if consideredBits<=0 then k:=max(relevantBits,big.relevantBits)
-                         else k:=consideredBits;
-    result.createWithAllTrueBits(k);
+    k:=max(digitCount,big.digitCount);
+    result.create(isNegative xor big.isNegative,k);
     for i:=0 to result.digitCount-1 do begin
       if (i<    digitCount) then result.digits[i]:=digits[i]
                             else result.digits[i]:=0;
       if (i<big.digitCount) then result.digits[i]:=result.digits[i] xor big.digits[i];
     end;
-    result.nullBits(k);
+    trimLeadingZeros(result.digitCount,result.digits);
   end;
+
+FUNCTION T_bigInt.bitAnd(CONST small:int64): T_bigInt; VAR big:T_bigInt; begin big.fromInt(small); result:=bitAnd(big); big.destroy; end;
+FUNCTION T_bigInt.bitOr (CONST small:int64): T_bigInt; VAR big:T_bigInt; begin big.fromInt(small); result:=bitOr (big); big.destroy; end;
+FUNCTION T_bigInt.bitXor(CONST small:int64): T_bigInt; VAR big:T_bigInt; begin big.fromInt(small); result:=bitXor(big); big.destroy; end;
 
 FUNCTION T_bigInt.bitNegate(CONST consideredBits:longint):T_bigInt;
   VAR k,i:longint;
   begin
     if consideredBits<=0 then k:=relevantBits
                          else k:=consideredBits;
-    result.createWithAllTrueBits(k);
+    result.create(false,digitCount);
     for i:=0 to min(digitCount,result.digitCount)-1 do result.digits[i]:=not(digits[i]);
     result.nullBits(k);
   end;
