@@ -125,6 +125,7 @@ TYPE
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
+FUNCTION factorizeSmall(n:int64):T_arrayOfLongint;
 FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
 FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
 FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
@@ -1645,40 +1646,44 @@ FUNCTION T_bigInt.getRawBytes: T_arrayOfByte;
     end;
   end;
 
-FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
-  CONST primes:array[0..144] of word=(3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839);
-  CONST skip:array[0..47] of byte=(10,2,4,2,4,6,2,6,4,2,4,6,6,2,6,4,2,6,4,6,8,4,2,4,2,4,8,6,4,6,2,4,6,2,6,6,4,2,4,6,2,6,4,2,4,2,10,2);
-  FUNCTION factorizeSmall(n:int64):T_arrayOfLongint;
-    VAR p:longint;
-        skipIdx:longint=0;
-    begin
-      setLength(result,0);
-      while (n>0) and not(odd(n)) do begin
-        n:=n shr 1;
-        append(result,2);
-      end;
-      for p in primes do begin
-        if (int64(p)*p>n) then begin
-          if n>1 then append(result,n);
-          exit;
-        end;
-        while n mod p=0 do begin
-          n:=n div p;
-          append(result,p);
-        end;
-      end;
-      p:=primes[length(primes)-1]+skip[length(skip)-1]; //=841
-      while int64(p)*p<=n do begin
-        while n mod p=0 do begin
-          n:=n div p;
-          append(result,p);
-        end;
-        inc(p,skip[skipIdx]);
-        skipIdx:=(skipIdx+1) mod length(skip);
-      end;
-      if n>1 then append(result,n);
+CONST primes:array[0..144] of word=(3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839);
+CONST skip:array[0..47] of byte=(10,2,4,2,4,6,2,6,4,2,4,6,6,2,6,4,2,6,4,6,8,4,2,4,2,4,8,6,4,6,2,4,6,2,6,6,4,2,4,6,2,6,4,2,4,2,10,2);
+FUNCTION factorizeSmall(n:int64):T_arrayOfLongint;
+  VAR p:longint;
+      skipIdx:longint=0;
+  begin
+    setLength(result,0);
+    if n<0 then begin
+      n:=-n;
+      append(result,-1);
     end;
+    while (n>0) and not(odd(n)) do begin
+      n:=n shr 1;
+      append(result,2);
+    end;
+    for p in primes do begin
+      if (int64(p)*p>n) then begin
+        if n>1 then append(result,n);
+        exit;
+      end;
+      while n mod p=0 do begin
+        n:=n div p;
+        append(result,p);
+      end;
+    end;
+    p:=primes[length(primes)-1]+skip[length(skip)-1]; //=841
+    while int64(p)*p<=n do begin
+      while n mod p=0 do begin
+        n:=n div p;
+        append(result,p);
+      end;
+      inc(p,skip[skipIdx]);
+      skipIdx:=(skipIdx+1) mod length(skip);
+    end;
+    if n>1 then append(result,n);
+  end;
 
+FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
   FUNCTION basicFactorize(VAR inputAndRest:T_bigInt; OUT furtherFactorsPossible:boolean):T_factorizationResult;
     VAR workInInt64:boolean=false;
         n:int64=9223358842721533952; //to simplify conditions
@@ -1854,15 +1859,15 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       exit;
     end;
     r.create(B);
-    if r.negative then begin
-      setLength(result.smallFactors,1);
-      result.smallFactors[0]:=-1;
-      r.negative:=false;
-    end;
     if r.canBeRepresentedAsInt32 then begin
       result.smallFactors:=factorizeSmall(r.toInt);
       r.destroy;
       exit;
+      if r.negative then begin
+        setLength(result.smallFactors,1);
+        result.smallFactors[0]:=-1;
+        r.negative:=false;
+      end;
     end else begin
       result:=basicFactorize(r,furtherFactorsPossible);
       if not(furtherFactorsPossible) then begin
