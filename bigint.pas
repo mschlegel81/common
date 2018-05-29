@@ -1656,6 +1656,11 @@ FUNCTION factorizeSmall(n:int64):T_arrayOfLongint;
     if n<0 then begin
       n:=-n;
       append(result,-1);
+      if n=1 then exit(result);
+    end;
+    if n=1 then begin
+      append(result,1);
+      exit(result);
     end;
     while (n>0) and not(odd(n)) do begin
       n:=n shr 1;
