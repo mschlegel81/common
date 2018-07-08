@@ -56,6 +56,7 @@ TYPE
       CONSTRUCTOR create(CONST rebalanceFactor:double; CONST disposer_:VALUE_DISPOSER=nil);
       CONSTRUCTOR create(CONST disposer_:VALUE_DISPOSER=nil);
       CONSTRUCTOR createClone(VAR map:MY_TYPE);
+      PROCEDURE overrideDisposer(CONST newDisposer:VALUE_DISPOSER);
       DESTRUCTOR destroy;
       FUNCTION containsKey(CONST key:M_KEY_TYPE; OUT value:VALUE_TYPE):boolean;
       FUNCTION containsKey(CONST key:M_KEY_TYPE):boolean;
@@ -666,6 +667,13 @@ CONSTRUCTOR M_MAP_TYPE.createClone(VAR map:MY_TYPE);
       for j:=0 to length(bucket[i])-1 do bucket[i,j]:=map.bucket[i,j];
     end;
     entryCount:=map.entryCount;
+  end;
+
+PROCEDURE M_MAP_TYPE.overrideDisposer(CONST newDisposer:VALUE_DISPOSER);
+  begin
+    system.enterCriticalSection(cs);
+    disposer:=newDisposer;
+    system.leaveCriticalSection(cs);
   end;
 
 DESTRUCTOR M_MAP_TYPE.destroy;
