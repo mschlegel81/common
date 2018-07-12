@@ -54,7 +54,6 @@ PROCEDURE clearConsole;
 FUNCTION containsPlaceholder(CONST S:string):boolean;
 FUNCTION findFileInfo(CONST pathOrPattern:string):T_fileInfoArray;
 FUNCTION getNumberOfCPUs:longint;
-FUNCTION MemoryUsed: int64;
 {$ifdef Windows}
   PROCEDURE deleteMyselfOnExit;
   {$ifndef debugMode}
@@ -66,6 +65,8 @@ PROCEDURE hideConsole;
 FUNCTION isConsoleShowing:boolean;
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
+FUNCTION isMemoryInComfortZone:boolean;
+VAR memoryComfortThreshold:ptrint={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
 
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
@@ -252,11 +253,6 @@ FUNCTION findFileInfo(CONST pathOrPattern:string):T_fileInfoArray;
      end;
      sysutils.findClose(info);
    end;
-
-FUNCTION MemoryUsed: int64;
-  begin
-    result:=GetHeapStatus.TotalAllocated;
-  end;
 
 VAR consoleShowing:longint=1;
 FUNCTION isConsoleShowing:boolean;
@@ -451,7 +447,64 @@ FUNCTION T_xosPrng.dwordRandom:dword;
     leaveCriticalSection(criticalSection);
   end;
 
+VAR memCheckThreadsRunning:longint=0;
+    memCheckKillRequests:longint=0;
+    MemoryUsed:ptrint=0;
+FUNCTION memCheckThread(p:pointer):ptrint;
+  VAR param:T_arrayOfString;
+      output: TStringList;
+      i:longint;
+      tempMem:ptrint;
+  begin
+    while (memCheckKillRequests<=0) and (memCheckThreadsRunning=1) do begin
+      {$ifdef UNIX}
+        //ps o vsize -p 5910
+        param:='o';
+        append(param,'vsize');
+        append(param,'-p');
+        append(param,intToStr(GetProcessID));
+        runCommand('ps',param,output);
+      {$else}
+        //wmic process where ProcessId="2400" get workingsetsize
+        param:='process';
+        append(param,'where');
+        append(param,'ProcessId="'+intToStr(GetProcessID)+'"');
+        append(param,'get');
+        append(param,'workingsetsize');
+        runCommand('wmic',param,output);
+      {$endif}
+      tempMem:=-1;
+      for i:=0 to output.count-1 do if tempMem<0 then tempMem:=strToIntDef(trim(output[i]),-1);
+      if tempMem<0 then MemoryUsed:=GetHeapStatus.TotalAllocated
+                   else MemoryUsed:=tempMem;
+      output.destroy;
+      if (memCheckKillRequests=0) and (MemoryUsed<memoryComfortThreshold) then begin
+        sleep(1000);
+        ThreadSwitch;
+      end;
+    end;
+    interlockedDecrement(memCheckThreadsRunning);
+    interlockedDecrement(memCheckKillRequests);
+    result:=0;
+  end;
+
+FUNCTION isMemoryInComfortZone:boolean;
+  begin
+    if (memCheckThreadsRunning<=0) then begin
+      MemoryUsed:=-1;
+      interLockedIncrement(memCheckThreadsRunning);
+      beginThread(@memCheckThread);
+      while MemoryUsed<0 do ThreadSwitch;
+    end;
+    result:=MemoryUsed<memoryComfortThreshold;
+  end;
+
 FINALIZATION
+  while memCheckThreadsRunning<0 do begin
+    interLockedIncrement(memCheckKillRequests);
+    ThreadSwitch;
+    sleep(10);
+  end;
   if clearConsoleProcess<>nil then clearConsoleProcess.destroy;
 
 end.
