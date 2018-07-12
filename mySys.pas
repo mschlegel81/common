@@ -66,7 +66,7 @@ FUNCTION isConsoleShowing:boolean;
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 FUNCTION isMemoryInComfortZone:boolean;
-VAR memoryComfortThreshold:ptrint={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
+VAR memoryComfortThreshold:int64={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
 
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
