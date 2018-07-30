@@ -145,48 +145,56 @@ FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
     sysutils.findClose(info);
   end;
 
-FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString; OUT output: TStringList): boolean;
+FUNCTION runProcess(CONST Process:TProcess; OUT output: TStringList): boolean;
   CONST
     READ_BYTES = 2048;
   VAR
     memStream: TMemoryStream;
-    tempProcess: TProcess;
     n: longint;
     BytesRead: longint;
     sleepTime: longint = 1;
   begin
     memStream := TMemoryStream.create;
     BytesRead := 0;
+    Process.options := [poUsePipes, poStderrToOutPut];
+    Process.ShowWindow := swoHIDE;
+    try
+      Process.execute;
+      Process.CloseInput;
+      while Process.running do begin
+        memStream.SetSize(BytesRead+READ_BYTES);
+        n := Process.output.read((memStream.memory+BytesRead)^, READ_BYTES);
+        if n>0 then begin sleepTime:=1; inc(BytesRead, n); end
+               else begin inc(sleepTime); sleep(sleepTime); end;
+      end;
+      if Process.running then Process.Terminate(999);
+      repeat
+        memStream.SetSize(BytesRead+READ_BYTES);
+        n := Process.output.read((memStream.memory+BytesRead)^, READ_BYTES);
+        if n>0 then inc(BytesRead, n);
+      until n<=0;
+      result := (Process.exitStatus = 0);
+    except
+      result := false;
+    end;
+    memStream.SetSize(BytesRead);
+    output := TStringList.create;
+    output.loadFromStream(memStream);
+    memStream.free;
+  end;
+
+FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString; OUT output: TStringList): boolean;
+  VAR tempProcess: TProcess;
+      n:longint;
+  begin
     tempProcess := TProcess.create(nil);
     tempProcess.executable := UTF8ToWinCP(executable);
     for n := 0 to length(parameters)-1 do
       tempProcess.parameters.add(UTF8ToWinCP(parameters[n]));
     tempProcess.options := [poUsePipes, poStderrToOutPut];
     tempProcess.ShowWindow := swoHIDE;
-    try
-      tempProcess.execute;
-      tempProcess.CloseInput;
-      while tempProcess.running do begin
-        memStream.SetSize(BytesRead+READ_BYTES);
-        n := tempProcess.output.read((memStream.memory+BytesRead)^, READ_BYTES);
-        if n>0 then begin sleepTime:=1; inc(BytesRead, n); end
-               else begin inc(sleepTime); sleep(sleepTime); end;
-      end;
-      if tempProcess.running then tempProcess.Terminate(999);
-      repeat
-        memStream.SetSize(BytesRead+READ_BYTES);
-        n := tempProcess.output.read((memStream.memory+BytesRead)^, READ_BYTES);
-        if n>0 then inc(BytesRead, n);
-      until n<=0;
-      result := (tempProcess.exitStatus = 0);
-    except
-      result := false;
-    end;
+    result:=runProcess(tempProcess,output);
     tempProcess.free;
-    memStream.SetSize(BytesRead);
-    output := TStringList.create;
-    output.loadFromStream(memStream);
-    memStream.free;
   end;
 
 VAR clearConsoleProcess:TProcess=nil;
@@ -452,27 +460,28 @@ VAR memCheckThreadsRunning:longint=0;
     MemoryUsed:ptrint=0;
 FUNCTION memCheckThread(p:pointer):ptrint;
   VAR param:T_arrayOfString;
+      Process:TProcess;
       output: TStringList;
       i:longint;
       tempMem:ptrint;
   begin
+    Process:=TProcess.create(nil);
+    {$ifdef UNIX}
+      Process.executable:='ps';
+      Process.parameters.add('o');
+      Process.parameters.add('vsize');
+      Process.parameters.add('-p');
+      Process.parameters.add(intToStr(GetProcessID));
+    {$else}
+      Process.executable:='wmic';
+      Process.parameters.add('process');
+      Process.parameters.add('where');
+      Process.parameters.add('ProcessId="'+intToStr(GetProcessID)+'"');
+      Process.parameters.add('get');
+      Process.parameters.add('workingsetsize');
+    {$endif}
     while (memCheckKillRequests<=0) and (memCheckThreadsRunning=1) do begin
-      {$ifdef UNIX}
-        //ps o vsize -p 5910
-        param:='o';
-        append(param,'vsize');
-        append(param,'-p');
-        append(param,intToStr(GetProcessID));
-        runCommand('ps',param,output);
-      {$else}
-        //wmic process where ProcessId="2400" get workingsetsize
-        param:='process';
-        append(param,'where');
-        append(param,'ProcessId="'+intToStr(GetProcessID)+'"');
-        append(param,'get');
-        append(param,'workingsetsize');
-        runCommand('wmic',param,output);
-      {$endif}
+      runProcess(Process,output);
       tempMem:=-1;
       for i:=0 to output.count-1 do if tempMem<0 then tempMem:=strToIntDef(trim(output[i]),-1);
       if tempMem<0 then MemoryUsed:=GetHeapStatus.TotalAllocated
@@ -483,12 +492,13 @@ FUNCTION memCheckThread(p:pointer):ptrint;
         ThreadSwitch;
       end;
     end;
+    Process.destroy;
     interlockedDecrement(memCheckThreadsRunning);
     interlockedDecrement(memCheckKillRequests);
     result:=0;
   end;
 
-FUNCTION isMemoryInComfortZone:boolean;
+FUNCTION isMemoryInComfortZone:boolean; inline;
   begin
     if (memCheckThreadsRunning<=0) then begin
       MemoryUsed:=-1;
