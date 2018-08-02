@@ -1980,12 +1980,13 @@ FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
   CONST pr:array[0..41] of byte=(3,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251);
   VAR a:byte;
   begin
-    if n.negative then exit(false);
+    if n.negative or n.isZero then exit(false);
     relBits:=n.relevantBits;
     if n.canBeRepresentedAsInt32() then begin
       nAsInt:=n.toInt;
       if (nAsInt    =2)   or (nAsInt    =3  ) or (nAsInt    =5  ) or (nAsInt    =7  ) then exit(true);
-      if (nAsInt mod 2=0) or (nAsInt mod 3=0) or (nAsInt mod 5=0) or (nAsInt mod 7=0) then exit(false);
+      if (nAsInt    =1) or
+         (nAsInt mod 2=0) or (nAsInt mod 3=0) or (nAsInt mod 5=0) or (nAsInt mod 7=0) then exit(false);
       if nAsInt<1373653 then exit(mrt(2)  and mrt(3));
       if nAsInt<9080191 then exit(mrt(31) and mrt(37));
       exit(mrt(2) and mrt(7) and mrt(61));
