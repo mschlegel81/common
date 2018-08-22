@@ -12,6 +12,8 @@ CONST
   C_tabChar = #9;
   C_invisibleTabChar = #11;
   C_formFeedChar = #12;
+  C_shiftOutChar=#14;
+  C_shiftInChar =#15;
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:T_charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
 
@@ -51,7 +53,7 @@ IMPLEMENTATION
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
   TYPE TcellInfo=record
-    numeric:boolean;
+    cellType:(ctLeftAlignedString,ctRightAlignedString,ctNumeric);
     posOfDot,txtLength:longint;
     txt:ansistring;
   end;
@@ -86,9 +88,17 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
       with result do begin
         txt:=s;
         txtLength:=UTF8Length(txt);
-        numeric:=isNumeric(txt);
-        if numeric then posOfDot:=findDot(s)
-                   else posOfDot:=txtLength+1;
+        if isNumeric(txt) then begin
+          cellType:=ctNumeric;
+          posOfDot:=findDot(s);
+        end else begin
+          posOfDot:=txtLength+1;
+          if (length(txt)>=1) and (txt[1]=C_shiftInChar) then begin
+            dec(txtLength);
+            txt:=copy(txt,2,length(txt)-1);
+            cellType:=ctRightAlignedString;
+          end else cellType:=ctLeftAlignedString;
+        end;
       end;
     end;
 
@@ -144,15 +154,19 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
     for j:=0 to maxJ do begin
       //Align numeric cells at decimal point
       dotPos:=0;
-      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (matrix[i][j].numeric) and (matrix[i][j].posOfDot>dotPos) then dotPos:=matrix[i][j].posOfDot;
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (matrix[i][j].cellType=ctNumeric) and (matrix[i][j].posOfDot>dotPos) then dotPos:=matrix[i][j].posOfDot;
       if dotPos>0 then
-      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (matrix[i][j].numeric) then padLeft(matrix[i][j],dotPos);
+      for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (matrix[i][j].cellType=ctNumeric) then padLeft(matrix[i][j],dotPos);
       //Expand cells to equal width
       if j<maxJ then begin //skip last column 'cause it will be trimmed right anyway
         maxLength:=0;
         for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) and (matrix[i][j].txtLength>maxLength) then maxLength:=matrix[i][j].txtLength;
         if not(anyInvisibleTab) then inc(maxLength);
-        for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) then padRight(matrix[i][j],maxLength);
+        for i:=0 to length(matrix)-1 do if (length(matrix[i])>j) then begin
+          if matrix[i][j].cellType=ctRightAlignedString
+          then padLeft (matrix[i][j],maxLength+1);
+          padRight(matrix[i][j],maxLength);
+        end;
       end;
     end;
     //join matrix to result;
