@@ -10,6 +10,7 @@ CONST
   C_lineBreakChar = #10;
   C_carriageReturnChar = #13;
   C_tabChar = #9;
+  C_backspaceChar = #8;
   C_invisibleTabChar = #11;
   C_formFeedChar = #12;
   C_shiftOutChar=#14;
@@ -251,8 +252,16 @@ FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT 
   end;
 
 FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle): ansistring;
-  CONST javaEscapes:array[0..7,0..1] of char=(('\','\'),(#8 ,'b'),(#9 ,'t'),(#10,'n'),(#11,'v'),(#12,'f'),(#13,'r'),('"','"'));
-        javaEscapable:T_charSet=[#8,#9,#10,#11,#12,#13];
+  CONST javaEscapes:array[0..9,0..1] of char=(('\','\'),(C_backspaceChar ,'b'),
+                                              (C_tabChar ,'t'),
+                                              (C_lineBreakChar,'n'),
+                                              (C_invisibleTabChar,'v'),
+                                              (C_formFeedChar,'f'),
+                                              (C_carriageReturnChar,'r'),
+                                              (C_shiftInChar,'i'),
+                                              (C_shiftOutChar,'o'),
+                                              ('"','"'));
+        javaEscapable:T_charSet=[C_backspaceChar,C_tabChar,C_lineBreakChar,C_invisibleTabChar,C_formFeedChar,C_carriageReturnChar,C_shiftInChar,C_shiftOutChar];
   FUNCTION containsJavaEscapable:boolean;
     VAR c:char;
     begin
