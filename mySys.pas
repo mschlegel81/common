@@ -46,6 +46,19 @@ TYPE
       FUNCTION dwordRandom:dword;
   end;
 
+  F_cleanupCallback=PROCEDURE;
+
+  T_memoryCleaner=object
+    private
+      cleanerCs:TRTLCriticalSection;
+      methods:array of F_cleanupCallback;
+      CONSTRUCTOR create;
+      DESTRUCTOR destroy;
+    public
+      PROCEDURE registerCleanupMethod(CONST m:F_cleanupCallback);
+      PROCEDURE callCleanupMethods;
+  end;
+
 FUNCTION getEnvironment:T_arrayOfString;
 FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
 FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
@@ -66,10 +79,41 @@ FUNCTION isConsoleShowing:boolean;
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 FUNCTION isMemoryInComfortZone:boolean;
+FUNCTION getMemoryUsedAsString:string;
 VAR memoryComfortThreshold:int64={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
-
+    memoryCleaner:T_memoryCleaner;
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
+CONSTRUCTOR T_memoryCleaner.create;
+  begin
+    setLength(methods,0);
+    InitCriticalSection(cleanerCs);
+  end;
+
+DESTRUCTOR T_memoryCleaner.destroy;
+  begin
+    EnterCriticalSection(cleanerCs);
+    setLength(methods,0);
+    LeaveCriticalSection(cleanerCs);
+    DoneCriticalSection(cleanerCs);
+  end;
+
+PROCEDURE T_memoryCleaner.registerCleanupMethod(CONST m:F_cleanupCallback);
+  begin
+    EnterCriticalSection(cleanerCs);
+    setLength(methods,length(methods)+1);
+    methods[length(methods)-1]:=m;
+    LeaveCriticalSection(cleanerCs);
+  end;
+
+PROCEDURE T_memoryCleaner.callCleanupMethods;
+  VAR m:F_cleanupCallback;
+  begin
+    EnterCriticalSection(cleanerCs);
+    for m in methods do m();
+    LeaveCriticalSection(cleanerCs);
+  end;
+
 FUNCTION getNumberOfCPUs:longint;
 {$ifdef Windows}
 {$WARN 5057 OFF}
@@ -487,6 +531,7 @@ FUNCTION memCheckThread(p:pointer):ptrint;
       if tempMem<0 then MemoryUsed:=GetHeapStatus.TotalAllocated
                    else MemoryUsed:=tempMem;
       output.destroy;
+      if MemoryUsed>memoryComfortThreshold then memoryCleaner.callCleanupMethods;
       if (memCheckKillRequests=0) and (MemoryUsed<memoryComfortThreshold) then begin
         sleep(1000);
         ThreadSwitch;
@@ -496,6 +541,19 @@ FUNCTION memCheckThread(p:pointer):ptrint;
     interlockedDecrement(memCheckThreadsRunning);
     interlockedDecrement(memCheckKillRequests);
     result:=0;
+  end;
+
+FUNCTION getMemoryUsedAsString:string;
+  VAR val:ptrint;
+  begin
+    val:=MemoryUsed;
+    if val<8192 then exit(intToStr(val)+' B');
+    val:=val shr 10;
+    if val<8192 then exit(intToStr(val)+' kB');
+    val:=val shr 10;
+    if val<8192 then exit(intToStr(val)+' MB');
+    val:=val shr 10;
+    result:=intToStr(val)+' GB';
   end;
 
 FUNCTION isMemoryInComfortZone:boolean; inline;
@@ -509,6 +567,9 @@ FUNCTION isMemoryInComfortZone:boolean; inline;
     result:=MemoryUsed<memoryComfortThreshold;
   end;
 
+INITIALIZATION
+  memoryCleaner.create;
+
 FINALIZATION
   while memCheckThreadsRunning<0 do begin
     interLockedIncrement(memCheckKillRequests);
@@ -516,5 +577,6 @@ FINALIZATION
     sleep(10);
   end;
   if clearConsoleProcess<>nil then clearConsoleProcess.destroy;
+  memoryCleaner.destroy;
 
 end.
