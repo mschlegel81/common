@@ -87,31 +87,31 @@ VAR numberOfCPUs:longint=0;
 CONSTRUCTOR T_memoryCleaner.create;
   begin
     setLength(methods,0);
-    InitCriticalSection(cleanerCs);
+    initCriticalSection(cleanerCs);
   end;
 
 DESTRUCTOR T_memoryCleaner.destroy;
   begin
-    EnterCriticalSection(cleanerCs);
+    enterCriticalSection(cleanerCs);
     setLength(methods,0);
-    LeaveCriticalSection(cleanerCs);
-    DoneCriticalSection(cleanerCs);
+    leaveCriticalSection(cleanerCs);
+    doneCriticalSection(cleanerCs);
   end;
 
 PROCEDURE T_memoryCleaner.registerCleanupMethod(CONST m:F_cleanupCallback);
   begin
-    EnterCriticalSection(cleanerCs);
+    enterCriticalSection(cleanerCs);
     setLength(methods,length(methods)+1);
     methods[length(methods)-1]:=m;
-    LeaveCriticalSection(cleanerCs);
+    leaveCriticalSection(cleanerCs);
   end;
 
 PROCEDURE T_memoryCleaner.callCleanupMethods;
   VAR m:F_cleanupCallback;
   begin
-    EnterCriticalSection(cleanerCs);
+    enterCriticalSection(cleanerCs);
     for m in methods do m();
-    LeaveCriticalSection(cleanerCs);
+    leaveCriticalSection(cleanerCs);
   end;
 
 FUNCTION getNumberOfCPUs:longint;
