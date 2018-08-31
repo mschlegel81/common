@@ -1420,10 +1420,10 @@ FUNCTION readLongintFromStream(CONST markerByte:byte; CONST stream:P_inputStream
 
 PROCEDURE writeLongintToStream(CONST value:longint; CONST stream:P_outputStreamWrapper);
   begin
-    if      (value>=          0) and (value<=       249) then       stream^.writeByte(value)
-    else if (value>=       -128) and (value<=       127) then begin stream^.writeByte(250); stream^.writeShortint(value); end
-    else if (value>=     -32768) and (value<=     32767) then begin stream^.writeByte(251); stream^.writeSmallInt(value); end
-    else                                                      begin stream^.writeByte(252); stream^.writeLongint (value); end;
+    if      (value>=     0) and (value<=  249) then       stream^.writeByte(value)
+    else if (value>=  -128) and (value<=  127) then begin stream^.writeByte(250); stream^.writeShortint(value); end
+    else if (value>=-32768) and (value<=32767) then begin stream^.writeByte(251); stream^.writeSmallInt(value); end
+    else                                            begin stream^.writeByte(252); stream^.writeLongint (value); end;
   end;
 
 CONSTRUCTOR T_bigInt.readFromStream(CONST markerByte:byte; CONST stream:P_inputStreamWrapper);
