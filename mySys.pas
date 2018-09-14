@@ -527,7 +527,7 @@ FUNCTION memCheckThread(p:pointer):ptrint;
     while (memCheckKillRequests<=0) and (memCheckThreadsRunning=1) do begin
       runProcess(Process,output);
       tempMem:=-1;
-      for i:=0 to output.count-1 do if tempMem<0 then tempMem:=strToIntDef(trim(output[i]),-1);
+      for i:=0 to output.count-1 do if tempMem<0 then tempMem:=StrToInt64Def(trim(output[i]),-1);
       if tempMem<0 then MemoryUsed:=GetHeapStatus.TotalAllocated
                    else MemoryUsed:=tempMem;
       output.destroy;
