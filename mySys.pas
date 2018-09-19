@@ -206,14 +206,14 @@ FUNCTION runProcess(CONST Process:TProcess; OUT output: TStringList): boolean;
       Process.execute;
       Process.CloseInput;
       while Process.running do begin
-        memStream.SetSize(BytesRead+READ_BYTES);
+        memStream.setSize(BytesRead+READ_BYTES);
         n := Process.output.read((memStream.memory+BytesRead)^, READ_BYTES);
         if n>0 then begin sleepTime:=1; inc(BytesRead, n); end
                else begin inc(sleepTime); sleep(sleepTime); end;
       end;
       if Process.running then Process.Terminate(999);
       repeat
-        memStream.SetSize(BytesRead+READ_BYTES);
+        memStream.setSize(BytesRead+READ_BYTES);
         n := Process.output.read((memStream.memory+BytesRead)^, READ_BYTES);
         if n>0 then inc(BytesRead, n);
       until n<=0;
@@ -221,7 +221,7 @@ FUNCTION runProcess(CONST Process:TProcess; OUT output: TStringList): boolean;
     except
       result := false;
     end;
-    memStream.SetSize(BytesRead);
+    memStream.setSize(BytesRead);
     output := TStringList.create;
     output.loadFromStream(memStream);
     memStream.free;
