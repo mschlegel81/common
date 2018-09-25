@@ -48,6 +48,7 @@ FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
 FUNCTION tokenSplit(CONST stringToSplit:ansistring; CONST language:string='MNH'):T_arrayOfString;
 FUNCTION anistringInfo(VAR s:ansistring):string;
+FUNCTION getListOfSimilarWords(CONST typedSoFar:string; CONST completionList:T_arrayOfString; CONST targetResultSize:longint):T_arrayOfString;
 IMPLEMENTATION
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
@@ -996,6 +997,40 @@ FUNCTION anistringInfo(VAR s:ansistring):string;
        +' '+intToStr(PInt64  (pointer(s)-16)^)
        +' '+intToStr(PInt64  (pointer(s)- 8)^)
        +' '+s;
+  end;
+
+FUNCTION getListOfSimilarWords(CONST typedSoFar:string; CONST completionList:T_arrayOfString; CONST targetResultSize:longint):T_arrayOfString;
+  VAR k:longint;
+      j:longint=0;
+      s:string;
+      maxLength:longint=0;
+  begin
+    if typedSoFar='' then exit(completionList);
+    for s in completionList do maxLength:=max(maxLength,length(s));
+    setLength(result,targetResultSize);
+    for k:=1 to maxLength-length(typedSoFar) do begin
+      for s in completionList do if (pos(typedSoFar,s)=k) then begin
+        if j>=length(result) then setLength(result,j+8);
+        result[j]:=s;
+        inc(j);
+      end;
+      if (j>=targetResultSize) then begin
+        setLength(result,j);
+        exit(result);
+      end;
+    end;
+    for k:=1 to 200 do begin
+      for s in completionList do if (pos(typedSoFar,s)<=0) and (pos(uppercase(typedSoFar),uppercase(s))=k) then begin
+        if j>=length(result) then setLength(result,j+8);
+        result[j]:=s;
+        inc(j);
+      end;
+      if (j>=targetResultSize) then begin
+        setLength(result,j);
+        exit(result);
+      end;
+    end;
+    setLength(result,j);
   end;
 
 end.
