@@ -1000,10 +1000,24 @@ FUNCTION anistringInfo(VAR s:ansistring):string;
   end;
 
 FUNCTION getListOfSimilarWords(CONST typedSoFar:string; CONST completionList:T_arrayOfString; CONST targetResultSize:longint; CONST ignorePosition:boolean):T_arrayOfString;
-  VAR k:longint;
+  CONST BUCKET_COUNT=32;
+  VAR i:longint;
       j:longint=0;
       s:string;
-      maxLength:longint=0;
+      typedUpper:string;
+      buckets:array of T_arrayOfString;
+  PROCEDURE putToBucket(CONST match:string; CONST dist,uppercaseDist:longint);
+    VAR bin:longint=BUCKET_COUNT;
+    begin
+      if dist>0 then begin
+        if uppercaseDist>0
+        then bin:=min(dist,uppercaseDist)-1
+        else bin:=dist-1;
+      end else if uppercaseDist>0 then bin:=uppercaseDist-1;
+      if bin>=BUCKET_COUNT then exit;
+      append(buckets[bin],match);
+    end;
+
   begin
     if typedSoFar='' then exit(completionList);
     setLength(result,targetResultSize);
@@ -1014,29 +1028,18 @@ FUNCTION getListOfSimilarWords(CONST typedSoFar:string; CONST completionList:T_a
         if j>=targetResultSize then exit(result);
       end;
     end else begin
-      for s in completionList do maxLength:=max(maxLength,length(s));
-        for k:=1 to maxLength-length(typedSoFar) do begin
-          for s in completionList do if (pos(typedSoFar,s)=k) then begin
-            if j>=length(result) then setLength(result,j+8);
-            result[j]:=s;
-            inc(j);
-          end;
-          if (j>=targetResultSize) then begin
-            setLength(result,j);
-            exit(result);
-          end;
-        end;
-        for k:=1 to maxLength-length(typedSoFar) do begin
-          for s in completionList do if (pos(typedSoFar,s)<=0) and (pos(uppercase(typedSoFar),uppercase(s))=k) then begin
-            if j>=length(result) then setLength(result,j+8);
-            result[j]:=s;
-            inc(j);
-          end;
-          if (j>=targetResultSize) then begin
-            setLength(result,j);
-            exit(result);
-          end;
-        end;
+      typedUpper:=uppercase(typedSoFar);
+      setLength(buckets,BUCKET_COUNT);
+      for i:=0 to length(buckets)-1 do buckets[i]:=C_EMPTY_STRING_ARRAY;
+      for s in completionList do
+        putToBucket(s,pos(typedSoFar,s)
+                   ,2*pos(typedUpper,uppercase(s)));
+      j:=0;
+      for i:=0 to BUCKET_COUNT-1 do for s in buckets[i] do begin;
+        result[j]:=s;
+        inc(j);
+        if j>=targetResultSize then exit(result);
+      end;
     end;
     setLength(result,j);
   end;
