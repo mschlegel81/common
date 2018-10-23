@@ -51,11 +51,11 @@ OPERATOR =(CONST x,y:T_rgbaFloatColor):boolean;
 OPERATOR =(CONST x,y:T_hsvColor      ):boolean;
 OPERATOR =(CONST x,y:T_hsvaColor     ):boolean;
 
-OPERATOR +(CONST x,y:T_rgbFloatColor ):T_rgbFloatColor;
+OPERATOR +(CONST x,y:T_rgbFloatColor ):T_rgbFloatColor; inline;
 OPERATOR +(CONST x,y:T_rgbaFloatColor):T_rgbaFloatColor;
 OPERATOR -(CONST x,y:T_rgbFloatColor ):T_rgbFloatColor;
 OPERATOR -(CONST x,y:T_rgbaFloatColor):T_rgbaFloatColor;
-OPERATOR *(CONST x:T_rgbFloatColor ; CONST y:double):T_rgbFloatColor;
+OPERATOR *(CONST x:T_rgbFloatColor ; CONST y:double):T_rgbFloatColor; inline;
 OPERATOR *(CONST x:T_rgbaFloatColor; CONST y:double):T_rgbaFloatColor;
 OPERATOR *(CONST x,y:T_rgbFloatColor):T_rgbFloatColor;
 FUNCTION blend(CONST below:T_rgbFloatColor; CONST atop:T_rgbaFloatColor):T_rgbFloatColor;
@@ -313,12 +313,22 @@ OPERATOR =(CONST x,y:T_rgbaFloatColor):boolean; VAR c:T_colorChannel; begin for 
 OPERATOR =(CONST x,y:T_hsvColor      ):boolean; VAR c:T_hsvChannel;   begin for c in HSV_CHANNELS   do if x[c]<>y[c] then exit(false); result:=true; end;
 OPERATOR =(CONST x,y:T_hsvaColor     ):boolean; VAR c:T_hsvChannel;   begin for c in T_hsvChannel   do if x[c]<>y[c] then exit(false); result:=true; end;
 
-OPERATOR+(CONST x, y: T_rgbFloatColor ): T_rgbFloatColor;  VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS   do result[c]:=x[c]+y[c]; end;
+OPERATOR+(CONST x, y: T_rgbFloatColor ): T_rgbFloatColor;
+  begin
+    result[cc_red  ]:=x[cc_red  ]+y[cc_red  ];
+    result[cc_green]:=x[cc_green]+y[cc_green];
+    result[cc_blue ]:=x[cc_blue ]+y[cc_blue ];
+  end;
 OPERATOR+(CONST x, y: T_rgbaFloatColor): T_rgbaFloatColor; VAR c:T_colorChannel; begin initialize(result); for c in T_colorChannel do result[c]:=x[c]+y[c]; end;
 OPERATOR-(CONST x, y: T_rgbFloatColor ): T_rgbFloatColor;  VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS   do result[c]:=x[c]-y[c]; end;
 OPERATOR-(CONST x, y: T_rgbaFloatColor): T_rgbaFloatColor; VAR c:T_colorChannel; begin initialize(result); for c in T_colorChannel do result[c]:=x[c]-y[c]; end;
 
-OPERATOR *(CONST x: T_rgbFloatColor;  CONST y: double): T_rgbFloatColor;  VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS   do result[c]:=x[c]*y; end;
+OPERATOR *(CONST x: T_rgbFloatColor;  CONST y: double): T_rgbFloatColor;
+  begin
+    result[cc_red  ]:=x[cc_red  ]*y;
+    result[cc_green]:=x[cc_green]*y;
+    result[cc_blue ]:=x[cc_blue ]*y;
+  end;
 OPERATOR *(CONST x: T_rgbaFloatColor; CONST y: double): T_rgbaFloatColor; VAR c:T_colorChannel; begin initialize(result); for c in T_colorChannel do result[c]:=x[c]*y; end;
 OPERATOR *(CONST x,y:T_rgbFloatColor                 ): T_rgbFloatColor;  VAR c:T_colorChannel; begin initialize(result); for c in RGB_CHANNELS do result[c]:=x[c]*y[c]; end;
 FUNCTION blend(CONST below: T_rgbFloatColor; CONST atop: T_rgbaFloatColor): T_rgbFloatColor;
