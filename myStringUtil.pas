@@ -34,6 +34,7 @@ FUNCTION unbrace(CONST s:ansistring):ansistring;
 FUNCTION split(CONST s:ansistring):T_arrayOfString;
 FUNCTION reSplit(CONST s:T_arrayOfString):T_arrayOfString;
 FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString):T_arrayOfString;
+FUNCTION splitCommandLine(CONST s:ansistring):T_arrayOfString;
 FUNCTION join(CONST lines:T_arrayOfString; CONST joiner:ansistring):ansistring;
 FUNCTION cleanString(CONST s:ansistring; CONST whiteList:T_charSet; CONST instead:char):ansistring;
 FUNCTION myTimeToStr(dt:double):string;
@@ -532,6 +533,26 @@ FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString):T_arrayOfStr
     end;
     if endsOnSplitter then appendToResult('');
     setLength(result,resultLen);
+  end;
+
+FUNCTION splitCommandLine(CONST s:ansistring):T_arrayOfString;
+  VAR parseIndex:longint=1;
+      k:longint;
+  begin
+    setLength(result,0);
+    while parseIndex<=length(s) do case s[parseIndex] of
+      ' ': inc(parseIndex);
+      '"': begin
+             append(result,unescapeString(s,parseIndex,k));
+             if k<=0 then inc(parseIndex) else inc(parseIndex,k);
+           end;
+      else begin
+        k:=parseIndex;
+        while (k<=length(s)) and (s[k]<>' ') do inc(k);
+        append(result,copy(s,parseIndex,k-parseIndex));
+        parseIndex:=k+1;
+      end;
+    end;
   end;
 
 FUNCTION join(CONST lines:T_arrayOfString; CONST joiner:ansistring):ansistring;
