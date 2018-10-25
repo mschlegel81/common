@@ -63,6 +63,8 @@ FUNCTION getEnvironment:T_arrayOfString;
 FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
 FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
 FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString; OUT output: TStringList): boolean;
+FUNCTION runDetachedCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString): boolean;
+FUNCTION myCommandLineParameters:T_arrayOfString;
 PROCEDURE clearConsole;
 FUNCTION containsPlaceholder(CONST S:string):boolean;
 FUNCTION findFileInfo(CONST pathOrPattern:string):T_fileInfoArray;
@@ -232,13 +234,33 @@ FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfStr
       n:longint;
   begin
     tempProcess := TProcess.create(nil);
-    tempProcess.executable := UTF8ToWinCP(executable);
+    tempProcess.executable := {$ifdef Windows}UTF8ToWinCP{$endif}(executable);
     for n := 0 to length(parameters)-1 do
       tempProcess.parameters.add(UTF8ToWinCP(parameters[n]));
     tempProcess.options := [poUsePipes, poStderrToOutPut];
     tempProcess.ShowWindow := swoHIDE;
     result:=runProcess(tempProcess,output);
     tempProcess.free;
+  end;
+
+FUNCTION runDetachedCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString): boolean;
+  VAR tempProcess: TProcess;
+      n:longint;
+  begin
+    tempProcess := TProcess.create(nil);
+    tempProcess.executable := {$ifdef Windows}UTF8ToWinCP{$endif}(executable);
+    for n := 0 to length(parameters)-1 do
+      tempProcess.parameters.add(UTF8ToWinCP(parameters[n]));
+    tempProcess.ShowWindow := swoShowNormal;
+    tempProcess.execute;
+    tempProcess.free;
+  end;
+
+FUNCTION myCommandLineParameters:T_arrayOfString;
+  VAR i:longint;
+  begin
+    setLength(result,paramCount);
+    for i:=1 to paramCount do result[i-1]:=paramStr(i);
   end;
 
 VAR clearConsoleProcess:TProcess=nil;
