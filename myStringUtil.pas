@@ -33,7 +33,7 @@ FUNCTION endsWith(CONST input, tail: ansistring): boolean;
 FUNCTION unbrace(CONST s:ansistring):ansistring;
 FUNCTION split(CONST s:ansistring):T_arrayOfString;
 FUNCTION reSplit(CONST s:T_arrayOfString):T_arrayOfString;
-FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString):T_arrayOfString;
+FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString; CONST retainSplitters:boolean=false):T_arrayOfString;
 FUNCTION splitCommandLine(CONST s:ansistring):T_arrayOfString;
 FUNCTION join(CONST lines:T_arrayOfString; CONST joiner:ansistring):ansistring;
 FUNCTION cleanString(CONST s:ansistring; CONST whiteList:T_charSet; CONST instead:char):ansistring;
@@ -475,7 +475,7 @@ FUNCTION reSplit(CONST s:T_arrayOfString):T_arrayOfString;
     for i:=0 to length(s)-1 do append(result,split(s[i]));
   end;
 
-FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString):T_arrayOfString;
+FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString; CONST retainSplitters:boolean=false):T_arrayOfString;
   PROCEDURE nextSplitterPos(CONST startSearchAt:longint; OUT splitterStart,splitterEnd:longint); inline;
     VAR splitter:string;
         firstSplitterChar:char;
@@ -529,9 +529,10 @@ FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString):T_arrayOfStr
       appendToResult(copy(s,partStart,splitterStart-partStart));
       partStart:=splitterEnd;
       endsOnSplitter:=splitterEnd>splitterStart;
+      if endsOnSplitter and retainSplitters then appendToResult(copy(s,splitterStart,splitterEnd-splitterStart));
       nextSplitterPos(partStart,splitterStart,splitterEnd);
     end;
-    if endsOnSplitter then appendToResult('');
+    if endsOnSplitter and not retainSplitters then appendToResult('');
     setLength(result,resultLen);
   end;
 
