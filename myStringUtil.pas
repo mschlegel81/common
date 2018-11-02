@@ -1010,6 +1010,7 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
 
 FUNCTION ansistringInfo(VAR s:ansistring):string;
   begin
+    try
     result:=IntToHex(ptrint  (pointer(s)-24) ,16)
        +' '+IntToHex(PByte   (pointer(s)-24)^,2)
        +' '+IntToHex(PByte   (pointer(s)-23)^,2)
@@ -1019,6 +1020,9 @@ FUNCTION ansistringInfo(VAR s:ansistring):string;
        +' '+intToStr(PInt64  (pointer(s)-16)^)
        +' '+intToStr(PInt64  (pointer(s)- 8)^)
        +' '+s;
+    except
+      result:=IntToHex(ptrint  (pointer(s)-24) ,16)+' <?!?> '+s;
+    end;
   end;
 
 FUNCTION getListOfSimilarWords(CONST typedSoFar:string; CONST completionList:T_arrayOfString; CONST targetResultSize:longint; CONST ignorePosition:boolean):T_arrayOfString;
