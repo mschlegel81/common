@@ -48,7 +48,7 @@ FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
 FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
 FUNCTION tokenSplit(CONST stringToSplit:ansistring; CONST language:string='MNH'):T_arrayOfString;
-FUNCTION anistringInfo(VAR s:ansistring):string;
+FUNCTION ansistringInfo(VAR s:ansistring):string;
 FUNCTION getListOfSimilarWords(CONST typedSoFar:string; CONST completionList:T_arrayOfString; CONST targetResultSize:longint; CONST ignorePosition:boolean):T_arrayOfString;
 IMPLEMENTATION
 
@@ -1008,7 +1008,7 @@ FUNCTION tokenSplit(CONST stringToSplit: ansistring; CONST language: string): T_
     setLength(result,resultCount);
   end;
 
-FUNCTION anistringInfo(VAR s:ansistring):string;
+FUNCTION ansistringInfo(VAR s:ansistring):string;
   begin
     result:=IntToHex(ptrint  (pointer(s)-24) ,16)
        +' '+IntToHex(PByte   (pointer(s)-24)^,2)
