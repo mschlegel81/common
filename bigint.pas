@@ -127,6 +127,7 @@ FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclus
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION factorizeSmall(n:int64):T_arrayOfLongint;
 FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
+FUNCTION millerRabinTest(CONST n:longint ):boolean;
 FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
 FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
 FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_bigInt;
@@ -1919,36 +1920,46 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
     end;
   end;
 
-FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
-  VAR nAsInt:int64;
-      relBits :longint;
-
+FUNCTION millerRabinTest(CONST n:longint ):boolean;
   FUNCTION mrt(CONST a:int64):boolean;
     VAR n1,d,t,p:int64;
         j:longint=1;
-	k:longint;
+        k:longint;
     begin
-      n1:=nAsInt-1;
-      d :=nAsInt shr 1;
+      n1:=n-1;
+      d :=n shr 1;
       while not(odd(d)) do begin
         d:=d shr 1;
         inc(j);
       end;
+      //1<=j<=63, 1<=d<=2^63-1
       t:=a;
       p:=a;
       while (d>1) do begin
         d:=d shr 1;
-        p:=p*p mod nAsInt;
-        if odd(d) then t:=t*p mod nAsInt;
+        p:=p*p mod n;
+        if odd(d) then t:=t*p mod n;
       end;
       if (t=1) or (t=n1) then exit(true);
       for k:=1 to j-1 do begin
-        t:=t*t mod nAsInt;
+        t:=t*t mod n;
         if t=n1 then exit(true);
-	if t<=1 then break;
+        if t<=1 then break;
       end;
       result:=false;
     end;
+
+  begin
+    if (n    =2)   or (n    =3  ) or (n    =5  ) or (n    =7  ) then exit(true);
+    if (n    =1) or
+       (n mod 2=0) or (n mod 3=0) or (n mod 5=0) or (n mod 7=0) then exit(false);
+    if n<1373653 then exit(mrt(2)  and mrt(3));
+    if n<9080191 then exit(mrt(31) and mrt(37));
+    exit(mrt(2) and mrt(7) and mrt(61));
+  end;
+
+FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
+  VAR relBits :longint;
 
   FUNCTION bMrt(CONST a:int64):boolean;
     VAR n1,d,bigA,t:T_bigInt;
@@ -1982,15 +1993,7 @@ FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
   begin
     if n.negative or n.isZero then exit(false);
     relBits:=n.relevantBits;
-    if n.canBeRepresentedAsInt32() then begin
-      nAsInt:=n.toInt;
-      if (nAsInt    =2)   or (nAsInt    =3  ) or (nAsInt    =5  ) or (nAsInt    =7  ) then exit(true);
-      if (nAsInt    =1) or
-         (nAsInt mod 2=0) or (nAsInt mod 3=0) or (nAsInt mod 5=0) or (nAsInt mod 7=0) then exit(false);
-      if nAsInt<1373653 then exit(mrt(2)  and mrt(3));
-      if nAsInt<9080191 then exit(mrt(31) and mrt(37));
-      exit(mrt(2) and mrt(7) and mrt(61));
-    end;
+    if n.canBeRepresentedAsInt32() then exit(millerRabinTest(n.toInt));
     if n.compareAbsValue(4759123141)=CR_LESSER then exit(bMrt(2) and bMrt(7) and bMrt(61));
     result:=bMrt(2) and bMrt(5) and bMrt(7) and bMrt(11);
     if not(result) or (n.compareAbsValue(2152302898747)=CR_LESSER) then exit;
