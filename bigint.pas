@@ -1921,7 +1921,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
   end;
 
 FUNCTION millerRabinTest(CONST n:longint ):boolean;
-  FUNCTION mrt(CONST a:int64):boolean;
+  FUNCTION mrt(CONST a:longint):boolean;
     VAR n1,d,t,p:int64;
         j:longint=1;
         k:longint;
