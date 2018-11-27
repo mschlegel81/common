@@ -1926,7 +1926,7 @@ FUNCTION millerRabinTest(CONST n:longint ):boolean;
         j:longint=1;
         k:longint;
     begin
-      n1:=n-1;
+      n1:=int64(n)-1;
       d :=n shr 1;
       while not(odd(d)) do begin
         d:=d shr 1;
