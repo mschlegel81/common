@@ -63,7 +63,7 @@ FUNCTION getEnvironment:T_arrayOfString;
 FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
 FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
 FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString; OUT output: TStringList): boolean;
-FUNCTION runDetachedCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString): boolean;
+PROCEDURE runDetachedCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString);
 FUNCTION myCommandLineParameters:T_arrayOfString;
 PROCEDURE clearConsole;
 FUNCTION containsPlaceholder(CONST S:string):boolean;
@@ -243,7 +243,7 @@ FUNCTION runCommand(CONST executable: ansistring; CONST parameters: T_arrayOfStr
     tempProcess.free;
   end;
 
-FUNCTION runDetachedCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString): boolean;
+PROCEDURE runDetachedCommand(CONST executable: ansistring; CONST parameters: T_arrayOfString);
   VAR tempProcess: TProcess;
       n:longint;
   begin
