@@ -127,8 +127,8 @@ FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclus
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION factorizeSmall(n:longint):T_arrayOfLongint;
 FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
-FUNCTION millerRabinTest(CONST n:longint ):boolean;
-FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
+FUNCTION isPrime(CONST n:longint ):boolean;
+FUNCTION isPrime(CONST n:T_bigInt):boolean;
 FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
 FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_bigInt;
 {For compatibility with constructor T_bigInt.readFromStream}
@@ -1920,7 +1920,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
     end;
   end;
 
-FUNCTION millerRabinTest(CONST n:longint ):boolean;
+FUNCTION isPrime(CONST n:longint ):boolean;
   FUNCTION mrt(CONST a:longint):boolean;
     VAR n1,d,t,p:int64;
         j:longint=1;
@@ -1958,7 +1958,7 @@ FUNCTION millerRabinTest(CONST n:longint ):boolean;
     exit(mrt(2) and mrt(7) and mrt(61));
   end;
 
-FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
+FUNCTION isPrime(CONST n:T_bigInt):boolean;
   VAR relBits :longint;
 
   FUNCTION bMrt(CONST a:int64):boolean;
@@ -1988,12 +1988,38 @@ FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
       n1.destroy;
     end;
 
+   FUNCTION isComposite(x:int64):boolean; inline;
+     VAR y:int64=614889782588491410;
+         z:int64=1;
+     begin
+       z:=x;
+       while (y<>0) do begin x:=z mod y; z:=y; y:=x; end;
+       result:=z>1;
+     end;
+
+  FUNCTION isComposite(CONST bigX:T_bigInt):boolean; inline;
+    VAR x:int64=1;
+        y:int64=614889782588491410;
+        z:int64=1;
+        temp:T_bigInt;
+    begin
+      temp:=modulus(bigX,y);
+      x:=temp.toInt; temp.destroy;
+      z:=y;
+      y:=x;
+      while (y<>0) do begin x:=z mod y; z:=y; y:=x; end;
+      result:=z>1;
+    end;
+
   CONST pr:array[0..41] of byte=(3,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251);
   VAR a:byte;
   begin
     if n.negative or n.isZero then exit(false);
     relBits:=n.relevantBits;
-    if n.canBeRepresentedAsInt32() then exit(millerRabinTest(n.toInt));
+    if n.canBeRepresentedAsInt64()
+    then begin if isComposite(n.toInt) then exit(false); end
+    else begin if isComposite(n      ) then exit(false); end;
+    if n.canBeRepresentedAsInt32() then exit(isPrime(n.toInt));
     if n.compareAbsValue(4759123141)=CR_LESSER then exit(bMrt(2) and bMrt(7) and bMrt(61));
     result:=bMrt(2) and bMrt(5) and bMrt(7) and bMrt(11);
     if not(result) or (n.compareAbsValue(2152302898747)=CR_LESSER) then exit;
