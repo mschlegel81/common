@@ -125,7 +125,7 @@ TYPE
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
-FUNCTION factorizeSmall(n:int64):T_arrayOfLongint;
+FUNCTION factorizeSmall(n:longint):T_arrayOfLongint;
 FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
 FUNCTION millerRabinTest(CONST n:longint ):boolean;
 FUNCTION millerRabinTest(CONST n:T_bigInt):boolean;
@@ -1649,7 +1649,7 @@ FUNCTION T_bigInt.getRawBytes: T_arrayOfByte;
 
 CONST primes:array[0..144] of word=(3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839);
 CONST skip:array[0..47] of byte=(10,2,4,2,4,6,2,6,4,2,4,6,6,2,6,4,2,6,4,6,8,4,2,4,2,4,8,6,4,6,2,4,6,2,6,6,4,2,4,6,2,6,4,2,4,2,10,2);
-FUNCTION factorizeSmall(n:int64):T_arrayOfLongint;
+FUNCTION factorizeSmall(n:longint):T_arrayOfLongint;
   VAR p:longint;
       skipIdx:longint=0;
   begin
