@@ -1813,17 +1813,17 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       end;
     end;
 
-  VAR fourKN:T_bigInt;
+  VAR bigFourKN:T_bigInt;
   FUNCTION squareOfMinus4kn(CONST z:int64):T_bigInt;
     VAR temp:T_bigInt;
     begin
       if z<maxLongint then begin
-        result.fromInt(sqr(z)-fourKN.toInt);
+        result.fromInt(sqr(z)-bigFourKN.toInt);
       end else begin
         result.fromInt(z);
         temp:=result.mult(result);
         result.destroy;
-        result:=temp.minus(fourKN);
+        result:=temp.minus(bigFourKN);
         temp.destroy;
       end;
     end;
@@ -1841,6 +1841,14 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       end;
     end;
 
+  FUNCTION smallGcd(x,y:int64):int64;
+    begin
+      result:=x;
+      while (y<>0) do begin
+        x:=result mod y; result:=y; y:=x;
+      end;
+    end;
+
   FUNCTION floor64(CONST d:double):int64; begin result:=trunc(d); if frac(d)<0 then dec(result); end;
   FUNCTION ceil64 (CONST d:double):int64; begin result:=trunc(d); if frac(d)>0 then inc(result); end;
 
@@ -1850,11 +1858,14 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       furtherFactorsPossible:boolean;
       temp:double;
 
+      fourKN:int64;
       k:{$ifdef CPU32}longint{$else}int64{$endif};
       x:int64;
       xMax:int64;
-      y:T_bigInt;
-      rootOfY:T_bigInt;
+      y:int64;
+      bigY:T_bigInt;
+      bigRootOfY:T_bigInt;
+      rootOfY:int64;
       yIsSquare:boolean;
       lehmannTestCompleted:boolean=false;
   begin
@@ -1886,32 +1897,59 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
     end;
 
     sixthRootOfR:=power(r.toFloat,1/6);
-    for k:=1 to trunc(power(r.toFloat,1/3)) do if not(lehmannTestCompleted) then begin
-      fourKN.create(r);
-      fourKN.multWith(k);
-      fourKN.shlInc(false);
-      fourKN.shlInc(false);
-      temp:=sqrt(fourKN.toFloat);
-      x:=ceil64(temp);
-      xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //no overflow for r < 2^92
-      while x<=xMax do begin
-        y:=squareOfMinus4kn(x);
-        rootOfY:=y.iSqrt(yIsSquare);
-        y.destroy;
-        if yIsSquare then begin
-          myInc(rootOfY,x); //= sqrt(y)+x
-          y:=rootOfY.greatestCommonDivider(r); //=gcd(sqrt(y)+x,r)
-          rootOfY.destroy;
-          rootOfY:=r.divide(y);
-          setLength(result.bigFactors,length(result.bigFactors)+2);
-          result.bigFactors[length(result.bigFactors)-2]:=y;
-          result.bigFactors[length(result.bigFactors)-1]:=rootOfY;
-          lehmannTestCompleted:=true;
-          x:=xMax;
-        end else rootOfY.destroy;
-        inc(x);
+    if r.compareAbsValue(59172824724902)=CR_LESSER then begin
+      for k:=1 to trunc(power(r.toFloat,1/3)) do if not(lehmannTestCompleted) then begin
+        fourKN:=4*r.toInt*k; //4*r*k <= 4*r^(4/3) -> no overflow for r<2^61^(3/4)=59172824724902
+        temp:=sqrt(fourKN);
+        x:=ceil64(temp);
+        xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //no overflow for r < 2^92
+        while x<=xMax do begin
+          y:=x*x-fourKN;
+          rootOfY:=round(sqrt(y)); yIsSquare:=false;
+          if sqr(rootOfY  )=y then                     yIsSquare:=true else
+          if sqr(rootOfY+1)=y then begin inc(rootOfY); yIsSquare:=true; end else
+          if sqr(rootOfY-1)=y then begin dec(rootOfY); yIsSquare:=true; end;
+          if yIsSquare then begin
+            rootOfY+=x;
+            y:=smallGcd(rootOfY,r.toInt);
+            rootOfY:=r.toInt div y;
+            setLength(result.bigFactors,length(result.bigFactors)+2);
+            result.bigFactors[length(result.bigFactors)-2].fromInt(y);
+            result.bigFactors[length(result.bigFactors)-1].fromInt(rootOfY);
+            lehmannTestCompleted:=true;
+            x:=xMax;
+          end;
+          inc(x);
+        end;
       end;
-      fourKN.destroy;
+    end else begin
+      if not(isPrime(r)) then for k:=1 to trunc(power(r.toFloat,1/3)) do if not(lehmannTestCompleted) then begin
+        bigFourKN.create(r);
+        bigFourKN.multWith(k);
+        bigFourKN.shlInc(false);
+        bigFourKN.shlInc(false);
+        temp:=sqrt(bigFourKN.toFloat);
+        x:=ceil64(temp);
+        xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //no overflow for r < 2^92
+        while x<=xMax do begin
+          bigY:=squareOfMinus4kn(x);
+          bigRootOfY:=bigY.iSqrt(yIsSquare);
+          bigY.destroy;
+          if yIsSquare then begin
+            myInc(bigRootOfY,x); //= sqrt(bigY)+x
+            bigY:=bigRootOfY.greatestCommonDivider(r); //=gcd(sqrt(bigY)+x,r)
+            bigRootOfY.destroy;
+            bigRootOfY:=r.divide(bigY);
+            setLength(result.bigFactors,length(result.bigFactors)+2);
+            result.bigFactors[length(result.bigFactors)-2]:=bigY;
+            result.bigFactors[length(result.bigFactors)-1]:=bigRootOfY;
+            lehmannTestCompleted:=true;
+            x:=xMax;
+          end else bigRootOfY.destroy;
+          inc(x);
+        end;
+        bigFourKN.destroy;
+      end;
     end;
     if lehmannTestCompleted then r.destroy
     else begin
