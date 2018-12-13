@@ -7,6 +7,7 @@ USES sysutils,
 TYPE
   digitType=dword;
   carryType=qword;
+  signedCarryType=int64;
   pDigitType=^digitType;
 CONST
   BITS_PER_DIGIT=32;
@@ -117,6 +118,33 @@ TYPE
       FUNCTION getRawBytes:T_arrayOfByte;
     end;
 
+  {Can handle up to 1024bit integers - used mainly for internal purposes}
+  T_fixedSizeNonnegativeInt=object
+    private
+      digitCount:longint;
+      digits:array[0..31] of digitType;
+    public
+    FUNCTION isOdd:boolean;
+    PROCEDURE shiftRightOneBit;
+    PROCEDURE shlInc(CONST incFirstBit:boolean);
+    FUNCTION relevantBits:longint;
+    PROCEDURE setBit(CONST index:longint; CONST value:boolean);
+    FUNCTION getBit(CONST index:longint):boolean;
+    PROCEDURE shiftRight(CONST rightShift:longint);
+
+    FUNCTION plus (CONST fixed:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+    FUNCTION minus(CONST fixed:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+    FUNCTION mult (CONST fixed:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+    FUNCTION divMod(CONST divisor:T_fixedSizeNonnegativeInt; OUT quotient,rest:T_fixedSizeNonnegativeInt):boolean;
+    FUNCTION powMod(CONST power,modul:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+    FUNCTION iSqrt(OUT isSquare:boolean):T_fixedSizeNonnegativeInt;
+    FUNCTION greatestCommonDivider(CONST other:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+
+    FUNCTION toString:string;
+    FUNCTION toFloat:extended;
+    FUNCTION toNewBigInt:T_bigInt;
+  end;
+
   T_arrayOfBigint=array of T_bigInt;
   T_factorizationResult=record
     smallFactors:T_arrayOfLongint;
@@ -128,7 +156,7 @@ FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclus
 FUNCTION factorizeSmall(n:longint):T_arrayOfLongint;
 FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
 FUNCTION isPrime(CONST n:longint ):boolean;
-FUNCTION isPrime(CONST n:T_bigInt):boolean;
+FUNCTION isPrime(CONST n:T_fixedSizeNonnegativeInt):boolean;
 FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
 FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_bigInt;
 {For compatibility with constructor T_bigInt.readFromStream}
@@ -144,7 +172,112 @@ FUNCTION divide (CONST x:int64; CONST y:T_bigInt):T_bigInt;
 FUNCTION modulus(CONST x:T_bigInt; CONST y:int64):T_bigInt;
 FUNCTION modulus(CONST x:int64; CONST y:T_bigInt):T_bigInt;
 
+OPERATOR :=(CONST x:T_bigInt):T_fixedSizeNonnegativeInt;
+OPERATOR :=(CONST x:int64):T_fixedSizeNonnegativeInt;
+OPERATOR :=(CONST x:T_fixedSizeNonnegativeInt):int64;
+OPERATOR =(CONST x,y:T_fixedSizeNonnegativeInt):boolean;
+OPERATOR =(CONST x:T_fixedSizeNonnegativeInt; CONST y:int64):boolean;
+OPERATOR >=(CONST x,y:T_fixedSizeNonnegativeInt):boolean;
+OPERATOR >=(CONST x:T_fixedSizeNonnegativeInt; CONST y:int64):boolean;
+OPERATOR <=(CONST x,y:T_fixedSizeNonnegativeInt):boolean;
+OPERATOR <=(CONST x:T_fixedSizeNonnegativeInt; CONST y:int64):boolean;
+OPERATOR <=(CONST x:T_fixedSizeNonnegativeInt; CONST y:double):boolean;
+OPERATOR +(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+OPERATOR -(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+OPERATOR *(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+OPERATOR div(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+OPERATOR mod(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
 IMPLEMENTATION
+OPERATOR :=(CONST x:T_bigInt):T_fixedSizeNonnegativeInt;
+  VAR i:longint;
+  begin
+    if (x.negative) or (x.digitCount>length(result.digits)) then raise Exception.create('Cannot cast to T_fixedSizeNonnegativeInt');
+    for i:=0 to length(result.digits)-1 do result.digits[i]:=0;
+    move(x.digits^,result.digits,x.digitCount*(BITS_PER_DIGIT shr 3));
+    result.digitCount:=x.digitCount;
+  end;
+
+OPERATOR :=(CONST x:int64):T_fixedSizeNonnegativeInt;
+  VAR i:longint;
+  begin
+    for i:=2 to length(result.digits)-1 do result.digits[i]:=0;
+    result.digits[0]:=(x                     ) and DIGIT_MAX_VALUE;
+    result.digits[1]:=(x shr (BITS_PER_DIGIT)) and DIGIT_MAX_VALUE;
+    if result.digits[1]>0 then result.digitCount:=2 else
+    if result.digits[0]>0 then result.digitCount:=1
+                          else result.digitCount:=0;
+  end;
+
+OPERATOR :=(CONST x:T_fixedSizeNonnegativeInt):int64;
+  begin
+    result:=x.digits[0]+(int64(x.digits[1]) shl BITS_PER_DIGIT);
+  end;
+
+OPERATOR=(CONST x, y: T_fixedSizeNonnegativeInt): boolean;
+  VAR k:longint;
+  begin
+    result:=x.digitCount=y.digitCount;
+    for k:=0 to max(x.digitCount,y.digitCount)-1 do result:=result and (x.digits[k]=y.digits[k]);
+  end;
+
+OPERATOR=(CONST x: T_fixedSizeNonnegativeInt; CONST y: int64): boolean;
+  begin
+    if y<0 then exit(false);
+    if x.digitCount>2 then exit(false);
+    result:=(x.digits[0]=(y                     ) and DIGIT_MAX_VALUE) and
+            (x.digits[1]=(y shr (BITS_PER_DIGIT)) and DIGIT_MAX_VALUE);
+  end;
+
+OPERATOR>=(CONST x, y: T_fixedSizeNonnegativeInt): boolean;
+  VAR k:longint;
+  begin
+    for k:=max(x.digitCount,y.digitCount)-1 downto 0 do
+    if      x.digits[k]>y.digits[k] then exit(true)
+    else if x.digits[k]<y.digits[k] then exit(false);
+    result:=true;
+  end;
+
+OPERATOR>=(CONST x: T_fixedSizeNonnegativeInt; CONST y: int64): boolean;
+  VAR k:longint;
+      d:digitType;
+  begin
+    if y<0 then exit(true);
+    for k:=length(x.digits)-1 downto 2 do if x.digits[k]>0 then exit(true);
+    d:=(y shr BITS_PER_DIGIT) and DIGIT_MAX_VALUE;
+    if x.digits[1]>d then exit(true) else if x.digits[1]<d then exit(false);
+    result:=x.digits[0]>=(y and DIGIT_MAX_VALUE);
+  end;
+
+OPERATOR<=(CONST x, y: T_fixedSizeNonnegativeInt): boolean;
+  VAR k:longint;
+  begin
+    for k:=max(x.digitCount,y.digitCount)-1 downto 0 do
+    if      x.digits[k]<y.digits[k] then exit(true)
+    else if x.digits[k]>y.digits[k] then exit(false);
+    result:=true;
+  end;
+
+OPERATOR<=(CONST x: T_fixedSizeNonnegativeInt; CONST y: int64): boolean;
+  VAR d:digitType;
+  begin
+    if y<0 then exit(false);
+    if x.digitCount>2 then exit(false);
+    d:=(y shr BITS_PER_DIGIT) and DIGIT_MAX_VALUE;
+    if x.digits[1]<d then exit(true) else if x.digits[1]>d then exit(false);
+    result:=x.digits[0]<=(y and DIGIT_MAX_VALUE);
+  end;
+
+OPERATOR <=(CONST x:T_fixedSizeNonnegativeInt; CONST y:double):boolean;
+  begin
+    result:=x.toFloat<=y;
+  end;
+
+OPERATOR+(CONST x, y: T_fixedSizeNonnegativeInt): T_fixedSizeNonnegativeInt; begin result:=x.plus(y); end;
+OPERATOR-(CONST x, y: T_fixedSizeNonnegativeInt): T_fixedSizeNonnegativeInt; begin result:=x.minus(y); end;
+OPERATOR*(CONST x, y: T_fixedSizeNonnegativeInt): T_fixedSizeNonnegativeInt; begin result:=x.mult(y); end;
+OPERATOR div(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt; VAR dummy:T_fixedSizeNonnegativeInt; begin x.divMod(y,result,dummy); end;
+OPERATOR mod(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt; VAR dummy:T_fixedSizeNonnegativeInt; begin x.divMod(y,dummy,result); end;
+
 FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigInt):T_bigInt;
   VAR k:longint;
       temp:T_bigInt;
@@ -260,6 +393,19 @@ PROCEDURE rawDataPlus(CONST xDigits:pDigitType; CONST xDigitCount:longint;
     end;
   end;
 
+FUNCTION T_fixedSizeNonnegativeInt.plus(CONST fixed: T_fixedSizeNonnegativeInt): T_fixedSizeNonnegativeInt;
+  VAR carry:carryType=0;
+      i    :longint;
+  begin
+    result.digitCount:=0;
+    for i:=0 to length(result.digits)-1 do begin
+      carry+=carryType(digits[i])+carryType(fixed.digits[i]);
+      result.digits[i]:=carry and DIGIT_MAX_VALUE;
+      if result.digits[i]>0 then result.digitCount:=i+1;
+      carry:=carry shr BITS_PER_DIGIT;
+    end;
+  end;
+
 PROCEDURE trimLeadingZeros(VAR digitCount:longint; VAR digits:pDigitType); inline;
   VAR i:longint;
   begin
@@ -302,6 +448,29 @@ PROCEDURE rawDataMinus(CONST xDigits:pDigitType; CONST xDigitCount:longint;
     trimLeadingZeros(diffDigitCount,diffDigits);
   end;
 
+FUNCTION T_fixedSizeNonnegativeInt.minus(CONST fixed: T_fixedSizeNonnegativeInt): T_fixedSizeNonnegativeInt;
+  VAR carry:carryType=0;
+      i    :longint;
+  begin
+    result.digitCount:=0;
+    for i:=0 to length(result.digits)-1 do begin
+      carry+=fixed.digits[i];
+      if carry>digits[i] then begin
+        result.digits[i]:=((DIGIT_MAX_VALUE+1)-carry+digits[i]) and DIGIT_MAX_VALUE;
+        carry:=1;
+      end else begin
+        result.digits[i]:=digits[i]-carry;
+        carry:=0;
+      end;
+      if result.digits[i]>0 then result.digitCount:=i+1;
+    end;
+  end;
+
+FUNCTION T_fixedSizeNonnegativeInt.isOdd: boolean;
+  begin
+    result:=odd(digits[0]);
+  end;
+
 CONSTRUCTOR T_bigInt.createFromRawData(CONST negative_: boolean; CONST digitCount_: longint; CONST digits_: pDigitType);
   begin
     negative  :=negative_ and (digitCount_>0); //no such thing as a negative zero
@@ -337,6 +506,27 @@ PROCEDURE T_bigInt.shlInc(CONST incFirstBit: boolean);
     end;
   end;
 
+PROCEDURE T_fixedSizeNonnegativeInt.shlInc(CONST incFirstBit:boolean);
+  VAR k:longint;
+      carryBit:boolean;
+      nextCarry:boolean;
+  begin
+    carryBit:=incFirstBit;
+    nextCarry:=carryBit;
+    for k:=0 to digitCount-1 do begin
+      nextCarry:=(digits[k] and UPPER_DIGIT_BIT)<>0;
+      {$R-}
+      digits[k]:=digits[k] shl 1;
+      {$R+}
+      if carryBit then inc(digits[k]);
+      carryBit:=nextCarry;
+    end;
+    if nextCarry and (digitCount<length(digits)) then begin
+      digits[digitCount]:=digits[digitCount]+1;
+      inc(digitCount);
+    end;
+  end;
+
 FUNCTION T_bigInt.relevantBits: longint;
   VAR upperDigit:digitType;
       k:longint;
@@ -350,6 +540,20 @@ FUNCTION T_bigInt.relevantBits: longint;
       else exit(result);
   end;
 
+FUNCTION T_fixedSizeNonnegativeInt.relevantBits:longint;
+  VAR i:longint;
+      k:longint;
+  begin
+    result:=0;
+    for i:=length(digits)-1 downto 0 do if digits[i]>0 then begin;
+      result:=BITS_PER_DIGIT*(i+1);
+      for k:=BITS_PER_DIGIT-1 downto 0 do
+        if digits[i]<WORD_BIT[k]
+        then dec (result)
+        else exit(result);
+    end;
+  end;
+
 FUNCTION T_bigInt.getBit(CONST index: longint): boolean;
   VAR digitIndex:longint;
       bitIndex  :longint;
@@ -358,6 +562,15 @@ FUNCTION T_bigInt.getBit(CONST index: longint): boolean;
     if digitIndex>=digitCount then exit(false);
     bitIndex  :=index mod BITS_PER_DIGIT;
     result:=(digits[digitIndex] and WORD_BIT[bitIndex])<>0;
+  end;
+
+FUNCTION T_fixedSizeNonnegativeInt.getBit(CONST index: longint): boolean;
+  VAR digitIndex:longint;
+      bitIndex  :longint;
+  begin
+    digitIndex:=index div BITS_PER_DIGIT;
+    bitIndex  :=index mod BITS_PER_DIGIT;
+    result:=(digitIndex<length(digits)) and ((digits[digitIndex] and WORD_BIT[bitIndex])<>0);
   end;
 
 PROCEDURE T_bigInt.setBit(CONST index: longint; CONST value: boolean);
@@ -381,6 +594,22 @@ PROCEDURE T_bigInt.setBit(CONST index: longint; CONST value: boolean);
       digits[digitIndex]:=digits[digitIndex] and not(WORD_BIT[bitIndex]);
       k:=digitCount;
       trimLeadingZeros(digitCount,digits);
+    end;
+  end;
+
+PROCEDURE T_fixedSizeNonnegativeInt.setBit(CONST index: longint; CONST value: boolean);
+  VAR digitIndex:longint;
+      bitIndex  :longint;
+  begin
+    digitIndex:=index div BITS_PER_DIGIT;
+    bitIndex:=index and (BITS_PER_DIGIT-1);
+    if digitIndex>=length(digits) then exit;
+    if value then begin
+      digits[digitIndex]:=digits[digitIndex] or      WORD_BIT[bitIndex];
+      if digitIndex>=digitCount then digitCount:=digitIndex+1;
+    end else begin
+      digits[digitIndex]:=digits[digitIndex] and not(WORD_BIT[bitIndex]);
+      if (digitIndex=digitCount-1) then while (digitCount>0) and (digits[digitCount-1]=0) do dec(digitCount);
     end;
   end;
 
@@ -813,6 +1042,31 @@ FUNCTION T_bigInt.mult(CONST big: T_bigInt): T_bigInt;
     result.createFromRawData(negative xor big.negative,resultDigitCount,resultDigits);
   end;
 
+FUNCTION T_fixedSizeNonnegativeInt.mult(CONST fixed: T_fixedSizeNonnegativeInt): T_fixedSizeNonnegativeInt;
+  VAR i,j,k:longint;
+      carry:carryType=0;
+  begin
+    result.digitCount:=0;
+    for k:=0 to length(result.digits)-1 do result.digits[k]:=0;
+    for i:=0 to digitCount-1 do
+    for j:=0 to min(fixed.digitCount,length(result.digits)-i)-1 do begin
+      k:=i+j;
+      carry:=carryType(digits[i])*carryType(fixed.digits[j]);
+      while (carry>0) and (k<length(result.digits)) do begin
+        //x[i]*y[i]+r[i] <= (2^n-1)*(2^n-1)+2^n-1
+        //                = (2^n)^2 - 2*2^n + 1 + 2^n-1
+        //                = (2^n)^2 - 2*2^n + 1
+        //                < (2^n)^2 - 2     + 1 = (max value of carry type)
+        carry+=result.digits[k];
+        result.digits[k]:=carry and DIGIT_MAX_VALUE;
+        carry:=carry shr BITS_PER_DIGIT;
+        result.digitCount:=k+1;
+        inc(k);
+      end;
+    end;
+    if (result.digitCount=1) and (result.digits[0]=0) then result.digitCount:=0;
+  end;
+
 FUNCTION T_bigInt.pow(power: dword): T_bigInt;
   CONST BASE_THRESHOLD_FOR_EXPONENT:array[2..62] of longint=(maxLongint,2097151,55108,6208,1448,511,234,127,78,52,38,28,22,18,15,13,11,9,8,7,7,6,6,5,5,5,4,4,4,4,3,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2);
   VAR multiplicand:T_bigInt;
@@ -886,6 +1140,43 @@ FUNCTION T_bigInt.powMod(CONST power,modul:T_bigInt):T_bigInt;
     end;
     p.destroy;
     f.destroy;
+  end;
+
+FUNCTION T_fixedSizeNonnegativeInt.powMod(CONST power,modul:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+  VAR p,f:T_fixedSizeNonnegativeInt;
+  begin
+    if (power= 0) then exit(1);
+    if (modul<=1) then exit(0);
+    p:=power;
+    f:=self mod modul;
+    result:=1;
+    while p<>0 do begin
+      if p.isOdd then result:=result*f mod modul;
+      f:=f*f mod modul;
+      p.shiftRightOneBit;
+    end;
+  end;
+
+FUNCTION T_fixedSizeNonnegativeInt.toString:string;
+  VAR big:T_bigInt;
+  begin
+    big.createFromRawData(false,digitCount,@digits);
+    result:=big.toString;
+  end;
+
+FUNCTION T_fixedSizeNonnegativeInt.toFloat:extended;
+  VAR big:T_bigInt;
+  begin
+    big.createFromRawData(false,digitCount,@digits);
+    result:=big.toFloat;
+  end;
+
+FUNCTION T_fixedSizeNonnegativeInt.toNewBigInt:T_bigInt;
+  VAR big:T_bigInt;
+  begin
+    big.createFromRawData(false,digitCount,@digits);
+    result.create(big);
+    trimLeadingZeros(result.digitCount,result.digits);
   end;
 
 FUNCTION T_bigInt.bitAnd(CONST big: T_bigInt): T_bigInt;
@@ -1079,6 +1370,22 @@ FUNCTION T_bigInt.divMod(CONST divisor: T_bigInt; OUT quotient, rest: T_bigInt):
       end;
     end;
     trimLeadingZeros(rest.digitCount,rest.digits);
+  end;
+
+FUNCTION T_fixedSizeNonnegativeInt.divMod(CONST divisor: T_fixedSizeNonnegativeInt; OUT quotient, rest: T_fixedSizeNonnegativeInt): boolean;
+  VAR bitIdx:longint;
+  begin
+    quotient:=0;
+    rest    :=0;
+    if divisor=0 then exit(false);
+    result:=true;
+    for bitIdx:=relevantBits-1 downto 0 do begin
+      rest.shlInc(getBit(bitIdx));
+      if rest>=divisor then begin
+        rest-=divisor;
+        quotient.setBit(bitIdx,true);
+      end;
+    end;
   end;
 
 FUNCTION T_bigInt.divide(CONST divisor: T_bigInt): T_bigInt;
@@ -1333,6 +1640,16 @@ PROCEDURE T_bigInt.shiftRightOneBit;
     end;
   end;
 
+PROCEDURE T_fixedSizeNonnegativeInt.shiftRightOneBit;
+  VAR k:longint;
+  begin
+    for k:=0 to digitCount-1 do begin
+      if (k>0) and odd(digits[k]) then digits[k-1]:=digits[k-1] or UPPER_DIGIT_BIT;
+      digits[k]:=digits[k] shr 1;
+    end;
+    if (digitCount>0) and (digits[digitCount-1]=0) then dec(digitCount);
+  end;
+
 PROCEDURE T_bigInt.shiftRight(CONST rightShift:longint);
   VAR digitsToShift:longint;
       bitsToShift  :longint;
@@ -1385,6 +1702,51 @@ PROCEDURE T_bigInt.shiftRight(CONST rightShift:longint);
           carry:=nextCarry;
         end;
       end;
+    end;
+  end;
+
+PROCEDURE T_fixedSizeNonnegativeInt.shiftRight(CONST rightShift:longint);
+  VAR digitsToShift:longint;
+      bitsToShift  :longint;
+      newBitCount  :longint;
+      newDigitCount:longint;
+      carry,nextCarry:digitType;
+      k:longint;
+  begin
+    if rightShift=0 then exit;
+    bitsToShift  :=abs(rightShift);
+    digitsToShift:=bitsToShift div BITS_PER_DIGIT;
+    bitsToShift  -=digitsToShift * BITS_PER_DIGIT;
+    if rightShift>0 then begin
+      if digitsToShift>0 then begin
+        for k:=0 to digitCount-digitsToShift-1 do digits[k]:=digits[k+digitsToShift];
+        for k:=digitCount-digitsToShift to digitCount-1 do digits[k]:=0;
+      end;
+      if bitsToShift>0 then begin
+        carry:=0;
+        for k:=digitCount-digitsToShift-1 downto 0 do begin
+          nextCarry:=digits[k];
+          digits[k]:=(digits[k] shr bitsToShift) or (carry shl (BITS_PER_DIGIT-bitsToShift));
+          carry:=nextCarry;
+        end;
+      end;
+      while (digitCount>0) and (digits[digitCount-1]=0) do dec(digitCount);
+    end else begin
+      newBitCount:=relevantBits-rightShift;
+      newDigitCount:=newBitCount div BITS_PER_DIGIT; if newDigitCount*BITS_PER_DIGIT<newBitCount then inc(newDigitCount);
+      if digitsToShift>0 then begin
+        for k:=digitCount-1 downto digitsToShift do digits[k]:=digits[k-digitsToShift];
+        for k:=digitsToShift-1 downto 0 do digits[k]:=0;
+      end;
+      if bitsToShift>0 then begin
+        carry:=0;
+        for k:=0 to digitCount-1 do begin
+          nextCarry:=digits[k] shr (BITS_PER_DIGIT-bitsToShift);
+          digits[k]:=(digits[k] shl bitsToShift) or carry;
+          carry:=nextCarry;
+        end;
+      end;
+      digitCount:=newDigitCount;
     end;
   end;
 
@@ -1503,6 +1865,18 @@ FUNCTION T_bigInt.greatestCommonDivider(CONST other:int64):int64;
     end;
   end;
 
+FUNCTION T_fixedSizeNonnegativeInt.greatestCommonDivider(CONST other:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+  VAR b,temp:T_fixedSizeNonnegativeInt;
+  begin
+    result:=self;
+    b:=other;
+    while not(b=0) do begin
+      temp:=result mod b;
+      result:=b;
+      b:=temp;
+    end;
+  end;
+
 FUNCTION T_bigInt.modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInverse:boolean):T_bigInt;
   VAR r0,r1,
       t0,t1,
@@ -1549,9 +1923,9 @@ FUNCTION T_bigInt.modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInvers
       end else  result:=t0;
     end;
   end;
+CONST SQUARE_LOW_BYTE_VALUES:set of byte=[0,1,4,9,16,17,25,33,36,41,49,57,64,65,68,73,81,89,97,100,105,113,121,129,132,137,144,145,153,161,164,169,177,185,193,196,201,209,217,225,228,233,241,249];
 
 FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
-  CONST SQUARE_LOW_BYTE_VALUES:set of byte=[0,1,4,9,16,17,25,33,36,41,49,57,64,65,68,73,81,89,97,100,105,113,121,129,132,137,144,145,153,161,164,169,177,185,193,196,201,209,217,225,228,233,241,249];
   VAR resDt,temp:T_bigInt;
       done:boolean=false;
       step:longint=0;
@@ -1611,6 +1985,54 @@ FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
                   result.digitCount:=0;
                   ReAllocMem(result.digits,0);
                 end;
+  end;
+
+FUNCTION T_fixedSizeNonnegativeInt.iSqrt(OUT isSquare:boolean):T_fixedSizeNonnegativeInt;
+  VAR resDt,temp:T_fixedSizeNonnegativeInt;
+      done:boolean=false;
+      step:longint=0;
+      selfShl16:T_fixedSizeNonnegativeInt;
+      {$ifndef debugMode}intRoot:int64;{$endif}
+  begin
+    if self=0 then begin
+      isSquare:=true;
+      result:=0;
+      exit(result);
+    end;
+    {$ifndef debugMode}
+    if self<=9223372036854775807 then begin
+      intRoot:=trunc(sqrt(toFloat));
+      result:=intRoot;
+      isSquare:=self=intRoot*intRoot;
+      exit;
+    end;
+    {$endif}
+    if not((digits[0] and 255) in SQUARE_LOW_BYTE_VALUES) then begin
+      isSquare:=false;
+      result:=0;
+      exit;
+    end;
+    //compute the square root of this*2^16, validate by checking lower 8 bits
+    //find most significant digit:
+    step:=digitCount-1;
+    result:=round(sqrt(digits[step]));
+    result.shiftRight(-16*(step+1));
+    selfShl16:=self;
+    selfShl16.shiftRight(-16);
+    step:=0;
+    repeat
+      selfShl16.divMod(result,resDt,temp);
+      isSquare:=temp=0;
+      temp:=resDt+result;
+      isSquare:=isSquare and not odd(temp.digits[0]);
+      temp.shiftRightOneBit;
+      done:=result=temp;
+      result:=temp;
+      inc(step);
+    until done or (step>100);
+
+    isSquare:=isSquare and ((result.digits[0] and 255)=0);
+    if isSquare then result.shiftRight(8);
   end;
 
 FUNCTION T_bigInt.iLog2(OUT isPowerOfTwo:boolean):longint;
@@ -1690,41 +2112,37 @@ FUNCTION factorizeSmall(n:longint):T_arrayOfLongint;
   end;
 
 FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
-  FUNCTION basicFactorize(VAR inputAndRest:T_bigInt; OUT furtherFactorsPossible:boolean):T_factorizationResult;
+  FUNCTION basicFactorize(VAR inputAndRest:T_fixedSizeNonnegativeInt; OUT furtherFactorsPossible:boolean):T_factorizationResult;
     VAR workInInt64:boolean=false;
         n:int64=9223358842721533952; //to simplify conditions
     FUNCTION trySwitchToInt64:boolean; inline;
       begin
         if workInInt64 then exit(true);
-        if inputAndRest.canBeRepresentedAsInt64() then begin
-          n:=inputAndRest.toInt;
+        if inputAndRest.relevantBits<63 then begin
+          n:=inputAndRest;
           workInInt64:=true;
         end;
         result:=workInInt64;
       end;
 
-    FUNCTION longDivideIfRestless(CONST divider:T_bigInt):boolean;
-      VAR quotient,rest:T_bigInt;
+    FUNCTION longDivideIfRestless(CONST divider:T_fixedSizeNonnegativeInt):boolean;
+      VAR quotient,rest:T_fixedSizeNonnegativeInt;
       begin
         inputAndRest.divMod(divider,quotient,rest);
-        if rest.isZero then begin
+        if rest=0 then begin
           result:=true;
-          inputAndRest.destroy;
           inputAndRest:=quotient;
         end else begin
           result:=false;
-          quotient.destroy;
         end;
-        rest.destroy;
       end;
 
     VAR p:longint;
-        bigP:T_bigInt;
+        bigP:T_fixedSizeNonnegativeInt;
         skipIdx:longint=0;
         thirdRootOfInputAndRest:double;
     begin
       furtherFactorsPossible:=true;
-      inputAndRest.negative:=false;
       setLength(result.smallFactors,0);
       setLength(result.bigFactors,0);
       //2:
@@ -1734,7 +2152,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
           append(result.smallFactors,2);
         end;
       end else begin
-        while (inputAndRest.digitCount>0) and not(inputAndRest.getBit(0)) do begin
+        while (inputAndRest.relevantBits>0) and not(inputAndRest.isOdd) do begin
           inputAndRest.shiftRightOneBit;
           append(result.smallFactors,2);
         end;
@@ -1742,8 +2160,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       //By list of primes:
       for p in primes do begin
         if (int64(p)*p>n) then begin
-          inputAndRest.destroy;
-          inputAndRest.fromInt(n);
+          inputAndRest:=n;
           furtherFactorsPossible:=false;
           exit;
         end;
@@ -1753,15 +2170,14 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
             append(result.smallFactors,p);
           end;
         end else begin
-          while inputAndRest.divideIfRestless(p) do append(result.smallFactors,p);
+          while longDivideIfRestless(p) do append(result.smallFactors,p);
         end;
       end;
       //By skipping:
       p:=primes[length(primes)-1]+skip[length(skip)-1]; //=841
       while p<2097151 do begin
         if workInInt64 and ((int64(p)*p*p>n)) then begin
-          inputAndRest.destroy;
-          inputAndRest.fromInt(n);
+          inputAndRest:=n;
           furtherFactorsPossible:=int64(p)*p<=n;
           exit;
         end;
@@ -1771,7 +2187,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
             append(result.smallFactors,p);
           end;
         end else begin
-          while inputAndRest.divideIfRestless(p) do append(result.smallFactors,p);
+          while longDivideIfRestless(p) do append(result.smallFactors,p);
         end;
         inc(p,skip[skipIdx]);
         skipIdx:=(skipIdx+1) mod length(skip);
@@ -1785,7 +2201,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
             thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
           end;
         end else begin
-          while inputAndRest.divideIfRestless(p) do begin
+          while longDivideIfRestless(p) do begin
             append(result.smallFactors,p);
             thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
           end;
@@ -1794,38 +2210,29 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
         skipIdx:=(skipIdx+1) mod length(skip);
       end;
       if workInInt64 then begin
-        inputAndRest.destroy;
-        inputAndRest.fromInt(n);
+        inputAndRest:=n;
         workInInt64:=false;
       end;
       if p<thirdRootOfInputAndRest then begin
-        bigP.fromInt(p);
-        while (bigP.compare(thirdRootOfInputAndRest)=CR_LESSER) do begin
+        bigP:=p;
+        while (bigP<=thirdRootOfInputAndRest) do begin
           while longDivideIfRestless(bigP) do begin
             setLength(result.bigFactors,length(result.bigFactors)+1);
-            result.bigFactors[length(result.bigFactors)-1].create(bigP);
+            result.bigFactors[length(result.bigFactors)-1]:=bigP.toNewBigInt;
             thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
           end;
-          bigP.incAbsValue(skip[skipIdx]);
+          bigP+=skip[skipIdx];
           skipIdx:=(skipIdx+1) mod length(skip);
         end;
-        bigP.destroy;
       end;
     end;
 
-  VAR bigFourKN:T_bigInt;
-  FUNCTION squareOfMinus4kn(CONST z:int64):T_bigInt;
-    VAR temp:T_bigInt;
+  VAR bigFourKN:T_fixedSizeNonnegativeInt;
+  FUNCTION squareOfMinus4kn(CONST z:int64):T_fixedSizeNonnegativeInt;
     begin
-      if z<maxLongint then begin
-        result.fromInt(sqr(z)-bigFourKN.toInt);
-      end else begin
-        result.fromInt(z);
-        temp:=result.mult(result);
-        result.destroy;
-        result:=temp.minus(bigFourKN);
-        temp.destroy;
-      end;
+      result:=T_fixedSizeNonnegativeInt(z);
+      result*=result;
+      result-=bigFourKN;
     end;
 
   PROCEDURE myInc(VAR y:T_bigInt; CONST increment:int64);
@@ -1852,20 +2259,17 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
   FUNCTION floor64(CONST d:double):int64; begin result:=trunc(d); if frac(d)<0 then dec(result); end;
   FUNCTION ceil64 (CONST d:double):int64; begin result:=trunc(d); if frac(d)>0 then inc(result); end;
 
-  VAR r:T_bigInt;
+  VAR r:T_fixedSizeNonnegativeInt;
       sixthRootOfR:double;
 
       furtherFactorsPossible:boolean;
       temp:double;
 
-      fourKN:int64;
       k:{$ifdef CPU32}longint{$else}int64{$endif};
       x:int64;
       xMax:int64;
-      y:int64;
-      bigY:T_bigInt;
-      bigRootOfY:T_bigInt;
-      rootOfY:int64;
+      bigY:T_fixedSizeNonnegativeInt;
+      bigRootOfY:T_fixedSizeNonnegativeInt;
       yIsSquare:boolean;
       lehmannTestCompleted:boolean=false;
   begin
@@ -1875,159 +2279,114 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       result.smallFactors[0]:=B.toInt;
       exit;
     end;
-    r.create(B);
-    if r.canBeRepresentedAsInt32 then begin
-      result.smallFactors:=factorizeSmall(r.toInt);
-      r.destroy;
+    r:=B;
+    if r.relevantBits<=31 then begin
+      result.smallFactors:=factorizeSmall(int64(r));
       exit;
-      if r.negative then begin
-        setLength(result.smallFactors,1);
-        result.smallFactors[0]:=-1;
-        r.negative:=false;
-      end;
     end else begin
       result:=basicFactorize(r,furtherFactorsPossible);
       if not(furtherFactorsPossible) then begin
-        if r.compareAbsValue(1)=CR_GREATER then begin
+        if not(r<=1) then begin
           setLength(result.bigFactors,length(result.bigFactors)+1);
-          result.bigFactors[length(result.bigFactors)-1]:=r;
-        end else r.destroy;
+          result.bigFactors[length(result.bigFactors)-1]:=r.toNewBigInt;
+        end;
         exit;
       end;
     end;
 
     sixthRootOfR:=power(r.toFloat,1/6);
-    if r.compareAbsValue(59172824724902)=CR_LESSER then begin
-      for k:=1 to trunc(power(r.toFloat,1/3)) do if not(lehmannTestCompleted) then begin
-        fourKN:=4*r.toInt*k; //4*r*k <= 4*r^(4/3) -> no overflow for r<2^61^(3/4)=59172824724902
-        temp:=sqrt(fourKN);
-        x:=ceil64(temp);
-        xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //no overflow for r < 2^92
-        while x<=xMax do begin
-          y:=x*x-fourKN;
-          rootOfY:=round(sqrt(y)); yIsSquare:=false;
-          if sqr(rootOfY  )=y then                     yIsSquare:=true else
-          if sqr(rootOfY+1)=y then begin inc(rootOfY); yIsSquare:=true; end else
-          if sqr(rootOfY-1)=y then begin dec(rootOfY); yIsSquare:=true; end;
-          if yIsSquare then begin
-            rootOfY+=x;
-            y:=smallGcd(rootOfY,r.toInt);
-            rootOfY:=r.toInt div y;
-            setLength(result.bigFactors,length(result.bigFactors)+2);
-            result.bigFactors[length(result.bigFactors)-2].fromInt(y);
-            result.bigFactors[length(result.bigFactors)-1].fromInt(rootOfY);
-            lehmannTestCompleted:=true;
-            x:=xMax;
-          end;
-          inc(x);
+    if not(isPrime(r)) then for k:=1 to trunc(power(r.toFloat,1/3)) do if not(lehmannTestCompleted) then begin
+      bigFourKN:=r*k;
+      bigFourKN.shlInc(false);
+      bigFourKN.shlInc(false);
+      temp:=sqrt(bigFourKN.toFloat);
+      x:=ceil64(temp);
+      xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //no overflow for r < 2^92
+      while x<=xMax do begin
+        bigY:=squareOfMinus4kn(x);
+        bigRootOfY:=bigY.iSqrt(yIsSquare);
+        if yIsSquare then begin
+          bigY:=(bigRootOfY+x).greatestCommonDivider(r); //=gcd(sqrt(bigY)+x,r)
+          bigRootOfY:=r div bigY;
+          setLength(result.bigFactors,length(result.bigFactors)+2);
+          result.bigFactors[length(result.bigFactors)-2]:=bigY.toNewBigInt;
+          result.bigFactors[length(result.bigFactors)-1]:=bigRootOfY.toNewBigInt;
+          lehmannTestCompleted:=true;
+          x:=xMax;
         end;
-      end;
-    end else begin
-      if not(isPrime(r)) then for k:=1 to trunc(power(r.toFloat,1/3)) do if not(lehmannTestCompleted) then begin
-        bigFourKN.create(r);
-        bigFourKN.multWith(k);
-        bigFourKN.shlInc(false);
-        bigFourKN.shlInc(false);
-        temp:=sqrt(bigFourKN.toFloat);
-        x:=ceil64(temp);
-        xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //no overflow for r < 2^92
-        while x<=xMax do begin
-          bigY:=squareOfMinus4kn(x);
-          bigRootOfY:=bigY.iSqrt(yIsSquare);
-          bigY.destroy;
-          if yIsSquare then begin
-            myInc(bigRootOfY,x); //= sqrt(bigY)+x
-            bigY:=bigRootOfY.greatestCommonDivider(r); //=gcd(sqrt(bigY)+x,r)
-            bigRootOfY.destroy;
-            bigRootOfY:=r.divide(bigY);
-            setLength(result.bigFactors,length(result.bigFactors)+2);
-            result.bigFactors[length(result.bigFactors)-2]:=bigY;
-            result.bigFactors[length(result.bigFactors)-1]:=bigRootOfY;
-            lehmannTestCompleted:=true;
-            x:=xMax;
-          end else bigRootOfY.destroy;
-          inc(x);
-        end;
-        bigFourKN.destroy;
+        inc(x);
       end;
     end;
-    if lehmannTestCompleted then r.destroy
-    else begin
+    if not(lehmannTestCompleted) then begin
       setLength(result.bigFactors,length(result.bigFactors)+1);
-      result.bigFactors[length(result.bigFactors)-1]:=r;
+      result.bigFactors[length(result.bigFactors)-1]:=r.toNewBigInt;
     end;
   end;
 
-FUNCTION isPrime(CONST n:longint ):boolean;
-  FUNCTION mrt(CONST a:longint):boolean;
-    VAR n1,d,t,p:int64;
-        j:longint=1;
-        k:longint;
-    begin
-      n1:=int64(n)-1;
-      d :=n shr 1;
-      while not(odd(d)) do begin
-        d:=d shr 1;
-        inc(j);
-      end;
-      //1<=j<=63, 1<=d<=2^63-1
-      t:=a;
-      p:=a;
-      while (d>1) do begin
-        d:=d shr 1;
-        p:=p*p mod n;
-        if odd(d) then t:=t*p mod n;
-      end;
-      if (t=1) or (t=n1) then exit(true);
-      for k:=1 to j-1 do begin
-        t:=t*t mod n;
-        if t=n1 then exit(true);
-        if t<=1 then break;
-      end;
-      result:=false;
+FUNCTION millerRabinTest(CONST n,a:longint):boolean;
+  VAR n1,d,t,p:int64;
+      j:longint=1;
+      k:longint;
+  begin
+    n1:=int64(n)-1;
+    d :=n shr 1;
+    while not(odd(d)) do begin
+      d:=d shr 1;
+      inc(j);
     end;
+    //1<=j<=63, 1<=d<=2^63-1
+    t:=a;
+    p:=a;
+    while (d>1) do begin
+      d:=d shr 1;
+      p:=p*p mod n;
+      if odd(d) then t:=t*p mod n;
+    end;
+    if (t=1) or (t=n1) then exit(true);
+    for k:=1 to j-1 do begin
+      t:=t*t mod n;
+      if t=n1 then exit(true);
+      if t<=1 then break;
+    end;
+    result:=false;
+  end;
 
+FUNCTION bigMillerRabinTest(CONST n:T_fixedSizeNonnegativeInt; CONST a:int64):boolean;
+  VAR n1,d,t:T_fixedSizeNonnegativeInt;
+      j:longint=1;
+      k:longint;
+  begin
+    n1:=n-1;
+    d:=n; d.shiftRightOneBit;
+    while not(d.isOdd) do begin
+      d.shiftRightOneBit;
+      inc(j);
+    end;
+    t:=T_fixedSizeNonnegativeInt(a).powMod(d,n);
+    if (t=1) or (t=n1) then exit(true);
+    for k:=1 to j-1 do begin
+      t:=t*t mod n;
+      if (t=n1) then exit(true);
+      if (t<=1) then break;
+    end;
+    result:=false;
+  end;
+
+FUNCTION isPrime(CONST n:longint ):boolean;
   begin
     if (n    =2)   or (n    =3  ) or (n    =5  ) or (n    =7  ) then exit(true);
     if (n    =1) or
        (n mod 2=0) or (n mod 3=0) or (n mod 5=0) or (n mod 7=0) then exit(false);
-    if n<1373653 then exit(mrt(2)  and mrt(3));
-    if n<9080191 then exit(mrt(31) and mrt(37));
-    exit(mrt(2) and mrt(7) and mrt(61));
+    if n<1373653 then exit(millerRabinTest(n, 2) and millerRabinTest(n, 3));
+    if n<9080191 then exit(millerRabinTest(n,31) and millerRabinTest(n,37));
+    exit(millerRabinTest(n,2) and millerRabinTest(n,7) and millerRabinTest(n,61));
   end;
 
-FUNCTION isPrime(CONST n:T_bigInt):boolean;
+FUNCTION isPrime(CONST n:T_fixedSizeNonnegativeInt):boolean;
   VAR relBits :longint;
 
-  FUNCTION bMrt(CONST a:int64):boolean;
-    VAR n1,d,bigA,t:T_bigInt;
-        j:longint=1;
-        k:longint;
-    begin
-      n1:=n.minus(1);
-      d.create(n1);
-      while not(d.getBit(0)) do begin
-        d.shiftRightOneBit;
-        inc(j);
-      end;
-      bigA.fromInt(a);
-      t:=bigA.powMod(d,n);
-      bigA.destroy;
-      d.destroy;
-      result:=(t.compare( 1)=CR_EQUAL) or
-              (t.compare(n1)=CR_EQUAL);
-      for k:=1 to j-1 do if not(result) then begin
-        d:=t.mult(t);    t.destroy;
-        t:=d.modulus(n); d.destroy;
-        if (t.compare(n1)=CR_EQUAL) then result:=true;
-        if t.compare(1) in [CR_EQUAL,CR_LESSER] then break;
-      end;
-      t.destroy;
-      n1.destroy;
-    end;
-
    FUNCTION isComposite(x:int64):boolean; inline;
-     VAR y:int64=614889782588491410;
+     VAR y:int64=2*3*5*7*11*13*17*19*23*29*31*37*41*43*47;
          z:int64=1;
      begin
        z:=x;
@@ -2035,14 +2394,12 @@ FUNCTION isPrime(CONST n:T_bigInt):boolean;
        result:=z>1;
      end;
 
-  FUNCTION isComposite(CONST bigX:T_bigInt):boolean; inline;
+  FUNCTION isComposite(CONST bigX:T_fixedSizeNonnegativeInt):boolean; inline;
     VAR x:int64=1;
-        y:int64=614889782588491410;
+        y:int64=2*3*5*7*11*13*17*19*23*29*31*37*41*43*47;
         z:int64=1;
-        temp:T_bigInt;
     begin
-      temp:=modulus(bigX,y);
-      x:=temp.toInt; temp.destroy;
+      x:=bigX mod y;
       z:=y;
       y:=x;
       while (y<>0) do begin x:=z mod y; z:=y; y:=x; end;
@@ -2051,27 +2408,29 @@ FUNCTION isPrime(CONST n:T_bigInt):boolean;
 
   CONST pr:array[0..41] of byte=(3,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251);
   VAR a:byte;
+      fixedN:T_fixedSizeNonnegativeInt;
   begin
-    if n.negative or n.isZero then exit(false);
+    if n=0 then exit(false);
+    if n<=9223372036854775807
+    then begin if isComposite(int64(n)) then exit(false); end
+    else begin if isComposite(      n ) then exit(false); end;
+    if n<=2147483647 then exit(isPrime(int64(n)));
+    fixedN:=n;
+    if not(n>=4759123141) then exit(bigMillerRabinTest(fixedN,2) and bigMillerRabinTest(fixedN,7) and bigMillerRabinTest(fixedN,61));
+    result:=bigMillerRabinTest(fixedN,2) and bigMillerRabinTest(fixedN,5) and bigMillerRabinTest(fixedN,7) and bigMillerRabinTest(fixedN,11);
+    if not(result) or not(n>=2152302898747) then exit;
+    result:=bigMillerRabinTest(fixedN,13);
+    if not(result) or not(n>=3474749660383) then exit;
+    result:=bigMillerRabinTest(fixedN,17);
+    if not(result) or not(n>=341550071728321) then exit;
+    result:=bigMillerRabinTest(fixedN,19) and bigMillerRabinTest(fixedN,23);
+    if not(result) or not(n>=3825123056546413051) then exit;
+    result:=bigMillerRabinTest(fixedN,29) and bigMillerRabinTest(fixedN,31) and bigMillerRabinTest(fixedN,37);
     relBits:=n.relevantBits;
-    if n.canBeRepresentedAsInt64()
-    then begin if isComposite(n.toInt) then exit(false); end
-    else begin if isComposite(n      ) then exit(false); end;
-    if n.canBeRepresentedAsInt32() then exit(isPrime(n.toInt));
-    if n.compareAbsValue(4759123141)=CR_LESSER then exit(bMrt(2) and bMrt(7) and bMrt(61));
-    result:=bMrt(2) and bMrt(5) and bMrt(7) and bMrt(11);
-    if not(result) or (n.compareAbsValue(2152302898747)=CR_LESSER) then exit;
-    result:=bMrt(13);
-    if not(result) or (n.compareAbsValue(3474749660383)=CR_LESSER) then exit;
-    result:=bMrt(17);
-    if not(result) or (n.compareAbsValue(341550071728321)=CR_LESSER) then exit;
-    result:=bMrt(19) and bMrt(23);
-    if not(result) or (n.compareAbsValue(3825123056546413051)=CR_LESSER) then exit;
-    result:=bMrt(29) and bMrt(31) and bMrt(37);
     if not(result) or (relBits<79) then exit;
-    result:=bMrt(41);
+    result:=bigMillerRabinTest(fixedN,41);
     if not(result) or (relBits<82) then exit;
-    for a in pr do if not(bMrt(a)) then exit(false);
+    for a in pr do if not(bigMillerRabinTest(fixedN,a)) then exit(false);
     result:=true;
   end;
 
