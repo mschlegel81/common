@@ -7,7 +7,6 @@ USES sysutils,
 TYPE
   digitType=dword;
   carryType=qword;
-  signedCarryType=int64;
   pDigitType=^digitType;
 CONST
   BITS_PER_DIGIT=32;
@@ -2192,6 +2191,9 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
         inc(p,skip[skipIdx]);
         skipIdx:=(skipIdx+1) mod length(skip);
       end;
+      if     workInInt64  and isPrime(n) then begin inputAndRest:=n; furtherFactorsPossible:=false; exit(result); end;
+      if not(workInInt64) and isPrime(inputAndRest)  then begin      furtherFactorsPossible:=false; exit(result); end;
+
       thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
       while (p<maxLongint-10) and (p<thirdRootOfInputAndRest) do begin
         if trySwitchToInt64 then begin
