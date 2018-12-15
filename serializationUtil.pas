@@ -22,8 +22,8 @@ TYPE
   T_inputStreamWrapper=object(T_abstractStreamWrapper)
     private
       stream:TStream;
-      PROCEDURE read(VAR targetBuffer; CONST count: longint); virtual;
     public
+      PROCEDURE read(VAR targetBuffer; CONST count: longint); virtual;
       CONSTRUCTOR create(CONST stream_:TStream);
       CONSTRUCTOR createToReadFromFile(CONST fileName:string);
       DESTRUCTOR destroy;
@@ -50,8 +50,8 @@ TYPE
     private
       buffer:array[0..C_bufferSize-1] of byte;
       bufferFill:longint;
-      PROCEDURE read(VAR targetBuffer; CONST count: longint); virtual;
     public
+      PROCEDURE read(VAR targetBuffer; CONST count: longint); virtual;
       CONSTRUCTOR create(CONST stream_:TStream);
       CONSTRUCTOR createToReadFromFile(CONST fileName:string);
       DESTRUCTOR destroy;
@@ -61,8 +61,8 @@ TYPE
   T_outputStreamWrapper=object(T_abstractStreamWrapper)
     private
       stream:TStream;
-      PROCEDURE write(CONST sourceBuffer; CONST count: longint); virtual;
     public
+      PROCEDURE write(CONST sourceBuffer; CONST count: longint); virtual;
       CONSTRUCTOR create(CONST stream_:TStream);
       CONSTRUCTOR createToWriteToFile(CONST fileName:string);
       DESTRUCTOR destroy;
@@ -89,8 +89,8 @@ TYPE
     private
       buffer:array[0..C_bufferSize-1] of byte;
       bufferFill:longint;
-      PROCEDURE write(CONST sourceBuffer; CONST count: longint); virtual;
     public
+      PROCEDURE write(CONST sourceBuffer; CONST count: longint); virtual;
       PROCEDURE flush;
       CONSTRUCTOR create(CONST stream_:TStream);
       CONSTRUCTOR createToWriteToFile(CONST fileName:string);
