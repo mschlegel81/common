@@ -136,7 +136,7 @@ TYPE
     FUNCTION mult (CONST fixed:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
     FUNCTION divMod(CONST divisor:T_fixedSizeNonnegativeInt; OUT quotient,rest:T_fixedSizeNonnegativeInt):boolean;
     FUNCTION powMod(CONST power,modul:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
-    FUNCTION iSqrt(OUT isSquare:boolean):T_fixedSizeNonnegativeInt;
+    FUNCTION iSqrt(CONST computeEvenIfNotSquare:boolean; OUT isSquare:boolean):T_fixedSizeNonnegativeInt;
     FUNCTION greatestCommonDivider(CONST other:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
 
     FUNCTION toString:string;
@@ -186,6 +186,8 @@ OPERATOR -(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
 OPERATOR *(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
 OPERATOR div(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
 OPERATOR mod(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+FUNCTION floatToFixedSizeNonnegativeInt(CONST f:double; CONST rounding:T_roundingMode):T_fixedSizeNonnegativeInt;
+
 IMPLEMENTATION
 OPERATOR :=(CONST x:T_bigInt):T_fixedSizeNonnegativeInt;
   VAR i:longint;
@@ -276,6 +278,21 @@ OPERATOR-(CONST x, y: T_fixedSizeNonnegativeInt): T_fixedSizeNonnegativeInt; beg
 OPERATOR*(CONST x, y: T_fixedSizeNonnegativeInt): T_fixedSizeNonnegativeInt; begin result:=x.mult(y); end;
 OPERATOR div(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt; VAR dummy:T_fixedSizeNonnegativeInt; begin x.divMod(y,result,dummy); end;
 OPERATOR mod(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt; VAR dummy:T_fixedSizeNonnegativeInt; begin x.divMod(y,dummy,result); end;
+
+FUNCTION floatToFixedSizeNonnegativeInt(CONST f:double; CONST rounding:T_roundingMode):T_fixedSizeNonnegativeInt;
+  VAR big:T_bigInt;
+      k:longint;
+  begin
+    if IsNan(f) or IsInfinite(f) or (f<0) then exit(0);
+    big.fromFloat(f,rounding);
+    if big.digitCount>length(result.digits)
+    then result:=0
+    else begin
+      result.digitCount:=big.digitCount;
+      for k:=0 to length(Result.digits)-1 do result.digits[k]:=0;
+      move(big.digits^,result.digits,result.digitCount*(BITS_PER_DIGIT shr 3));
+    end;
+  end;
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigInt):T_bigInt;
   VAR k:longint;
@@ -1052,10 +1069,6 @@ FUNCTION T_fixedSizeNonnegativeInt.mult(CONST fixed: T_fixedSizeNonnegativeInt):
       k:=i+j;
       carry:=carryType(digits[i])*carryType(fixed.digits[j]);
       while (carry>0) and (k<length(result.digits)) do begin
-        //x[i]*y[i]+r[i] <= (2^n-1)*(2^n-1)+2^n-1
-        //                = (2^n)^2 - 2*2^n + 1 + 2^n-1
-        //                = (2^n)^2 - 2*2^n + 1
-        //                < (2^n)^2 - 2     + 1 = (max value of carry type)
         carry+=result.digits[k];
         result.digits[k]:=carry and DIGIT_MAX_VALUE;
         carry:=carry shr BITS_PER_DIGIT;
@@ -1733,6 +1746,7 @@ PROCEDURE T_fixedSizeNonnegativeInt.shiftRight(CONST rightShift:longint);
     end else begin
       newBitCount:=relevantBits-rightShift;
       newDigitCount:=newBitCount div BITS_PER_DIGIT; if newDigitCount*BITS_PER_DIGIT<newBitCount then inc(newDigitCount);
+      digitCount:=newDigitCount;
       if digitsToShift>0 then begin
         for k:=digitCount-1 downto digitsToShift do digits[k]:=digits[k-digitsToShift];
         for k:=digitsToShift-1 downto 0 do digits[k]:=0;
@@ -1745,7 +1759,6 @@ PROCEDURE T_fixedSizeNonnegativeInt.shiftRight(CONST rightShift:longint);
           carry:=nextCarry;
         end;
       end;
-      digitCount:=newDigitCount;
     end;
   end;
 
@@ -1986,7 +1999,7 @@ FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
                 end;
   end;
 
-FUNCTION T_fixedSizeNonnegativeInt.iSqrt(OUT isSquare:boolean):T_fixedSizeNonnegativeInt;
+FUNCTION T_fixedSizeNonnegativeInt.iSqrt(CONST computeEvenIfNotSquare:boolean; OUT isSquare:boolean):T_fixedSizeNonnegativeInt;
   VAR resDt,temp:T_fixedSizeNonnegativeInt;
       done:boolean=false;
       step:longint=0;
@@ -2008,14 +2021,20 @@ FUNCTION T_fixedSizeNonnegativeInt.iSqrt(OUT isSquare:boolean):T_fixedSizeNonneg
     {$endif}
     if not((digits[0] and 255) in SQUARE_LOW_BYTE_VALUES) then begin
       isSquare:=false;
-      result:=0;
-      exit;
+      if not(computeEvenIfNotSquare) then exit(0);
     end;
     //compute the square root of this*2^16, validate by checking lower 8 bits
     //find most significant digit:
     step:=digitCount-1;
-    result:=round(sqrt(digits[step]));
-    result.shiftRight(-16*(step+1));
+    try
+      result:=round(sqrt(toFloat)*256);
+    except
+      //n           =      2^dc  *      x
+      //sqrt(n)*256 = sqrt(2^dc) * sqrt(x) *256
+      //            = 2^(dc/2+8) * sqrt(x);
+      result:=round(sqrt(digits[digitCount-1]));
+      result.shiftRight(8-digitCount*(BITS_PER_DIGIT div 2));
+    end;
     selfShl16:=self;
     selfShl16.shiftRight(-16);
     step:=0;
@@ -2031,7 +2050,7 @@ FUNCTION T_fixedSizeNonnegativeInt.iSqrt(OUT isSquare:boolean):T_fixedSizeNonneg
     until done or (step>100);
 
     isSquare:=isSquare and ((result.digits[0] and 255)=0);
-    if isSquare then result.shiftRight(8);
+    if isSquare or computeEvenIfNotSquare then result.shiftRight(8);
   end;
 
 FUNCTION T_bigInt.iLog2(OUT isPowerOfTwo:boolean):longint;
@@ -2193,7 +2212,6 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       end;
       if     workInInt64  and isPrime(n) then begin inputAndRest:=n; furtherFactorsPossible:=false; exit(result); end;
       if not(workInInt64) and isPrime(inputAndRest)  then begin      furtherFactorsPossible:=false; exit(result); end;
-
       thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
       while (p<maxLongint-10) and (p<thirdRootOfInputAndRest) do begin
         if trySwitchToInt64 then begin
@@ -2267,9 +2285,10 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       furtherFactorsPossible:boolean;
       temp:double;
 
-      k:{$ifdef CPU32}longint{$else}int64{$endif};
-      x:int64;
-      xMax:int64;
+      k,kMax:int64;
+      x,xMax:int64;
+      bigX,bigXMax:T_fixedSizeNonnegativeInt;
+
       bigY:T_fixedSizeNonnegativeInt;
       bigRootOfY:T_fixedSizeNonnegativeInt;
       yIsSquare:boolean;
@@ -2282,10 +2301,17 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
       exit;
     end;
     r:=B;
+    if B.isNegative then append(result.smallFactors,-1);
+
     if r.relevantBits<=31 then begin
       result.smallFactors:=factorizeSmall(int64(r));
       exit;
     end else begin
+      if isPrime(r) then begin
+        setLength(result.bigFactors,1);
+        result.bigFactors[0]:=r.toNewBigInt;
+        exit(result);
+      end;
       result:=basicFactorize(r,furtherFactorsPossible);
       if not(furtherFactorsPossible) then begin
         if not(r<=1) then begin
@@ -2297,27 +2323,58 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
     end;
 
     sixthRootOfR:=power(r.toFloat,1/6);
-    if not(isPrime(r)) then for k:=1 to trunc(power(r.toFloat,1/3)) do if not(lehmannTestCompleted) then begin
+    temp:=power(r.toFloat,1/3);
+    if temp<9223372036854774000
+    then kMax:=trunc(temp)
+    else kMax:=9223372036854774000;
+    k:=1;
+    if not(isPrime(r)) then while (k<=kMax) and not(lehmannTestCompleted) do begin
       bigFourKN:=r*k;
       bigFourKN.shlInc(false);
       bigFourKN.shlInc(false);
-      temp:=sqrt(bigFourKN.toFloat);
-      x:=ceil64(temp);
-      xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //no overflow for r < 2^92
-      while x<=xMax do begin
-        bigY:=squareOfMinus4kn(x);
-        bigRootOfY:=bigY.iSqrt(yIsSquare);
-        if yIsSquare then begin
-          bigY:=(bigRootOfY+x).greatestCommonDivider(r); //=gcd(sqrt(bigY)+x,r)
-          bigRootOfY:=r div bigY;
-          setLength(result.bigFactors,length(result.bigFactors)+2);
-          result.bigFactors[length(result.bigFactors)-2]:=bigY.toNewBigInt;
-          result.bigFactors[length(result.bigFactors)-1]:=bigRootOfY.toNewBigInt;
-          lehmannTestCompleted:=true;
-          x:=xMax;
+      if r<=59172824724903 then begin
+        temp:=sqrt(bigFourKN.toFloat);
+        x:=ceil64(temp); //<= 4*r^(4/3) < 2^63 ->  r < 2^(61*3/4) = 59172824724903
+        while not(T_fixedSizeNonnegativeInt(x)*x>=bigFourKN) do inc(x);
+        xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //<= 4*r^(4/3)+r^(1/6)/(4*sqrt(r^(1/3))) -> r< 59172824724903
+        while x<=xMax do begin
+          bigY:=squareOfMinus4kn(x);
+          bigRootOfY:=bigY.iSqrt(false,yIsSquare);
+          if yIsSquare then begin
+            bigY:=(bigRootOfY+x).greatestCommonDivider(r); //=gcd(sqrt(bigY)+x,r)
+            bigRootOfY:=r div bigY;
+            if bigY=1
+            then       setLength(result.bigFactors,length(result.bigFactors)+1)
+            else begin setLength(result.bigFactors,length(result.bigFactors)+2);
+                       result.bigFactors[length(result.bigFactors)-2]:=bigY.toNewBigInt; end;
+            result           .bigFactors[length(result.bigFactors)-1]:=bigRootOfY.toNewBigInt;
+            lehmannTestCompleted:=true;
+            x:=xMax;
+          end;
+          inc(x);
         end;
-        inc(x);
+      end else begin
+        bigX:=bigFourKN.iSqrt(true,yIsSquare);
+        while not(bigX*bigX>=bigFourKN) do inc(x);
+        bigXMax:=bigFourKN+floatToFixedSizeNonnegativeInt(sixthRootOfR/(4*sqrt(k)),RM_DEFAULT);
+        while bigX<=bigXMax do begin
+          bigY:=bigX*bigX-bigFourKN;
+          bigRootOfY:=bigY.iSqrt(false,yIsSquare);
+          if yIsSquare then begin
+            bigY:=(bigRootOfY+bigX).greatestCommonDivider(r); //=gcd(sqrt(bigY)+x,r)
+            bigRootOfY:=r div bigY;
+            if bigY=1
+            then       setLength(result.bigFactors,length(result.bigFactors)+1)
+            else begin setLength(result.bigFactors,length(result.bigFactors)+2);
+                       result.bigFactors[length(result.bigFactors)-2]:=bigY.toNewBigInt; end;
+            result           .bigFactors[length(result.bigFactors)-1]:=bigRootOfY.toNewBigInt;
+            lehmannTestCompleted:=true;
+            x:=xMax;
+          end;
+          bigX+=1;
+        end;
       end;
+      inc(k);
     end;
     if not(lehmannTestCompleted) then begin
       setLength(result.bigFactors,length(result.bigFactors)+1);
