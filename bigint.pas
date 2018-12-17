@@ -283,13 +283,13 @@ FUNCTION floatToFixedSizeNonnegativeInt(CONST f:double; CONST rounding:T_roundin
   VAR big:T_bigInt;
       k:longint;
   begin
-    if IsNan(f) or IsInfinite(f) or (f<0) then exit(0);
+    if isNan(f) or isInfinite(f) or (f<0) then exit(0);
     big.fromFloat(f,rounding);
     if big.digitCount>length(result.digits)
     then result:=0
     else begin
       result.digitCount:=big.digitCount;
-      for k:=0 to length(Result.digits)-1 do result.digits[k]:=0;
+      for k:=0 to length(result.digits)-1 do result.digits[k]:=0;
       move(big.digits^,result.digits,result.digitCount*(BITS_PER_DIGIT shr 3));
     end;
   end;
