@@ -137,7 +137,7 @@ FUNCTION getNumberOfCPUs:longint;
     runCommand('sh',param,output);
     result:=-1;
     for i:=0 to output.count-1 do if result<0 then result:=strToIntDef(output[i],-1);
-    if result<0 then result:=1;
+    if result<=0 then result:=1;
     numberOfCPUs:=result;
     output.destroy;
   end;
