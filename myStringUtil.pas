@@ -4,17 +4,17 @@ INTERFACE
 USES math, strutils, sysutils,  myGenerics, zstream, Classes, huffman, LazUTF8;
 
 TYPE T_charSet=set of char;
-     T_escapeStyle=(es_javaStyle,es_mnhPascalStyle,es_strictPascalStyle,es_pickShortest,es_dontCare);
+     T_escapeStyle=(es_javaStyle,es_mnhPascalStyle,es_pickShortest,es_dontCare);
      T_stringEncoding=(se_testPending,se_ascii,se_utf8,se_mixed);
 CONST
-  C_lineBreakChar = #10;
-  C_carriageReturnChar = #13;
-  C_tabChar = #9;
-  C_backspaceChar = #8;
-  C_invisibleTabChar = #11;
-  C_formFeedChar = #12;
-  C_shiftOutChar=#14;
-  C_shiftInChar =#15;
+  C_backspaceChar     =  #8;
+  C_tabChar           =  #9;
+  C_lineBreakChar     = #10;
+  C_invisibleTabChar  = #11;
+  C_formFeedChar      = #12;
+  C_carriageReturnChar= #13;
+  C_shiftOutChar      = #14;
+  C_shiftInChar       = #15;
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:T_charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
 
@@ -23,7 +23,7 @@ FUNCTION isBlank(CONST s: ansistring): boolean;
 FUNCTION replaceAll(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
 FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT isValid: boolean): ansistring; inline;
 FUNCTION replaceOne(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
-FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle): ansistring;
+FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; OUT nonescapableFound:boolean): ansistring;
 FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parsedLength: longint): ansistring;
 FUNCTION isIdentifier(CONST s: ansistring; CONST allowDot: boolean): boolean;
 FUNCTION isFilename(CONST s: ansistring; CONST acceptedExtensions:array of string):boolean;
@@ -251,7 +251,7 @@ FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT 
     end;
   end;
 
-FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle): ansistring;
+FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; OUT nonescapableFound:boolean): ansistring;
   CONST javaEscapes:array[0..9,0..1] of char=(('\','\'),(C_backspaceChar ,'b'),
                                               (C_tabChar ,'t'),
                                               (C_lineBreakChar,'n'),
@@ -262,11 +262,11 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle): ansistrin
                                               (C_shiftOutChar,'o'),
                                               ('"','"'));
         javaEscapable:T_charSet=[C_backspaceChar,C_tabChar,C_lineBreakChar,C_invisibleTabChar,C_formFeedChar,C_carriageReturnChar,C_shiftInChar,C_shiftOutChar];
-  FUNCTION containsJavaEscapable:boolean;
+  FUNCTION isJavaEscapable:boolean;
     VAR c:char;
     begin
-      for c in s do if c in javaEscapable then exit(true);
-      result:=false;
+      for c in s do if (c<#32) or (c>#126) and not(c in javaEscapable) then exit(false);
+      result:=true;
     end;
 
   FUNCTION pascalStyle:ansistring;
@@ -310,18 +310,22 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle): ansistrin
   VAR tmp:ansistring;
   begin
     result:='';
+    nonescapableFound:=false;
     case style of
-      es_javaStyle        : exit(javaStyle);
-      es_mnhPascalStyle   : exit(pascalStyle);
-      es_strictPascalStyle: exit(strictPascalStyle);
-      es_pickShortest     : begin
-        tmp:=javaStyle;
-        if containsJavaEscapable then exit(tmp);
-        result:=pascalStyle;
-        if length(tmp)<length(result) then result:=tmp;
+      es_javaStyle: begin
+        nonescapableFound:=not(isJavaEscapable);
+        exit(javaStyle);
       end;
-      es_dontCare         : if containsJavaEscapable then exit(javaStyle)
-                                                     else exit(pascalStyle);
+      es_mnhPascalStyle: exit(strictPascalStyle);
+      es_pickShortest  : begin
+        if isJavaEscapable then begin
+          tmp:=javaStyle;
+          result:=strictPascalStyle;
+          if (length(tmp)<length(result)) then result:=tmp;
+        end else result:=strictPascalStyle;
+      end;
+      es_dontCare: if isJavaEscapable then exit(javaStyle)
+                                      else exit(strictPascalStyle);
     end;
   end;
 
