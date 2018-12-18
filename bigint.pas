@@ -2434,7 +2434,7 @@ FUNCTION bigMillerRabinTest(CONST n:T_fixedSizeNonnegativeInt; CONST a:int64):bo
 FUNCTION isPrime(CONST n:longint ):boolean;
   begin
     if (n    =2)   or (n    =3  ) or (n    =5  ) or (n    =7  ) then exit(true);
-    if (n    =1) or
+    if (n   <=1) or
        (n mod 2=0) or (n mod 3=0) or (n mod 5=0) or (n mod 7=0) then exit(false);
     if n<1373653 then exit(millerRabinTest(n, 2) and millerRabinTest(n, 3));
     if n<9080191 then exit(millerRabinTest(n,31) and millerRabinTest(n,37));
