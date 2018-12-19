@@ -203,33 +203,57 @@ FUNCTION replaceOne(CONST original, lookFor, replaceBy: ansistring): ansistring;
   end;
 
 FUNCTION replaceAll(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
-  FUNCTION anyOfLookFor(CONST c:char):boolean;
-    VAR k:longint;
+  FUNCTION isValidSplitIndex(CONST splitIndex:longint):boolean;
+    VAR lookOffset:longint;
+        k:longint;
+        match:boolean;
     begin
-      for k:=1 to length(lookFor) do if lookFor[k]=c then exit(true);
-      result:=false;
+      //Splitting at splitIndex is valid, if no occurence of "lookFor" is lost.
+      //Thus we have to check:
+      //         ###### | ######
+      //            LOO   K       -> lookOffset= -length(lookFor)
+      //             LO   OK
+      //              L   OOK     -> lookOffset= -2
+      for lookOffset:=-length(lookFor) to -2 do begin
+        match:=true;
+        for k:=1 to length(lookFor) do match:=match and (original[splitIndex+lookOffset+k]=lookFor[k]);
+        if match then exit(false);
+      end;
+      result:=true;
     end;
 
   VAR i:longint;
   begin
     if length(original)>65536 then begin
       i:=round(length(original)*0.49);
-      while (i<=length(original)) and anyOfLookFor(original[i]) do inc(i);
+      while (i<=length(original)) and not(isValidSplitIndex(i)) do inc(i);
       result:=replaceAll(copy(original,1,                 i-1),lookFor,replaceBy)+
               replaceAll(copy(original,i,length(original)+1-i),lookFor,replaceBy);
     end else result:=AnsiReplaceStr(original,lookFor,replaceBy);
   end;
 
 FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT isValid: boolean): ansistring; inline;
-  FUNCTION anyOfLookFor(CONST c:char):boolean;
-    VAR k:longint;
+  FUNCTION isValidSplitIndex(CONST splitIndex:longint):boolean;
+    VAR lookOffset:longint;
+        k:longint;
+        match:boolean;
     begin
-      for k:=1 to length(lookFor) do if lookFor[k]=c then exit(true);
-      result:=false;
+      //Splitting at splitIndex is valid, if no occurence of "lookFor" is lost.
+      //Thus we have to check:
+      //         ###### | ######
+      //            LOO   K       -> lookOffset= -length(lookFor)
+      //             LO   OK
+      //              L   OOK     -> lookOffset= -2
+      for lookOffset:=-length(lookFor) to -2 do begin
+        match:=true;
+        for k:=1 to length(lookFor) do match:=match and (original[splitIndex+lookOffset+k]=lookFor[k]);
+        if match then exit(false);
+      end;
+      result:=true;
     end;
 
   VAR prev:ansistring;
-      i:longint;
+      i   :longint;
   begin
     if pos(lookFor, replaceBy)>0 then begin
       isValid:=false;
@@ -237,11 +261,11 @@ FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT 
     end else isValid:=true;
     if length(original)>65536 then begin
       i:=round(length(original)*0.49);
-      while (i<=length(original)) and anyOfLookFor(original[i]) do inc(i);
-      result:=replaceAll(
+      while (i<length(original)) and not(isValidSplitIndex(i)) do inc(i);
+      result:=replaceRecursively(
               replaceRecursively(copy(original,1,                 i-1),lookFor,replaceBy,isValid)+
-              replaceRecursively(copy(original,i,length(original)+1-i),lookFor,replaceBy,isValid),
-                                                                       lookFor,replaceBy);
+              replaceRecursively(copy(original,i,length(original)+1-i),lookFor,replaceBy,isValid)
+                                                                      ,lookFor,replaceBy,isValid);
     end else begin
       result:=original;
       repeat
