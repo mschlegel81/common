@@ -10,6 +10,7 @@ TYPE
   pDigitType=^digitType;
 CONST
   BITS_PER_DIGIT=32;
+  FIXED_SIZE_DIGITS=32;
   DIGIT_MAX_VALUE=(1 shl BITS_PER_DIGIT)-1;
   UPPER_DIGIT_BIT=1 shl (BITS_PER_DIGIT-1);
   WORD_BIT:array[0..BITS_PER_DIGIT-1] of digitType=
@@ -67,6 +68,7 @@ TYPE
       FUNCTION toFloat:extended;
       {if examineNicheCase is true, the case of -2^63 is considered; otherwise the function is symmetrical}
       FUNCTION canBeRepresentedAsInt64(CONST examineNicheCase: boolean=true): boolean;
+      FUNCTION canBeRepresentedAsInt1024: boolean;
       FUNCTION canBeRepresentedAsInt62:boolean;
       FUNCTION canBeRepresentedAsInt32(CONST examineNicheCase: boolean=true): boolean;
       FUNCTION getBit(CONST index:longint):boolean;
@@ -83,6 +85,7 @@ TYPE
       FUNCTION mult (CONST big:T_bigInt):T_bigInt;
       FUNCTION pow  (power:dword ):T_bigInt;
       FUNCTION powMod(CONST power,modul:T_bigInt):T_bigInt;
+      FUNCTION isOdd:boolean;
       FUNCTION bitAnd(CONST big:T_bigInt):T_bigInt;
       FUNCTION bitAnd(CONST small:int64 ):T_bigInt;
       FUNCTION bitOr (CONST big:T_bigInt):T_bigInt;
@@ -121,7 +124,7 @@ TYPE
   T_fixedSizeNonnegativeInt=object
     private
       digitCount:longint;
-      digits:array[0..31] of digitType;
+      digits:array[0..FIXED_SIZE_DIGITS-1] of digitType;
     public
     FUNCTION isOdd:boolean;
     PROCEDURE shiftRightOneBit;
@@ -156,6 +159,7 @@ FUNCTION factorizeSmall(n:longint):T_arrayOfLongint;
 FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
 FUNCTION isPrime(CONST n:longint ):boolean;
 FUNCTION isPrime(CONST n:T_fixedSizeNonnegativeInt):boolean;
+FUNCTION isPrime(CONST B:T_bigInt):boolean;
 FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
 FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_bigInt;
 {For compatibility with constructor T_bigInt.readFromStream}
@@ -168,7 +172,7 @@ FUNCTION minus  (CONST x:int64; CONST y:T_bigInt):T_bigInt;
 FUNCTION mult   (CONST x:T_bigInt; CONST y:int64):T_bigInt;
 FUNCTION divide (CONST x:T_bigInt; CONST y:int64):T_bigInt;
 FUNCTION divide (CONST x:int64; CONST y:T_bigInt):T_bigInt;
-FUNCTION modulus(CONST x:T_bigInt; CONST y:int64):T_bigInt;
+FUNCTION modulus(CONST x:T_bigInt; CONST y:int64):int64;
 FUNCTION modulus(CONST x:int64; CONST y:T_bigInt):T_bigInt;
 
 OPERATOR :=(CONST x:T_bigInt):T_fixedSizeNonnegativeInt;
@@ -370,12 +374,15 @@ FUNCTION divide (CONST x:int64; CONST y:T_bigInt):T_bigInt;
     bigX.destroy;
   end;
 
-FUNCTION modulus(CONST x:T_bigInt; CONST y:int64):T_bigInt;
-  VAR bigY:T_bigInt;
+FUNCTION modulus(CONST x:T_bigInt; CONST y:int64):int64;
+  VAR bigY,bigResult,bigQuotient:T_bigInt;
   begin
     bigY.fromInt(y);
-    result:=x.modulus(bigY);
+    x.divMod(bigY,bigQuotient,bigResult);
+    result:=bigResult.toInt;
+    bigQuotient.destroy;
     bigY.destroy;
+    bigResult.destroy;
   end;
 
 FUNCTION modulus(CONST x:int64; CONST y:T_bigInt):T_bigInt;
@@ -482,10 +489,8 @@ FUNCTION T_fixedSizeNonnegativeInt.minus(CONST fixed: T_fixedSizeNonnegativeInt)
     end;
   end;
 
-FUNCTION T_fixedSizeNonnegativeInt.isOdd: boolean;
-  begin
-    result:=odd(digits[0]);
-  end;
+FUNCTION T_bigInt.isOdd:boolean; begin result:=(digitCount>0) and odd(digits[0]); end;
+FUNCTION T_fixedSizeNonnegativeInt.isOdd: boolean; begin  result:=odd(digits[0]); end;
 
 CONSTRUCTOR T_bigInt.createFromRawData(CONST negative_: boolean; CONST digitCount_: longint; CONST digits_: pDigitType);
   begin
@@ -786,6 +791,9 @@ FUNCTION T_bigInt.canBeRepresentedAsInt64(CONST examineNicheCase: boolean): bool
     end else
     result:=false;
   end;
+
+FUNCTION T_bigInt.canBeRepresentedAsInt1024: boolean;
+  begin result:=digitCount<=FIXED_SIZE_DIGITS; end;
 
 FUNCTION T_bigInt.canBeRepresentedAsInt62:boolean;
   CONST UPPER_TWO_BITS=3 shl (BITS_PER_DIGIT-2);
@@ -2410,27 +2418,6 @@ FUNCTION millerRabinTest(CONST n,a:longint):boolean;
     result:=false;
   end;
 
-FUNCTION bigMillerRabinTest(CONST n:T_fixedSizeNonnegativeInt; CONST a:int64):boolean;
-  VAR n1,d,t:T_fixedSizeNonnegativeInt;
-      j:longint=1;
-      k:longint;
-  begin
-    n1:=n-1;
-    d:=n; d.shiftRightOneBit;
-    while not(d.isOdd) do begin
-      d.shiftRightOneBit;
-      inc(j);
-    end;
-    t:=T_fixedSizeNonnegativeInt(a).powMod(d,n);
-    if (t=1) or (t=n1) then exit(true);
-    for k:=1 to j-1 do begin
-      t:=t*t mod n;
-      if (t=n1) then exit(true);
-      if (t<=1) then break;
-    end;
-    result:=false;
-  end;
-
 FUNCTION isPrime(CONST n:longint ):boolean;
   begin
     if (n    =2)   or (n    =3  ) or (n    =5  ) or (n    =7  ) then exit(true);
@@ -2465,31 +2452,102 @@ FUNCTION isPrime(CONST n:T_fixedSizeNonnegativeInt):boolean;
       result:=z>1;
     end;
 
+  FUNCTION fixedMillerRabinTest(CONST n:T_fixedSizeNonnegativeInt; CONST a:int64):boolean;
+    VAR n1,d,t:T_fixedSizeNonnegativeInt;
+        j:longint=1;
+        k:longint;
+    begin
+      n1:=n-1;
+      d:=n; d.shiftRightOneBit;
+      while not(d.isOdd) do begin
+        d.shiftRightOneBit;
+        inc(j);
+      end;
+      t:=T_fixedSizeNonnegativeInt(a).powMod(d,n);
+      if (t=1) or (t=n1) then exit(true);
+      for k:=1 to j-1 do begin
+        t:=t*t mod n;
+        if (t=n1) then exit(true);
+        if (t<=1) then break;
+      end;
+      result:=false;
+    end;
+
   CONST pr:array[0..41] of byte=(3,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251);
   VAR a:byte;
       fixedN:T_fixedSizeNonnegativeInt;
   begin
-    if n=0 then exit(false);
+    if n<=1 then exit(false);
     if n<=9223372036854775807
     then begin if isComposite(int64(n)) then exit(false); end
     else begin if isComposite(      n ) then exit(false); end;
     if n<=2147483647 then exit(isPrime(int64(n)));
     fixedN:=n;
-    if not(n>=4759123141) then exit(bigMillerRabinTest(fixedN,2) and bigMillerRabinTest(fixedN,7) and bigMillerRabinTest(fixedN,61));
-    result:=bigMillerRabinTest(fixedN,2) and bigMillerRabinTest(fixedN,5) and bigMillerRabinTest(fixedN,7) and bigMillerRabinTest(fixedN,11);
+    if not(n>=4759123141) then exit(fixedMillerRabinTest(fixedN,2) and fixedMillerRabinTest(fixedN,7) and fixedMillerRabinTest(fixedN,61));
+    result:=fixedMillerRabinTest(fixedN,2) and fixedMillerRabinTest(fixedN,5) and fixedMillerRabinTest(fixedN,7) and fixedMillerRabinTest(fixedN,11);
     if not(result) or not(n>=2152302898747) then exit;
-    result:=bigMillerRabinTest(fixedN,13);
+    result:=fixedMillerRabinTest(fixedN,13);
     if not(result) or not(n>=3474749660383) then exit;
-    result:=bigMillerRabinTest(fixedN,17);
+    result:=fixedMillerRabinTest(fixedN,17);
     if not(result) or not(n>=341550071728321) then exit;
-    result:=bigMillerRabinTest(fixedN,19) and bigMillerRabinTest(fixedN,23);
+    result:=fixedMillerRabinTest(fixedN,19) and fixedMillerRabinTest(fixedN,23);
     if not(result) or not(n>=3825123056546413051) then exit;
-    result:=bigMillerRabinTest(fixedN,29) and bigMillerRabinTest(fixedN,31) and bigMillerRabinTest(fixedN,37);
+    result:=fixedMillerRabinTest(fixedN,29) and fixedMillerRabinTest(fixedN,31) and fixedMillerRabinTest(fixedN,37);
     relBits:=n.relevantBits;
     if not(result) or (relBits<79) then exit;
-    result:=bigMillerRabinTest(fixedN,41);
+    result:=fixedMillerRabinTest(fixedN,41);
     if not(result) or (relBits<82) then exit;
-    for a in pr do if not(bigMillerRabinTest(fixedN,a)) then exit(false);
+    for a in pr do if not(fixedMillerRabinTest(fixedN,a)) then exit(false);
+    result:=true;
+  end;
+
+FUNCTION isPrime(CONST B:T_bigInt):boolean;
+  FUNCTION isComposite:boolean;
+    VAR x:int64=1;
+        y:int64=2*3*5*7*11*13*17*19*23*29*31*37*41*43*47;
+        z:int64=1;
+    begin
+      x:=modulus(B,y);
+      z:=y;
+      y:=x;
+      while (y<>0) do begin x:=z mod y; z:=y; y:=x; end;
+      result:=z>1;
+    end;
+
+  FUNCTION bigMillerRabinTest(CONST n:T_bigInt; CONST a:int64):boolean;
+    VAR n1,d,t,tmp:T_bigInt;
+        j:longint=1;
+        k:longint;
+    begin
+      n1:=n.minus(1);
+      d.create(n);
+      d.shiftRightOneBit;
+      while not(d.isOdd) do begin
+        d.shiftRightOneBit;
+        inc(j);
+      end;
+      tmp.fromInt(a); t:=tmp.powMod(d,n); tmp.destroy;
+      if (t.compare(1)=CR_EQUAL) or (t.compare(n1)=CR_EQUAL) then exit(true);
+      for k:=1 to j-1 do begin
+        tmp:=t.mult(t);    t.destroy;
+        t:=tmp.modulus(n); tmp.destroy;
+        if (t.compare(n1)=CR_EQUAL) then begin
+          n1.destroy; d.destroy; t.destroy;
+          exit(true);
+        end;
+        if (t.compare(1) in [CR_EQUAL,CR_LESSER]) then break;
+      end;
+      n1.destroy; d.destroy; t.destroy;
+      result:=false;
+    end;
+
+  CONST pr:array[0..53] of byte=(2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251);
+  VAR a:byte;
+  begin
+    if B.compare(1) in [CR_EQUAL,CR_LESSER] then exit(false);
+    if B.digitCount<=FIXED_SIZE_DIGITS then exit(isPrime(T_fixedSizeNonnegativeInt(B)));
+    if isComposite then exit(false);
+    for a in pr do if not(bigMillerRabinTest(B,a)) then exit(false);
     result:=true;
   end;
 
