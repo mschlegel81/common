@@ -289,7 +289,7 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; OUT nonesc
   FUNCTION isJavaEscapable:boolean;
     VAR c:char;
     begin
-      for c in s do if (c<#32) or (c>#126) and not(c in javaEscapable) then exit(false);
+      for c in s do if (c<#32) and not(c in javaEscapable) then exit(false);
       result:=true;
     end;
 
