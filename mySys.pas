@@ -567,14 +567,10 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
 FUNCTION getMemoryUsedAsString:string;
   VAR val:ptrint;
   begin
-    val:=MemoryUsed;
-    if val<8192 then exit(intToStr(val)+' B');
-    val:=val shr 10;
-    if val<8192 then exit(intToStr(val)+' kB');
-    val:=val shr 10;
-    if val<8192 then exit(intToStr(val)+' MB');
-    val:=val shr 10;
-    result:=intToStr(val)+' GB';
+    val:=MemoryUsed; if val<8192 then exit(intToStr(val)+' B');
+    val:=val shr 10; if val<8192 then exit(intToStr(val)+' kB');
+    val:=val shr 10; if val<8192 then exit(intToStr(val)+' MB');
+    val:=val shr 10;               result:=intToStr(val)+' GB';
   end;
 
 FUNCTION isMemoryInComfortZone:boolean; inline;
@@ -583,7 +579,7 @@ FUNCTION isMemoryInComfortZone:boolean; inline;
       MemoryUsed:=-1;
       interLockedIncrement(memCheckThreadsRunning);
       beginThread(@memCheckThread);
-      while MemoryUsed<0 do ThreadSwitch;
+      exit(true);
     end;
     result:=MemoryUsed<memoryComfortThreshold;
   end;
