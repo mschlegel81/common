@@ -80,13 +80,14 @@ PROCEDURE hideConsole;
 FUNCTION isConsoleShowing:boolean;
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
-PROCEDURE startMemChecker;
+PROCEDURE startMemChecker(CONST threshold:int64);
 FUNCTION isMemoryInComfortZone:boolean;
 FUNCTION getMemoryUsedAsString:string;
-VAR memoryComfortThreshold:int64={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
-    memoryCleaner:T_memoryCleaner;
+VAR memoryCleaner:T_memoryCleaner;
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
+    memoryComfortThreshold:int64={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
+
 CONSTRUCTOR T_memoryCleaner.create;
   begin
     setLength(methods,0);
@@ -574,8 +575,13 @@ FUNCTION getMemoryUsedAsString:string;
     val:=val shr 10;               result:=intToStr(val)+' GB';
   end;
 
-PROCEDURE startMemChecker;
+PROCEDURE startMemChecker(CONST threshold:int64);
   begin
+    memoryComfortThreshold:=threshold;
+    {$ifdef CPU32}
+    //1.5GB max for 32bit programs
+    if memoryComfortThreshold>3 shl 29 then memoryComfortThreshold:=3 shl 29;
+    {$endif}
     if (memCheckThreadsRunning>0) then exit;
     interLockedIncrement(memCheckThreadsRunning);
     beginThread(@memCheckThread);
@@ -583,12 +589,6 @@ PROCEDURE startMemChecker;
 
 FUNCTION isMemoryInComfortZone:boolean; inline;
   begin
-    if (memCheckThreadsRunning<=0) then begin
-      MemoryUsed:=-1;
-      interLockedIncrement(memCheckThreadsRunning);
-      beginThread(@memCheckThread);
-      while MemoryUsed<0 do ThreadSwitch;
-    end;
     result:=MemoryUsed<memoryComfortThreshold;
   end;
 
