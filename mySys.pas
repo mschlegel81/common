@@ -577,8 +577,9 @@ FUNCTION isMemoryInComfortZone:boolean; inline;
   begin
     if (memCheckThreadsRunning<=0) then begin
       MemoryUsed:=-1;
-      if interLockedIncrement(memCheckThreadsRunning)=1 then beginThread(@memCheckThread);
-      exit(true);
+      interLockedIncrement(memCheckThreadsRunning);
+      beginThread(@memCheckThread);
+      while MemoryUsed<0 do ThreadSwitch;
     end;
     result:=MemoryUsed<memoryComfortThreshold;
   end;
