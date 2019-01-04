@@ -80,6 +80,7 @@ PROCEDURE hideConsole;
 FUNCTION isConsoleShowing:boolean;
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
+PROCEDURE startMemChecker;
 FUNCTION isMemoryInComfortZone:boolean;
 FUNCTION getMemoryUsedAsString:string;
 VAR memoryComfortThreshold:int64={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
@@ -571,6 +572,13 @@ FUNCTION getMemoryUsedAsString:string;
     val:=val shr 10; if val<8192 then exit(intToStr(val)+' kB');
     val:=val shr 10; if val<8192 then exit(intToStr(val)+' MB');
     val:=val shr 10;               result:=intToStr(val)+' GB';
+  end;
+
+PROCEDURE startMemChecker;
+  begin
+    if (memCheckThreadsRunning>0) then exit;
+    interLockedIncrement(memCheckThreadsRunning);
+    beginThread(@memCheckThread);
   end;
 
 FUNCTION isMemoryInComfortZone:boolean; inline;
