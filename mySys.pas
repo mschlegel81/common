@@ -133,7 +133,7 @@ FUNCTION getNumberOfCPUs:longint;
       output: TStringList;
       i:longint;
   begin
-    if numberOfCPUs>=0 then exit(numberOfCPUs);
+    if numberOfCPUs>0 then exit(numberOfCPUs);
     param:='-c';
     append(param,'nproc');
     runCommand('sh',param,output);
