@@ -1986,10 +1986,10 @@ FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
       result.setBit(selfShl16.relevantBits shr 1+1,true);
     end else result.fromFloat(floatSqrt,RM_DOWN);
     repeat
-      selfShl16.divMod(result,resDt,temp);
+      selfShl16.divMod(result,resDt,temp);     //resDt = y div x@pre; temp = y mod x@pre
       isSquare:=temp.isZero;
       temp.destroy;
-      temp:=resDt.plus(result); resDt.destroy;
+      temp:=resDt.plus(result); resDt.destroy; //temp = y div x@pre + x@pre
       isSquare:=isSquare and not odd(temp.digits[0]);
       temp.shiftRightOneBit;
       done:=result.equals(temp);
@@ -2000,11 +2000,7 @@ FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
 
     selfShl16.destroy;
     isSquare:=isSquare and ((result.digits[0] and 255)=0);
-    if isSquare then result.shiftRight(8)
-                else begin
-                  result.digitCount:=0;
-                  ReAllocMem(result.digits,0);
-                end;
+    result.shiftRight(8)
   end;
 
 FUNCTION T_fixedSizeNonnegativeInt.iSqrt(CONST computeEvenIfNotSquare:boolean; OUT isSquare:boolean):T_fixedSizeNonnegativeInt;
