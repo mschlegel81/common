@@ -41,7 +41,6 @@ TYPE
       PROCEDURE nullBits(CONST numberOfBitsToKeep:longint);
 
       PROCEDURE shlInc(CONST incFirstBit:boolean);
-      FUNCTION relevantBits:longint;
       PROCEDURE setBit(CONST index:longint; CONST value:boolean);
       FUNCTION compareAbsValue(CONST big:T_bigInt):T_comparisonResult; inline;
       FUNCTION compareAbsValue(CONST int:int64):T_comparisonResult; inline;
@@ -52,6 +51,7 @@ TYPE
       PROCEDURE incAbsValue(CONST positiveIncrement:dword);
       PROCEDURE shiftRightOneBit;
     public
+      FUNCTION relevantBits:longint;
       PROCEDURE shiftRight(CONST rightShift:longint);
       PROPERTY isNegative:boolean read negative;
 
@@ -2008,37 +2008,28 @@ FUNCTION T_fixedSizeNonnegativeInt.iSqrt(CONST computeEvenIfNotSquare:boolean; O
       done:boolean=false;
       step:longint=0;
       selfShl16:T_fixedSizeNonnegativeInt;
-      {$ifndef debugMode}intRoot:int64;{$endif}
+      intRoot:int64;
   begin
     if self=0 then begin
       isSquare:=true;
       result:=0;
       exit(result);
     end;
-    {$ifndef debugMode}
     if self<=9223372036854775807 then begin
       intRoot:=trunc(sqrt(toFloat));
       result:=intRoot;
       isSquare:=self=intRoot*intRoot;
       exit;
     end;
-    {$endif}
     if not((digits[0] and 255) in SQUARE_LOW_BYTE_VALUES) then begin
       isSquare:=false;
       if not(computeEvenIfNotSquare) then exit(0);
     end;
     //compute the square root of this*2^16, validate by checking lower 8 bits
-    //find most significant digit:
     step:=digitCount-1;
-    try
-      result:=round(sqrt(toFloat)*256);
-    except
-      //n           =      2^dc  *      x
-      //sqrt(n)*256 = sqrt(2^dc) * sqrt(x) *256
-      //            = 2^(dc/2+8) * sqrt(x);
-      result:=round(sqrt(digits[digitCount-1]));
-      result.shiftRight(8-digitCount*(BITS_PER_DIGIT div 2));
-    end;
+    //first guess: consider two top digits
+    result:=trunc(sqrt(digits[digitCount-1] * (1.0+DIGIT_MAX_VALUE) + digits[digitCount-2]));
+    result.shiftRight(8-(digitCount-1)*BITS_PER_DIGIT div 2);
     selfShl16:=self;
     selfShl16.shiftRight(-16);
     step:=0;
@@ -2052,7 +2043,6 @@ FUNCTION T_fixedSizeNonnegativeInt.iSqrt(CONST computeEvenIfNotSquare:boolean; O
       result:=temp;
       inc(step);
     until done or (step>100);
-
     isSquare:=isSquare and ((result.digits[0] and 255)=0);
     if isSquare or computeEvenIfNotSquare then result.shiftRight(8);
   end;
