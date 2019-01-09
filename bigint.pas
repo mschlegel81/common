@@ -114,7 +114,7 @@ TYPE
       FUNCTION greatestCommonDivider(CONST other:T_bigInt):T_bigInt;
       FUNCTION greatestCommonDivider(CONST other:int64):int64;
       FUNCTION modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInverse:boolean):T_bigInt;
-      FUNCTION iSqrt(OUT isSquare:boolean):T_bigInt;
+      FUNCTION iSqrt(CONST computeEvenIfNotSquare:boolean; OUT isSquare:boolean):T_bigInt;
       FUNCTION iLog2(OUT isPowerOfTwo:boolean):longint;
       FUNCTION hammingWeight:longint;
       FUNCTION getRawBytes:T_arrayOfByte;
@@ -1945,7 +1945,7 @@ FUNCTION T_bigInt.modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInvers
   end;
 CONST SQUARE_LOW_BYTE_VALUES:set of byte=[0,1,4,9,16,17,25,33,36,41,49,57,64,65,68,73,81,89,97,100,105,113,121,129,132,137,144,145,153,161,164,169,177,185,193,196,201,209,217,225,228,233,241,249];
 
-FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
+FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; OUT isSquare:boolean):T_bigInt;
   VAR resDt,temp:T_bigInt;
       done:boolean=false;
       step:longint=0;
@@ -1960,8 +1960,10 @@ FUNCTION T_bigInt.iSqrt(OUT isSquare:boolean):T_bigInt;
     end;
     if not((digits[0] and 255) in SQUARE_LOW_BYTE_VALUES) then begin
       isSquare:=false;
-      result.createZero;
-      exit;
+      if not(computeEvenIfNotSquare) then begin
+        result.createZero;
+        exit;
+      end;
     end;
     {$ifndef debugMode}
     if canBeRepresentedAsInt64 then begin
