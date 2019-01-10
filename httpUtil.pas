@@ -195,7 +195,7 @@ FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint):T_request
     if not(ListenerSocket.canread(timeOutInMilliseconds)) then exit(result);
     ConnectionSocket.socket := ListenerSocket.accept;
     repeat
-      s := ConnectionSocket.RecvString(receiveTimeout);
+      s := ConnectionSocket.RecvPacket(receiveTimeout);
       if result.method=htrm_no_request then begin
         result:=parseTriplet(s);
         if result.method<>htrm_no_request then receiveTimeout:=1;
