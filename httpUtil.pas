@@ -6,9 +6,13 @@ TYPE
 CONST
   C_httpRequestMethodName:array[T_httpRequestMethod] of string=('','GET','POST','HEAD','PUT','PATCH','DELETE','TRACE','OPTIONS','CONNECT');
 TYPE
-  T_requestTriplet=record
+  T_httpHeader=array of record key,value:string; end;
+
+  T_httpRequest=record
     method:T_httpRequestMethod;
     request,protocol:string;
+    header:T_httpHeader;
+    body:string;
   end;
 
   P_socketPair=^T_socketPair;
@@ -22,8 +26,8 @@ TYPE
       CONSTRUCTOR create(CONST ipAndPort:string);
       CONSTRUCTOR create(CONST ip,port:string);
       DESTRUCTOR destroy;
-      FUNCTION getRequest(CONST timeOutInMilliseconds:longint=100):T_requestTriplet;
-      PROCEDURE SendString(CONST s:ansistring);
+      FUNCTION getRequest(CONST timeOutInMilliseconds:longint=100):T_httpRequest;
+      PROCEDURE sendString(CONST s:ansistring);
       FUNCTION toString:ansistring;
       FUNCTION getLastListenerSocketError:longint;
       PROPERTY isAcceptingRequest:boolean read acceptingRequest;
@@ -122,7 +126,7 @@ DESTRUCTOR T_customSocketListener.destroy;
 PROCEDURE T_customSocketListener.attend;
   CONST minSleepTime=1;
         maxSleepTime=100;
-  VAR request:T_requestTriplet;
+  VAR request:T_httpRequest;
       sleepTime:longint=minSleepTime;
   begin
     repeat
@@ -132,7 +136,7 @@ PROCEDURE T_customSocketListener.attend;
         inc(sleepTime);
         if sleepTime>maxSleepTime then sleepTime:=maxSleepTime;
       end else begin
-        socket.SendString(requestToResponseMapper(request.method,request.request,request.protocol));
+        socket.sendString(requestToResponseMapper(request.method,request.request,request.protocol));
         sleepTime:=minSleepTime;
       end;
     until killSignalled;
@@ -169,29 +173,46 @@ DESTRUCTOR T_socketPair.destroy;
     ConnectionSocket.free;
   end;
 
-FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint):T_requestTriplet;
+FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint):T_httpRequest;
   VAR s:string;
       receiveTimeout:longint=100;
 
-  FUNCTION parseTriplet(VAR s:string):T_requestTriplet; inline;
-    VAR methodPart:string;
+  FUNCTION parseTriplet(VAR s:string):T_httpRequest; inline;
+    VAR temp:string;
+        inputLine:string;
         htrm:T_httpRequestMethod;
     begin
-      methodPart:=fetch(s,' ');
+      //initialize result
       result.method:=htrm_no_request;
       result.request:='';
       result.protocol:='';
-      for htrm in T_httpRequestMethod do if C_httpRequestMethodName[htrm]=methodPart then result.method:=htrm;
+      result.body:='';
+      setLength(result.header,0);
+      //Parse request line
+      inputLine:=fetch(s,CRLF);
+      temp:=fetch(inputLine,' ');
+      for htrm in T_httpRequestMethod do if C_httpRequestMethodName[htrm]=temp then result.method:=htrm;
       if result.method=htrm_no_request then exit(result);
-      result.request :=fetch(s, ' ');
-      result.protocol:=fetch(s, ' ');
+      result.request :=fetch(inputLine, ' ');
+      result.protocol:=fetch(inputLine, ' ');
+      //parse additional header entries
+      inputLine:=fetch(s,CRLF);
+      while inputLine<>'' do begin
+        setLength(result.header,length(result.header)+1);
+        with result.header[length(result.header)-1] do begin
+          key:=fetch(inputLine,':');
+          value:=trim(inputLine);
+        end;
+        inputLine:=fetch(s,CRLF);
+      end;
+      result.body:=s;
     end;
 
   begin
     result.method:=htrm_no_request;
     result.request:='';
     result.protocol:='';
-    if acceptingRequest then SendString(HTTP_503_RESPONSE);
+    if acceptingRequest then sendString(HTTP_503_RESPONSE);
     if not(ListenerSocket.canread(timeOutInMilliseconds)) then exit(result);
     ConnectionSocket.socket := ListenerSocket.accept;
     repeat
@@ -202,12 +223,12 @@ FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint):T_request
       end;
     until ConnectionSocket.LastError<>0;
     acceptingRequest:=result.method<>htrm_no_request;
-    if not(acceptingRequest) then SendString(HTTP_404_RESPONSE);
+    if not(acceptingRequest) then sendString(HTTP_404_RESPONSE);
   end;
 
-PROCEDURE T_socketPair.SendString(CONST s: ansistring);
+PROCEDURE T_socketPair.sendString(CONST s: ansistring);
   begin
-    ConnectionSocket.SendString(s);
+    ConnectionSocket.sendString(s);
     ConnectionSocket.CloseSocket;
     acceptingRequest:=false;
   end;
