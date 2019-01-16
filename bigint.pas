@@ -2194,7 +2194,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
         if workInInt64 and ((int64(p)*p*p>n)) then begin
           inputAndRest:=n;
           furtherFactorsPossible:=int64(p)*p<=n;
-          exit;
+          exit(result);
         end;
         if trySwitchToInt64 then begin
           while n mod p=0 do begin
@@ -2352,7 +2352,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
         end;
       end else begin
         bigX:=bigFourKN.iSqrt(true,yIsSquare);
-        while not(bigX*bigX>=bigFourKN) do inc(x);
+        while not(bigX*bigX>=bigFourKN) do bigX+=1;
         bigXMax:=bigFourKN+floatToFixedSizeNonnegativeInt(sixthRootOfR/(4*sqrt(k)),RM_DEFAULT);
         while bigX<=bigXMax do begin
           bigY:=bigX*bigX-bigFourKN;
@@ -2366,7 +2366,7 @@ FUNCTION factorize(CONST B:T_bigInt):T_factorizationResult;
                        result.bigFactors[length(result.bigFactors)-2]:=bigY.toNewBigInt; end;
             result           .bigFactors[length(result.bigFactors)-1]:=bigRootOfY.toNewBigInt;
             lehmannTestCompleted:=true;
-            x:=xMax;
+            bigX:=bigXMax;
           end;
           bigX+=1;
         end;
