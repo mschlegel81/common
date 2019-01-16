@@ -296,6 +296,7 @@ FUNCTION floatToFixedSizeNonnegativeInt(CONST f:double; CONST rounding:T_roundin
       for k:=0 to length(result.digits)-1 do result.digits[k]:=0;
       move(big.digits^,result.digits,result.digitCount*(BITS_PER_DIGIT shr 3));
     end;
+    big.destroy;
   end;
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source; CONST maxValExclusive:T_bigInt):T_bigInt;
