@@ -190,6 +190,7 @@ OPERATOR -(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
 OPERATOR *(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
 OPERATOR div(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
 OPERATOR mod(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt;
+FUNCTION simpleRandomFixesSizeNonnegativeInt:T_fixedSizeNonnegativeInt;
 FUNCTION floatToFixedSizeNonnegativeInt(CONST f:double; CONST rounding:T_roundingMode):T_fixedSizeNonnegativeInt;
 
 IMPLEMENTATION
@@ -282,6 +283,14 @@ OPERATOR-(CONST x, y: T_fixedSizeNonnegativeInt): T_fixedSizeNonnegativeInt; beg
 OPERATOR*(CONST x, y: T_fixedSizeNonnegativeInt): T_fixedSizeNonnegativeInt; begin result:=x.mult(y); end;
 OPERATOR div(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt; VAR dummy:T_fixedSizeNonnegativeInt; begin x.divMod(y,result,dummy); end;
 OPERATOR mod(CONST x,y:T_fixedSizeNonnegativeInt):T_fixedSizeNonnegativeInt; VAR dummy:T_fixedSizeNonnegativeInt; begin x.divMod(y,dummy,result); end;
+
+FUNCTION simpleRandomFixesSizeNonnegativeInt:T_fixedSizeNonnegativeInt;
+  VAR i:longint;
+  begin
+    result.digitCount:=12;
+    for i:=FIXED_SIZE_DIGITS-1 downto result.digitCount-1 do result.digits[i]:=0;
+    for i:=0                       to result.digitCount-1 do result.digits[i]:=random(DIGIT_MAX_VALUE);
+  end;
 
 FUNCTION floatToFixedSizeNonnegativeInt(CONST f:double; CONST rounding:T_roundingMode):T_fixedSizeNonnegativeInt;
   VAR big:T_bigInt;
@@ -2007,47 +2016,44 @@ FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; OUT isSquare:boole
   end;
 
 FUNCTION T_fixedSizeNonnegativeInt.iSqrt(CONST computeEvenIfNotSquare:boolean; OUT isSquare:boolean):T_fixedSizeNonnegativeInt;
-  VAR resDt,temp:T_fixedSizeNonnegativeInt;
-      done:boolean=false;
-      step:longint=0;
-      selfShl16:T_fixedSizeNonnegativeInt;
-      intRoot:int64;
+ VAR stack:array of record
+            x,r:T_fixedSizeNonnegativeInt;
+          end;
+    k:longint;
+    intRoot:int64;
   begin
+    if not((digits[0] and 255) in SQUARE_LOW_BYTE_VALUES) then begin
+      isSquare:=false;
+      if not(computeEvenIfNotSquare) then exit(0);
+    end;
     if self=0 then begin
       isSquare:=true;
       result:=0;
       exit(result);
     end;
-    if self<=9223372036854775807 then begin
+    k:=relevantBits;
+    if k<=63 then begin
       intRoot:=trunc(sqrt(toFloat));
       result:=intRoot;
       isSquare:=self=intRoot*intRoot;
       exit;
     end;
-    if not((digits[0] and 255) in SQUARE_LOW_BYTE_VALUES) then begin
-      isSquare:=false;
-      if not(computeEvenIfNotSquare) then exit(0);
+    setLength(stack,max(0,(k-59) div 2));
+    stack[0].x:=self;
+    for k:=1 to length(stack)-1 do begin
+      stack[k].x:=stack[k-1].x;
+      stack[k].x.shiftRight(2);
     end;
-    //compute the square root of this*2^16, validate by checking lower 8 bits
-    step:=digitCount-1;
-    //first guess: consider two top digits
-    result:=trunc(sqrt(digits[digitCount-1] * (1.0+DIGIT_MAX_VALUE) + digits[digitCount-2]));
-    result.shiftRight(8-(digitCount-1)*BITS_PER_DIGIT div 2);
-    selfShl16:=self;
-    selfShl16.shiftRight(-16);
-    step:=0;
-    repeat
-      selfShl16.divMod(result,resDt,temp);
-      isSquare:=temp=0;
-      temp:=resDt+result;
-      isSquare:=isSquare and not odd(temp.digits[0]);
-      temp.shiftRightOneBit;
-      done:=result=temp;
-      result:=temp;
-      inc(step);
-    until done or (step>100);
-    isSquare:=isSquare and ((result.digits[0] and 255)=0);
-    if isSquare or computeEvenIfNotSquare then result.shiftRight(8);
+    k:=length(stack)-1;
+    stack[k].r:=trunc(sqrt(stack[k].x.toFloat));
+    for k:=length(stack)-2 downto 0 do begin
+      stack[k].r:=stack[k+1].r;
+      stack[k].r.shiftRight(-1);
+      stack[k].r+=1;
+      if not(stack[k].r*stack[k].r<=stack[k].x) then stack[k].r-=1;
+    end;
+    result:=stack[0].r;
+    isSquare:=result*result=self;
   end;
 
 FUNCTION T_bigInt.iLog2(OUT isPowerOfTwo:boolean):longint;
