@@ -4,3 +4,4 @@
 *.bak
 git.7z
 backup/*
+*.a
