@@ -45,7 +45,13 @@ FUNCTION transpose(CONST dim:T_imageDimensions):T_imageDimensions;
 FUNCTION crop(CONST dim:T_imageDimensions; CONST rx0,rx1,ry0,ry1:double):T_imageDimensions;
 
 FUNCTION getSmoothingKernel(CONST sigma:double):T_arrayOfDouble;
+OPERATOR =(CONST d1,d2:T_imageDimensions):boolean;
 IMPLEMENTATION
+OPERATOR =(CONST d1,d2:T_imageDimensions):boolean;
+  begin
+    result:=(d1.width=d2.width) and (d1.height=d2.height);
+  end;
+
 FUNCTION getSmoothingKernel(CONST sigma:double):T_arrayOfDouble;
   VAR radius,i:longint;
       sum:double=-1;
