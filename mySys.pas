@@ -82,7 +82,7 @@ PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 PROCEDURE startMemChecker(CONST threshold:int64);
 FUNCTION isMemoryInComfortZone:boolean;
-FUNCTION getMemoryUsedAsString:string;
+FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold:double):string;
 VAR memoryCleaner:T_memoryCleaner;
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
@@ -566,9 +566,10 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
     result:=0;
   end;
 
-FUNCTION getMemoryUsedAsString:string;
+FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold:double):string;
   VAR val:ptrint;
   begin
+    fractionOfThreshold:=MemoryUsed/memoryComfortThreshold;
     val:=MemoryUsed; if val<8192 then exit(intToStr(val)+' B');
     val:=val shr 10; if val<8192 then exit(intToStr(val)+' kB');
     val:=val shr 10; if val<8192 then exit(intToStr(val)+' MB');
