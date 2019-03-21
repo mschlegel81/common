@@ -58,6 +58,8 @@ TYPE
       CONSTRUCTOR create(CONST stream_:TStream);
       CONSTRUCTOR createToReadFromFile(CONST fileName:string);
       DESTRUCTOR destroy;
+      //For debugging
+      FUNCTION streamPos:longint;
   end;
 
   P_outputStreamWrapper=^T_outputStreamWrapper;
@@ -98,6 +100,8 @@ TYPE
       CONSTRUCTOR create(CONST stream_:TStream);
       CONSTRUCTOR createToWriteToFile(CONST fileName:string);
       DESTRUCTOR destroy;
+      //For debugging
+      FUNCTION streamPos:longint;
   end;
 
   T_serializable=object
@@ -239,6 +243,12 @@ PROCEDURE T_bufferedInputStreamWrapper.read(VAR targetBuffer; CONST count: longi
     end;
   end;
 
+FUNCTION T_bufferedInputStreamWrapper.streamPos:longint;
+  begin
+    result:=stream.position
+           -bufferFill;
+  end;
+
 CONSTRUCTOR T_bufferedInputStreamWrapper.create(CONST stream_: TStream);
   begin
     inherited create(stream_);
@@ -344,6 +354,12 @@ PROCEDURE T_bufferedOutputStreamWrapper.write(CONST sourceBuffer; CONST count: l
     if bufferFill+count>length(buffer) then flush;
     move(sourceBuffer,buffer[bufferFill],count);
     inc(bufferFill,count);
+  end;
+
+FUNCTION T_bufferedOutputStreamWrapper.streamPos:longint;
+  begin
+    result:=stream.position
+           +bufferFill;
   end;
 
 CONSTRUCTOR T_bufferedOutputStreamWrapper.create(CONST stream_: TStream);
