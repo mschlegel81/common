@@ -18,6 +18,8 @@ TYPE
       FUNCTION allOkay:boolean;
   end;
 
+  T_byteSet=set of byte;
+
   P_inputStreamWrapper=^T_inputStreamWrapper;
   T_inputStreamWrapper=object(T_abstractStreamWrapper)
     private
@@ -29,6 +31,7 @@ TYPE
       DESTRUCTOR destroy;
 
       FUNCTION readBoolean:boolean;
+      FUNCTION readByte(CONST allowedBytes:T_byteSet):byte;
       FUNCTION readByte:byte;
       FUNCTION readWord:word;
       FUNCTION readDWord:dword;
@@ -163,7 +166,18 @@ DESTRUCTOR T_inputStreamWrapper.destroy;
     if stream<>nil then stream.destroy;
   end;
 
-FUNCTION T_inputStreamWrapper.readBoolean: boolean;   begin initialize(result); read(result,sizeOf(result)); end;
+FUNCTION T_inputStreamWrapper.readByte(CONST allowedBytes:T_byteSet):byte;
+  VAR b:byte;
+  begin
+    initialize(result);
+    read(result,sizeOf(result));
+    if not(result in allowedBytes) then begin
+      logWrongTypeError;
+      for b in allowedBytes do exit(b);
+    end;
+  end;
+
+FUNCTION T_inputStreamWrapper.readBoolean: boolean;   begin result:=readByte([0,1])=1; end;
 FUNCTION T_inputStreamWrapper.readByte: byte;         begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readWord: word;         begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readDWord: dword;       begin initialize(result); read(result,sizeOf(result)); end;
@@ -276,7 +290,7 @@ DESTRUCTOR T_outputStreamWrapper.destroy;
     if stream<>nil then stream.destroy;
   end;
 
-PROCEDURE T_outputStreamWrapper.writeBoolean(CONST value: boolean);   begin write(value,sizeOf(value)); end;
+PROCEDURE T_outputStreamWrapper.writeBoolean(CONST value: boolean);   begin if value then writeByte(1) else writeByte(0); end;
 PROCEDURE T_outputStreamWrapper.writeByte(CONST value: byte);         begin write(value,sizeOf(value)); end;
 PROCEDURE T_outputStreamWrapper.writeWord(CONST value: word);         begin write(value,sizeOf(value)); end;
 PROCEDURE T_outputStreamWrapper.writeDWord(CONST value: dword);       begin write(value,sizeOf(value)); end;
