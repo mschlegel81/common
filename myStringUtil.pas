@@ -1119,7 +1119,7 @@ FUNCTION percentDecode(CONST s:string):string;
   VAR c:byte;
   begin
     result:=s;
-    for c:=0 to 255 do result:=replaceAll(s,percentCode(c),chr(c));
+    for c:=0 to 255 do result:=replaceAll(result,percentCode(c),chr(c));
   end;
 
 end.
