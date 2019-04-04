@@ -50,6 +50,10 @@ FUNCTION decompressString(CONST src:ansistring):ansistring;
 FUNCTION tokenSplit(CONST stringToSplit:ansistring; CONST language:string='MNH'):T_arrayOfString;
 FUNCTION ansistringInfo(VAR s:ansistring):string;
 FUNCTION getListOfSimilarWords(CONST typedSoFar:string; CONST completionList:T_arrayOfString; CONST targetResultSize:longint; CONST ignorePosition:boolean):T_arrayOfString;
+
+FUNCTION percentEncode(CONST s:string):string;
+FUNCTION percentDecode(CONST s:string):string;
+
 IMPLEMENTATION
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
@@ -1096,6 +1100,26 @@ FUNCTION getListOfSimilarWords(CONST typedSoFar:string; CONST completionList:T_a
       end;
     end;
     setLength(result,j);
+  end;
+
+FUNCTION percentCode(CONST c:byte):string;
+  CONST hexDigit:array[0..15] of char=('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
+  begin
+    result:='%'+hexDigit[c shr 4]+hexDigit[c and 15];
+  end;
+
+FUNCTION percentEncode(CONST s:string):string;
+  VAR c:char;
+  begin
+    result:='';
+    for c in s do if c in ['A'..'Z','a'..'z','0'..'9','-','_'] then result:=result+c else result:=result+percentCode(ord(c));
+  end;
+
+FUNCTION percentDecode(CONST s:string):string;
+  VAR c:byte;
+  begin
+    result:=s;
+    for c:=0 to 255 do result:=replaceAll(s,percentCode(c),chr(c));
   end;
 
 end.
