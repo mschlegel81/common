@@ -37,7 +37,7 @@ FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString; CONST retain
 FUNCTION splitCommandLine(CONST s:ansistring):T_arrayOfString;
 FUNCTION join(CONST lines:T_arrayOfString; CONST joiner:ansistring):ansistring;
 FUNCTION cleanString(CONST s:ansistring; CONST whiteList:T_charSet; CONST instead:char):ansistring;
-FUNCTION myTimeToStr(dt:double):string;
+FUNCTION myTimeToStr(dt:double; CONST useSecondsIfLessThanOneMinute:boolean=true):string;
 FUNCTION isAsciiEncoded(CONST s: ansistring): boolean;
 FUNCTION isUtf8Encoded(CONST s: ansistring): boolean;
 FUNCTION encoding(CONST s: ansistring):T_stringEncoding;
@@ -628,11 +628,11 @@ FUNCTION cleanString(CONST s:ansistring; CONST whiteList:T_charSet; CONST instea
     for k:=1 to length(s) do if s[k] in whiteList then result:=result+s[k] else result:=result+instead;
   end;
 
-FUNCTION myTimeToStr(dt:double):string;
+FUNCTION myTimeToStr(dt:double; CONST useSecondsIfLessThanOneMinute:boolean=true):string;
   CONST oneMinute=1/(24*60);
         oneSecond=oneMinute/60;
   begin
-    if dt<oneMinute
+    if (dt<oneMinute) and useSecondsIfLessThanOneMinute
       then begin
         result:=formatFloat('#0.00',dt/oneSecond)+'sec';
         if length(result)<8 then result:=' '+result;
