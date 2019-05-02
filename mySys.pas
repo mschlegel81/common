@@ -105,17 +105,23 @@ DESTRUCTOR T_memoryCleaner.destroy;
 PROCEDURE T_memoryCleaner.registerCleanupMethod(CONST m:F_cleanupCallback);
   begin
     enterCriticalSection(cleanerCs);
-    setLength(methods,length(methods)+1);
-    methods[length(methods)-1]:=m;
-    leaveCriticalSection(cleanerCs);
+    try
+      setLength(methods,length(methods)+1);
+      methods[length(methods)-1]:=m;
+    finally
+      leaveCriticalSection(cleanerCs);
+    end;
   end;
 
 PROCEDURE T_memoryCleaner.callCleanupMethods;
   VAR m:F_cleanupCallback;
   begin
     enterCriticalSection(cleanerCs);
-    for m in methods do m();
-    leaveCriticalSection(cleanerCs);
+    try
+      for m in methods do m();
+    finally
+      leaveCriticalSection(cleanerCs);
+    end;
   end;
 
 FUNCTION getNumberOfCPUs:longint;
@@ -462,13 +468,16 @@ PROCEDURE T_xosPrng.resetSeed(CONST newSeed:dword);
                                 4127319575,3313982129, 668544240, 976072482,1798380843,3210299713,3471333957,3014961506);
   begin
     enterCriticalSection(criticalSection);
-    {$Q-}{$R-}
-    w:=newSeed;
-    x:=(w xor P[ w    and 31]);
-    y:=(w xor P[(w+1) and 31]);
-    z:=(w xor P[(w+2) and 31]);
-    {$Q+}{$R+}
-    leaveCriticalSection(criticalSection);
+    try
+      {$Q-}{$R-}
+      w:=newSeed;
+      x:=(w xor P[ w    and 31]);
+      y:=(w xor P[(w+1) and 31]);
+      z:=(w xor P[(w+2) and 31]);
+      {$Q+}{$R+}
+    finally
+      leaveCriticalSection(criticalSection);
+    end;
   end;
 
 PROCEDURE T_xosPrng.resetSeed(CONST s:array of byte);
@@ -480,16 +489,19 @@ PROCEDURE T_xosPrng.resetSeed(CONST s:array of byte);
       exit;
     end;
     enterCriticalSection(criticalSection);
-    for k:=0 to 15 do fullBytes[k]:=0;
-    if length(s)<length(fullBytes)
-    then for k:=0 to length(fullBytes)-1 do fullBytes[k]:=s[k mod length(s)]
-    else for k:=0 to length(s)-1 do fullBytes[k mod length(fullBytes)]:=fullBytes[k mod length(fullBytes)] xor s[k];
+    try
+      for k:=0 to 15 do fullBytes[k]:=0;
+      if length(s)<length(fullBytes)
+      then for k:=0 to length(fullBytes)-1 do fullBytes[k]:=s[k mod length(s)]
+      else for k:=0 to length(s)-1 do fullBytes[k mod length(fullBytes)]:=fullBytes[k mod length(fullBytes)] xor s[k];
 
-    move(fullBytes[ 0],w,4);
-    move(fullBytes[ 4],x,4);
-    move(fullBytes[ 8],y,4);
-    move(fullBytes[12],z,4);
-    leaveCriticalSection(criticalSection);
+      move(fullBytes[ 0],w,4);
+      move(fullBytes[ 4],x,4);
+      move(fullBytes[ 8],y,4);
+      move(fullBytes[12],z,4);
+    finally
+      leaveCriticalSection(criticalSection);
+    end;
   end;
 
 PROCEDURE T_xosPrng.randomize;
@@ -501,26 +513,35 @@ FUNCTION T_xosPrng.intRandom(CONST imax:int64):int64;
   begin
     if imax<=1 then exit(0);
     enterCriticalSection(criticalSection);
-    {$Q-}{$R-}
-    if imax<=4294967296
-    then result:=       XOS                           mod imax
-    else result:=(int64(XOS) xor (int64(XOS) shl 31)) mod imax;
-    {$Q+}{$R+}
-    leaveCriticalSection(criticalSection);
+    try
+      {$Q-}{$R-}
+      if imax<=4294967296
+      then result:=       XOS                           mod imax
+      else result:=(int64(XOS) xor (int64(XOS) shl 31)) mod imax;
+      {$Q+}{$R+}
+    finally
+      leaveCriticalSection(criticalSection);
+    end;
   end;
 
 FUNCTION T_xosPrng.realRandom:double;
   begin
     enterCriticalSection(criticalSection);
-    result:=XOS*2.3283064365386963E-10;
-    leaveCriticalSection(criticalSection);
+    try
+      result:=XOS*2.3283064365386963E-10;
+    finally
+      leaveCriticalSection(criticalSection);
+    end;
   end;
 
 FUNCTION T_xosPrng.dwordRandom:dword;
   begin
     enterCriticalSection(criticalSection);
-    result:=XOS;
-    leaveCriticalSection(criticalSection);
+    try
+      result:=XOS;
+    finally
+      leaveCriticalSection(criticalSection);
+    end;
   end;
 
 VAR memCheckThreadsRunning:longint=0;

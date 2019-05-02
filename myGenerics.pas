@@ -363,9 +363,12 @@ PROCEDURE G_instanceRegistry.forEach(CONST op: T_operationOnEntry);
       x:ENTRY_TYPE;
   begin
     enterCriticalSection(cs);
-    setLength(regCopy,length(registered));
-    for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
-    leaveCriticalSection(cs);
+    try
+      setLength(regCopy,length(registered));
+      for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
+    finally
+      leaveCriticalSection(cs);
+    end;
     for x in regCopy do op(x);
   end;
 
@@ -375,9 +378,12 @@ PROCEDURE G_instanceRegistry.forEach(CONST op:T_parameterizedOperationOnEntry; p
       x:ENTRY_TYPE;
   begin
     enterCriticalSection(cs);
-    setLength(regCopy,length(registered));
-    for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
-    leaveCriticalSection(cs);
+    try
+      setLength(regCopy,length(registered));
+      for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
+    finally
+      leaveCriticalSection(cs);
+    end;
     for x in regCopy do op(x,p);
   end;
 
@@ -387,9 +393,12 @@ FUNCTION G_instanceRegistry.anyMatch(CONST at:T_attributeOnEntry):boolean;
       x:ENTRY_TYPE;
   begin
     enterCriticalSection(cs);
-    setLength(regCopy,length(registered));
-    for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
-    leaveCriticalSection(cs);
+    try
+      setLength(regCopy,length(registered));
+      for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
+    finally
+      leaveCriticalSection(cs);
+    end;
     result:=false;
     for x in regCopy do if at(x) then result:=true;
   end;
@@ -400,9 +409,12 @@ FUNCTION G_instanceRegistry.anyMatch(CONST at:T_parameterizedAttributeOnEntry; p
       x:ENTRY_TYPE;
   begin
     enterCriticalSection(cs);
-    setLength(regCopy,length(registered));
-    for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
-    leaveCriticalSection(cs);
+    try
+      setLength(regCopy,length(registered));
+      for i:=0 to length(registered)-1 do regCopy[i]:=registered[i];
+    finally
+      leaveCriticalSection(cs);
+    end;
     result:=false;
     for x in regCopy do if at(x,p) then result:=true;
   end;
@@ -415,22 +427,28 @@ PROCEDURE G_instanceRegistry.onCreation(CONST x: ENTRY_TYPE);
       leaveCriticalSection(cs);
       exit;
     end;
-    setLength(registered,length(registered)+1);
-    registered[length(registered)-1]:=x;
-    leaveCriticalSection(cs);
+    try
+      setLength(registered,length(registered)+1);
+      registered[length(registered)-1]:=x;
+    finally
+      leaveCriticalSection(cs);
+    end;
   end;
 
 PROCEDURE G_instanceRegistry.onDestruction(CONST x: ENTRY_TYPE);
   VAR i,j:longint;
   begin
     enterCriticalSection(cs);
-    j:=0;
-    for i:=0 to length(registered)-1 do if registered[i]<>x then begin
-      registered[j]:=registered[i];
-      inc(j);
+    try
+      j:=0;
+      for i:=0 to length(registered)-1 do if registered[i]<>x then begin
+        registered[j]:=registered[i];
+        inc(j);
+      end;
+      setLength(registered,j);
+    finally
+      leaveCriticalSection(cs);
     end;
-    setLength(registered,j);
-    leaveCriticalSection(cs);
   end;
 
 PROCEDURE G_instanceRegistry.enterCs;
@@ -446,8 +464,11 @@ PROCEDURE G_instanceRegistry.leaveCs;
 FUNCTION G_instanceRegistry.registeredCount:longint;
   begin
     enterCriticalSection(cs);
-    result:=length(registered);
-    leaveCriticalSection(cs);
+    try
+      result:=length(registered);
+    finally
+      leaveCriticalSection(cs);
+    end;
   end;
 
 CONSTRUCTOR G_safeArray.create;
@@ -459,48 +480,66 @@ CONSTRUCTOR G_safeArray.create;
 FUNCTION G_safeArray.getValue(index: longint): ENTRY_TYPE;
   begin
     system.enterCriticalSection(saveCS);
-    result:=data[index];
-    system.leaveCriticalSection(saveCS);
+    try
+      result:=data[index];
+    finally
+      system.leaveCriticalSection(saveCS);
+    end;
   end;
 
 PROCEDURE G_safeArray.setValue(index: longint; newValue: ENTRY_TYPE);
   begin
     system.enterCriticalSection(saveCS);
-    if index=length(data) then append(newValue)
-                          else data[index]:=newValue;
-    system.leaveCriticalSection(saveCS);
+    try
+      if index=length(data) then append(newValue)
+                            else data[index]:=newValue;
+    finally
+      system.leaveCriticalSection(saveCS);
+    end;
   end;
 
 PROCEDURE G_safeArray.clear;
   begin
     system.enterCriticalSection(saveCS);
-    setLength(data,0);
-    system.leaveCriticalSection(saveCS);
+    try
+      setLength(data,0);
+    finally
+      system.leaveCriticalSection(saveCS);
+    end;
   end;
 
 FUNCTION G_safeArray.size: longint;
   begin
     system.enterCriticalSection(saveCS);
-    result:=length(data);
-    system.leaveCriticalSection(saveCS);
+    try
+      result:=length(data);
+    finally
+      system.leaveCriticalSection(saveCS);
+    end;
   end;
 
 PROCEDURE G_safeArray.append(CONST newValue: ENTRY_TYPE);
   begin
     system.enterCriticalSection(saveCS);
-    setLength(data,length(data)+1);
-    data[length(data)-1]:=newValue;
-    system.leaveCriticalSection(saveCS);
+    try
+      setLength(data,length(data)+1);
+      data[length(data)-1]:=newValue;
+    finally
+      system.leaveCriticalSection(saveCS);
+    end;
   end;
 
 PROCEDURE G_safeArray.appendAll(CONST newValue: ENTRY_TYPE_ARRAY);
   VAR i,i0:longint;
   begin
     system.enterCriticalSection(saveCS);
-    i0:=length(data);
-    setLength(data,i0+length(newValue));
-    for i:=0 to length(newValue)-1 do data[i0+i]:=newValue[i];
-    system.leaveCriticalSection(saveCS);
+    try
+      i0:=length(data);
+      setLength(data,i0+length(newValue));
+      for i:=0 to length(newValue)-1 do data[i0+i]:=newValue[i];
+    finally
+      system.leaveCriticalSection(saveCS);
+    end;
   end;
 
 PROCEDURE G_safeArray.lock;
@@ -524,12 +563,15 @@ DESTRUCTOR G_safeArray.destroy;
 FUNCTION G_lazyVar.getValue: ENTRY_TYPE;
   begin
     enterCriticalSection(saveCS);
-    if not(valueObtained) then begin
-      v:=obtainer();
-      valueObtained:=true;
+    try
+      if not(valueObtained) then begin
+        v:=obtainer();
+        valueObtained:=true;
+      end;
+      result:=v;
+    finally
+      leaveCriticalSection(saveCS);
     end;
-    result:=v;
-    leaveCriticalSection(saveCS);
   end;
 
 CONSTRUCTOR G_lazyVar.create(CONST o:T_obtainer; CONST d:T_disposer);
@@ -549,8 +591,11 @@ DESTRUCTOR G_lazyVar.destroy;
 FUNCTION G_lazyVar.isObtained:boolean;
   begin
     enterCriticalSection(saveCS);
-    result:=valueObtained;
-    leaveCriticalSection(saveCS);
+    try
+      result:=valueObtained;
+    finally
+      leaveCriticalSection(saveCS);
+    end;
   end;
 
 { G_safeVar }
@@ -564,15 +609,21 @@ CONSTRUCTOR G_safeVar.create(CONST intialValue: ENTRY_TYPE);
 FUNCTION G_safeVar.getValue: ENTRY_TYPE;
   begin
     system.enterCriticalSection(saveCS);
-    result:=v;
-    system.leaveCriticalSection(saveCS);
+    try
+      result:=v;
+    finally
+      system.leaveCriticalSection(saveCS);
+    end;
   end;
 
 PROCEDURE G_safeVar.setValue(CONST newValue: ENTRY_TYPE);
   begin
     system.enterCriticalSection(saveCS);
-    v:=newValue;
-    system.leaveCriticalSection(saveCS);
+    try
+      v:=newValue;
+    finally
+      system.leaveCriticalSection(saveCS);
+    end;
   end;
 
 DESTRUCTOR G_safeVar.destroy;
@@ -642,13 +693,16 @@ PROCEDURE M_MAP_TYPE.clear;
   VAR i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    for i:=0 to length(bucket)-1 do begin
-      if disposer<>nil then for j:=0 to length(bucket[i])-1 do disposer(bucket[i,j].value);
-      setLength(bucket[i],0);
+    try
+      for i:=0 to length(bucket)-1 do begin
+        if disposer<>nil then for j:=0 to length(bucket[i])-1 do disposer(bucket[i,j].value);
+        setLength(bucket[i],0);
+      end;
+      setLength(bucket,1);
+      entryCount:=0;
+    finally
+      system.leaveCriticalSection(cs);
     end;
-    setLength(bucket,1);
-    entryCount:=0;
-    system.leaveCriticalSection(cs);
   end;
 
 CONSTRUCTOR M_MAP_TYPE.create(CONST disposer_:VALUE_DISPOSER=nil);
@@ -672,8 +726,11 @@ CONSTRUCTOR M_MAP_TYPE.createClone(VAR map:MY_TYPE);
 PROCEDURE M_MAP_TYPE.overrideDisposer(CONST newDisposer:VALUE_DISPOSER);
   begin
     system.enterCriticalSection(cs);
-    disposer:=newDisposer;
-    system.leaveCriticalSection(cs);
+    try
+      disposer:=newDisposer;
+    finally
+      system.leaveCriticalSection(cs);
+    end;
   end;
 
 DESTRUCTOR M_MAP_TYPE.destroy;
@@ -689,25 +746,31 @@ FUNCTION M_MAP_TYPE.containsKey(CONST key: M_KEY_TYPE; OUT value: VALUE_TYPE): b
   VAR i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    i:=M_HASH_FUNC(key) and (length(bucket)-1);
-    j:=0;
-    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-    if (j<length(bucket[i])) then begin
-      value:=bucket[i][j].value;
-      result:=true;
-    end else result:=false;
-    system.leaveCriticalSection(cs);
+    try
+      i:=M_HASH_FUNC(key) and (length(bucket)-1);
+      j:=0;
+      while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
+      if (j<length(bucket[i])) then begin
+        value:=bucket[i][j].value;
+        result:=true;
+      end else result:=false;
+    finally
+      system.leaveCriticalSection(cs);
+    end;
   end;
 
 FUNCTION M_MAP_TYPE.containsKey(CONST key:M_KEY_TYPE):boolean;
   VAR i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    i:=M_HASH_FUNC(key) and (length(bucket)-1);
-    j:=0;
-    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-    result:=(j<length(bucket[i]));
-    system.leaveCriticalSection(cs);
+    try
+      i:=M_HASH_FUNC(key) and (length(bucket)-1);
+      j:=0;
+      while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
+      result:=(j<length(bucket[i]));
+    finally
+      system.leaveCriticalSection(cs);
+    end;
   end;
 
 FUNCTION M_MAP_TYPE.get(CONST key: M_KEY_TYPE): VALUE_TYPE;
@@ -719,97 +782,118 @@ PROCEDURE M_MAP_TYPE.put(CONST key: M_KEY_TYPE; CONST value: VALUE_TYPE);
   VAR i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    i:=M_HASH_FUNC(key) and (length(bucket)-1);
-    j:=0;
-    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-    if j>=length(bucket[i]) then begin
-      setLength(bucket[i],j+1);
-      bucket[i][j].key:=key;
-      bucket[i][j].value:=value;
-      inc(entryCount);
-      if entryCount>length(bucket)*rebalanceFac then rehash(true);
-    end else begin
-      if disposer<>nil then disposer(bucket[i][j].value);
-      bucket[i][j].value:=value;
+    try
+      i:=M_HASH_FUNC(key) and (length(bucket)-1);
+      j:=0;
+      while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
+      if j>=length(bucket[i]) then begin
+        setLength(bucket[i],j+1);
+        bucket[i][j].key:=key;
+        bucket[i][j].value:=value;
+        inc(entryCount);
+        if entryCount>length(bucket)*rebalanceFac then rehash(true);
+      end else begin
+        if disposer<>nil then disposer(bucket[i][j].value);
+        bucket[i][j].value:=value;
+      end;
+    finally
+      system.leaveCriticalSection(cs);
     end;
-    system.leaveCriticalSection(cs);
   end;
 
 PROCEDURE M_MAP_TYPE.putAll(CONST entries:KEY_VALUE_LIST);
   VAR i:longint;
   begin
     system.enterCriticalSection(cs);
-    for i:=0 to length(entries)-1 do put(entries[i].key,entries[i].value);
-    system.leaveCriticalSection(cs);
+    try
+      for i:=0 to length(entries)-1 do put(entries[i].key,entries[i].value);
+    finally
+      system.leaveCriticalSection(cs);
+    end;
   end;
 
 PROCEDURE M_MAP_TYPE.dropKey(CONST key: M_KEY_TYPE);
   VAR i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    i:=M_HASH_FUNC(key) and (length(bucket)-1);
-    j:=0;
-    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-    if j<length(bucket[i]) then begin
-      if disposer<>nil then disposer(bucket[i][j].value);
-      while j<length(bucket[i])-1 do begin
-        bucket[i][j]:=bucket[i][j+1];
-        inc(j);
+    try
+      i:=M_HASH_FUNC(key) and (length(bucket)-1);
+      j:=0;
+      while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
+      if j<length(bucket[i]) then begin
+        if disposer<>nil then disposer(bucket[i][j].value);
+        while j<length(bucket[i])-1 do begin
+          bucket[i][j]:=bucket[i][j+1];
+          inc(j);
+        end;
+        setLength(bucket[i],length(bucket[i])-1);
+        dec(entryCount);
+        if entryCount<0.4*length(bucket)*rebalanceFac then rehash(false);
       end;
-      setLength(bucket[i],length(bucket[i])-1);
-      dec(entryCount);
-      if entryCount<0.4*length(bucket)*rebalanceFac then rehash(false);
+    finally
+      system.leaveCriticalSection(cs);
     end;
-    system.leaveCriticalSection(cs);
   end;
 
 FUNCTION M_MAP_TYPE.keySet: M_KEY_ARRAY_TYPE;
   VAR k,i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    setLength(result,entryCount);
-    k:=0;
-    for i:=0 to length(bucket)-1 do
-    for j:=0 to length(bucket[i])-1 do begin
-      result[k]:=bucket[i][j].key;
-      inc(k);
+    try
+      setLength(result,entryCount);
+      k:=0;
+      for i:=0 to length(bucket)-1 do
+      for j:=0 to length(bucket[i])-1 do begin
+        result[k]:=bucket[i][j].key;
+        inc(k);
+      end;
+    finally
+      system.leaveCriticalSection(cs);
     end;
-    system.leaveCriticalSection(cs);
   end;
 
 FUNCTION M_MAP_TYPE.valueSet: VALUE_TYPE_ARRAY;
   VAR k,i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    setLength(result,entryCount);
-    k:=0;
-    for i:=0 to length(bucket)-1 do
-    for j:=0 to length(bucket[i])-1 do begin
-      result[k]:=bucket[i][j].value;
-      inc(k);
+    try
+      setLength(result,entryCount);
+      k:=0;
+      for i:=0 to length(bucket)-1 do
+      for j:=0 to length(bucket[i])-1 do begin
+        result[k]:=bucket[i][j].value;
+        inc(k);
+      end;
+    finally
+      system.leaveCriticalSection(cs);
     end;
-    system.leaveCriticalSection(cs);
   end;
 
 FUNCTION M_MAP_TYPE.entrySet: KEY_VALUE_LIST;
   VAR k,i,j:longint;
   begin
     system.enterCriticalSection(cs);
-    setLength(result,entryCount);
-    k:=0;
-    for i:=0 to length(bucket)-1 do
-    for j:=0 to length(bucket[i])-1 do begin
-      result[k]:=bucket[i][j];
-      inc(k);
+    try
+      setLength(result,entryCount);
+      k:=0;
+      for i:=0 to length(bucket)-1 do
+      for j:=0 to length(bucket[i])-1 do begin
+        result[k]:=bucket[i][j];
+        inc(k);
+      end;
+    finally
+      system.leaveCriticalSection(cs);
     end;
-    system.leaveCriticalSection(cs);
   end;
 
 FUNCTION M_MAP_TYPE.size: longint;
   begin
     system.enterCriticalSection(cs);
-    result:=entryCount;
-    system.leaveCriticalSection(cs);
+    try
+      result:=entryCount;
+    finally
+      system.leaveCriticalSection(cs);
+    end;
   end}
 
 {$define someSetImplementation:=
