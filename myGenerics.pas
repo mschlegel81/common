@@ -46,7 +46,6 @@ TYPE
          VALUE_DISPOSER=PROCEDURE(VAR v:VALUE_TYPE);
          MY_TYPE=specialize M_MAP_TYPE<VALUE_TYPE>;
     private VAR
-      cs:TRTLCriticalSection;
       entryCount:longint;
       rebalanceFac:double;
       bucket:array of KEY_VALUE_LIST;
@@ -681,7 +680,6 @@ PROCEDURE M_MAP_TYPE.rehash(CONST grow: boolean);
 
 CONSTRUCTOR M_MAP_TYPE.create(CONST rebalanceFactor: double; CONST disposer_:VALUE_DISPOSER=nil);
   begin
-    system.initCriticalSection(cs);
     rebalanceFac:=rebalanceFactor;
     setLength(bucket,1);
     setLength(bucket[0],0);
@@ -692,17 +690,12 @@ CONSTRUCTOR M_MAP_TYPE.create(CONST rebalanceFactor: double; CONST disposer_:VAL
 PROCEDURE M_MAP_TYPE.clear;
   VAR i,j:longint;
   begin
-    system.enterCriticalSection(cs);
-    try
-      for i:=0 to length(bucket)-1 do begin
-        if disposer<>nil then for j:=0 to length(bucket[i])-1 do disposer(bucket[i,j].value);
-        setLength(bucket[i],0);
-      end;
-      setLength(bucket,1);
-      entryCount:=0;
-    finally
-      system.leaveCriticalSection(cs);
+    for i:=0 to length(bucket)-1 do begin
+      if disposer<>nil then for j:=0 to length(bucket[i])-1 do disposer(bucket[i,j].value);
+      setLength(bucket[i],0);
     end;
+    setLength(bucket,1);
+    entryCount:=0;
   end;
 
 CONSTRUCTOR M_MAP_TYPE.create(CONST disposer_:VALUE_DISPOSER=nil);
@@ -725,52 +718,34 @@ CONSTRUCTOR M_MAP_TYPE.createClone(VAR map:MY_TYPE);
 
 PROCEDURE M_MAP_TYPE.overrideDisposer(CONST newDisposer:VALUE_DISPOSER);
   begin
-    system.enterCriticalSection(cs);
-    try
-      disposer:=newDisposer;
-    finally
-      system.leaveCriticalSection(cs);
-    end;
+    disposer:=newDisposer;
   end;
 
 DESTRUCTOR M_MAP_TYPE.destroy;
   begin
     clear;
-    system.enterCriticalSection(cs);
     setLength(bucket,0);
-    system.leaveCriticalSection(cs);
-    system.doneCriticalSection(cs);
   end;
 
 FUNCTION M_MAP_TYPE.containsKey(CONST key: M_KEY_TYPE; OUT value: VALUE_TYPE): boolean;
   VAR i,j:longint;
   begin
-    system.enterCriticalSection(cs);
-    try
-      i:=M_HASH_FUNC(key) and (length(bucket)-1);
-      j:=0;
-      while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-      if (j<length(bucket[i])) then begin
-        value:=bucket[i][j].value;
-        result:=true;
-      end else result:=false;
-    finally
-      system.leaveCriticalSection(cs);
-    end;
+    i:=M_HASH_FUNC(key) and (length(bucket)-1);
+    j:=0;
+    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
+    if (j<length(bucket[i])) then begin
+      value:=bucket[i][j].value;
+      result:=true;
+    end else result:=false;
   end;
 
 FUNCTION M_MAP_TYPE.containsKey(CONST key:M_KEY_TYPE):boolean;
   VAR i,j:longint;
   begin
-    system.enterCriticalSection(cs);
-    try
-      i:=M_HASH_FUNC(key) and (length(bucket)-1);
-      j:=0;
-      while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-      result:=(j<length(bucket[i]));
-    finally
-      system.leaveCriticalSection(cs);
-    end;
+    i:=M_HASH_FUNC(key) and (length(bucket)-1);
+    j:=0;
+    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
+    result:=(j<length(bucket[i]));
   end;
 
 FUNCTION M_MAP_TYPE.get(CONST key: M_KEY_TYPE): VALUE_TYPE;
@@ -781,119 +756,84 @@ FUNCTION M_MAP_TYPE.get(CONST key: M_KEY_TYPE): VALUE_TYPE;
 PROCEDURE M_MAP_TYPE.put(CONST key: M_KEY_TYPE; CONST value: VALUE_TYPE);
   VAR i,j:longint;
   begin
-    system.enterCriticalSection(cs);
-    try
-      i:=M_HASH_FUNC(key) and (length(bucket)-1);
-      j:=0;
-      while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-      if j>=length(bucket[i]) then begin
-        setLength(bucket[i],j+1);
-        bucket[i][j].key:=key;
-        bucket[i][j].value:=value;
-        inc(entryCount);
-        if entryCount>length(bucket)*rebalanceFac then rehash(true);
-      end else begin
-        if disposer<>nil then disposer(bucket[i][j].value);
-        bucket[i][j].value:=value;
-      end;
-    finally
-      system.leaveCriticalSection(cs);
+    i:=M_HASH_FUNC(key) and (length(bucket)-1);
+    j:=0;
+    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
+    if j>=length(bucket[i]) then begin
+      setLength(bucket[i],j+1);
+      bucket[i][j].key:=key;
+      bucket[i][j].value:=value;
+      inc(entryCount);
+      if entryCount>length(bucket)*rebalanceFac then rehash(true);
+    end else begin
+      if disposer<>nil then disposer(bucket[i][j].value);
+      bucket[i][j].value:=value;
     end;
   end;
 
 PROCEDURE M_MAP_TYPE.putAll(CONST entries:KEY_VALUE_LIST);
   VAR i:longint;
   begin
-    system.enterCriticalSection(cs);
-    try
-      for i:=0 to length(entries)-1 do put(entries[i].key,entries[i].value);
-    finally
-      system.leaveCriticalSection(cs);
-    end;
+    for i:=0 to length(entries)-1 do put(entries[i].key,entries[i].value);
   end;
 
 PROCEDURE M_MAP_TYPE.dropKey(CONST key: M_KEY_TYPE);
   VAR i,j:longint;
   begin
-    system.enterCriticalSection(cs);
-    try
-      i:=M_HASH_FUNC(key) and (length(bucket)-1);
-      j:=0;
-      while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
-      if j<length(bucket[i]) then begin
-        if disposer<>nil then disposer(bucket[i][j].value);
-        while j<length(bucket[i])-1 do begin
-          bucket[i][j]:=bucket[i][j+1];
-          inc(j);
-        end;
-        setLength(bucket[i],length(bucket[i])-1);
-        dec(entryCount);
-        if entryCount<0.4*length(bucket)*rebalanceFac then rehash(false);
+    i:=M_HASH_FUNC(key) and (length(bucket)-1);
+    j:=0;
+    while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
+    if j<length(bucket[i]) then begin
+      if disposer<>nil then disposer(bucket[i][j].value);
+      while j<length(bucket[i])-1 do begin
+        bucket[i][j]:=bucket[i][j+1];
+        inc(j);
       end;
-    finally
-      system.leaveCriticalSection(cs);
+      setLength(bucket[i],length(bucket[i])-1);
+      dec(entryCount);
+      if entryCount<0.4*length(bucket)*rebalanceFac then rehash(false);
     end;
   end;
 
 FUNCTION M_MAP_TYPE.keySet: M_KEY_ARRAY_TYPE;
   VAR k,i,j:longint;
   begin
-    system.enterCriticalSection(cs);
-    try
-      setLength(result,entryCount);
-      k:=0;
-      for i:=0 to length(bucket)-1 do
-      for j:=0 to length(bucket[i])-1 do begin
-        result[k]:=bucket[i][j].key;
-        inc(k);
-      end;
-    finally
-      system.leaveCriticalSection(cs);
+    setLength(result,entryCount);
+    k:=0;
+    for i:=0 to length(bucket)-1 do
+    for j:=0 to length(bucket[i])-1 do begin
+      result[k]:=bucket[i][j].key;
+      inc(k);
     end;
   end;
 
 FUNCTION M_MAP_TYPE.valueSet: VALUE_TYPE_ARRAY;
   VAR k,i,j:longint;
   begin
-    system.enterCriticalSection(cs);
-    try
-      setLength(result,entryCount);
-      k:=0;
-      for i:=0 to length(bucket)-1 do
-      for j:=0 to length(bucket[i])-1 do begin
-        result[k]:=bucket[i][j].value;
-        inc(k);
-      end;
-    finally
-      system.leaveCriticalSection(cs);
+    setLength(result,entryCount);
+    k:=0;
+    for i:=0 to length(bucket)-1 do
+    for j:=0 to length(bucket[i])-1 do begin
+      result[k]:=bucket[i][j].value;
+      inc(k);
     end;
   end;
 
 FUNCTION M_MAP_TYPE.entrySet: KEY_VALUE_LIST;
   VAR k,i,j:longint;
   begin
-    system.enterCriticalSection(cs);
-    try
-      setLength(result,entryCount);
-      k:=0;
-      for i:=0 to length(bucket)-1 do
-      for j:=0 to length(bucket[i])-1 do begin
-        result[k]:=bucket[i][j];
-        inc(k);
-      end;
-    finally
-      system.leaveCriticalSection(cs);
+    setLength(result,entryCount);
+    k:=0;
+    for i:=0 to length(bucket)-1 do
+    for j:=0 to length(bucket[i])-1 do begin
+      result[k]:=bucket[i][j];
+      inc(k);
     end;
   end;
 
 FUNCTION M_MAP_TYPE.size: longint;
   begin
-    system.enterCriticalSection(cs);
-    try
-      result:=entryCount;
-    finally
-      system.leaveCriticalSection(cs);
-    end;
+    result:=entryCount;
   end}
 
 {$define someSetImplementation:=
