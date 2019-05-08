@@ -57,6 +57,7 @@ TYPE
     public
       PROCEDURE registerCleanupMethod(CONST m:F_cleanupCallback);
       PROCEDURE callCleanupMethods;
+      PROCEDURE stop;
   end;
 
 FUNCTION getEnvironment:T_arrayOfString;
@@ -575,16 +576,25 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
       if tempMem<0 then MemoryUsed:=GetHeapStatus.TotalAllocated
                    else MemoryUsed:=tempMem;
       output.destroy;
-      if MemoryUsed>memoryComfortThreshold then memoryCleaner.callCleanupMethods;
-      if (memCheckKillRequests=0) and (MemoryUsed<memoryComfortThreshold) then begin
-        sleep(1000);
+      if MemoryUsed>memoryComfortThreshold then begin
+        {$ifdef debugMode}
+        writeln(stdErr,'Memory panic (',MemoryUsed,' | ',MemoryUsed/memoryComfortThreshold*100:0:3,'% used) - calling cleanup methods');
+        {$endif}
+        memoryCleaner.callCleanupMethods;
+      end;
+      if (memCheckKillRequests=0) then begin
         ThreadSwitch;
+        sleep(1000);
       end;
     end;
     Process.destroy;
     interlockedDecrement(memCheckThreadsRunning);
-    interlockedDecrement(memCheckKillRequests);
     result:=0;
+  end;
+
+PROCEDURE T_memoryCleaner.stop;
+  begin
+    interLockedIncrement(memCheckKillRequests);
   end;
 
 FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold:double):string;
@@ -618,7 +628,7 @@ INITIALIZATION
   memoryCleaner.create;
 
 FINALIZATION
-  while memCheckThreadsRunning<0 do begin
+  while memCheckThreadsRunning>0 do begin
     interLockedIncrement(memCheckKillRequests);
     ThreadSwitch;
     sleep(10);
