@@ -4,6 +4,7 @@ INTERFACE
 USES math, strutils, sysutils,  myGenerics, zstream, Classes, huffman, LazUTF8;
 
 TYPE T_charSet=set of char;
+     T_byteSet=set of byte;
      T_escapeStyle=(es_javaStyle,es_mnhPascalStyle,es_pickShortest,es_dontCare);
      T_stringEncoding=(se_testPending,se_ascii,se_utf8,se_mixed);
 CONST
@@ -15,6 +16,19 @@ CONST
   C_carriageReturnChar= #13;
   C_shiftOutChar      = #14;
   C_shiftInChar       = #15;
+
+  C_compression_gzip             :byte=1;
+  C_compression_huffman_default  :byte=2;
+  C_compression_huffman_lucky    :byte=3;
+  C_compression_huffman_numbers  :byte=4;
+  C_compression_huffman_wikipedia:byte=5;
+  C_compression_huffman_mnh      :byte=6;
+  C_compression_huffman_binary   :byte=7;
+
+
+
+
+
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:T_charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
 
@@ -45,7 +59,7 @@ FUNCTION StripHTML(CONST S: string): string;
 FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
 FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
 
-FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
+FUNCTION compressString(CONST src: ansistring; CONST algorithmsToConsider:T_byteSet):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
 FUNCTION tokenSplit(CONST stringToSplit:ansistring; CONST language:string='MNH'):T_arrayOfString;
 FUNCTION ansistringInfo(VAR s:ansistring):string;
@@ -859,7 +873,7 @@ FUNCTION gzip_decompressString(CONST src:ansistring):ansistring;
     result:=gzip_decompressString(src[1],length(src));
   end;
 
-FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
+FUNCTION compressString(CONST src: ansistring; CONST algorithmsToConsider:T_byteSet):ansistring;
   PROCEDURE checkAlternative(CONST alternativeSuffix:ansistring; CONST c0:char);
     VAR alternative:ansistring;
     begin
@@ -868,18 +882,16 @@ FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
     end;
 
   begin
-    case algorithm of
-      1: exit(#36+gzip_compressString(src));
-      2: exit(#37+huffyEncode(src));
-      3: exit(#38+huffyEncode2(src));
-    end;
     if length(src)=0 then exit(src);
-    if src[1] in [#35..#38] then result:=#35+src
-                            else result:=    src;
-    if algorithm=255 then exit(result);
-    checkAlternative(gzip_compressString(src),#36);
-    checkAlternative(huffyEncode (src),#37);
-    checkAlternative(huffyEncode2(src),#38);
+    if src[1] in [#1..#4,#35..#38] then result:=#35+src
+                                   else result:=    src;
+    if 1 in algorithmsToConsider then checkAlternative(gzip_compressString(src),#36);
+    if 2 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_DEFAULT  ),#37);
+    if 3 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_LUCKY    ),#38);
+    if 4 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_NUMBERS  ),#1);
+    if 5 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_WIKIPEDIA),#2);
+    if 6 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_MNH      ),#3);
+    if 7 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_BINARY   ),#4);
   end;
 
 FUNCTION decompressString(CONST src:ansistring):ansistring;
@@ -888,8 +900,12 @@ FUNCTION decompressString(CONST src:ansistring):ansistring;
     case src[1] of
       #35: exit(                      copy(src,2,length(src)-1));
       #36: exit(gzip_decompressString(copy(src,2,length(src)-1)));
-      #37: exit(huffyDecode(          copy(src,2,length(src)-1)));
-      #38: exit(huffyDecode2(         copy(src,2,length(src)-1)));
+      #37: exit(huffyDecode(          copy(src,2,length(src)-1),hm_DEFAULT  ));
+      #38: exit(huffyDecode(          copy(src,2,length(src)-1),hm_LUCKY    ));
+       #1: exit(huffyDecode(          copy(src,2,length(src)-1),hm_NUMBERS  ));
+       #2: exit(huffyDecode(          copy(src,2,length(src)-1),hm_WIKIPEDIA));
+       #3: exit(huffyDecode(          copy(src,2,length(src)-1),hm_MNH      ));
+       #4: exit(huffyDecode(          copy(src,2,length(src)-1),hm_BINARY   ));
     end;
     result:=src;
   end;
