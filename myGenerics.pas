@@ -557,8 +557,6 @@ DESTRUCTOR G_safeArray.destroy;
     system.doneCriticalSection(saveCS);
   end;
 
-{ G_lazyVar }
-
 FUNCTION G_lazyVar.getValue: ENTRY_TYPE;
   begin
     enterCriticalSection(saveCS);

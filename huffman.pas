@@ -1,14 +1,13 @@
 UNIT huffman;
 INTERFACE
-USES myGenerics;
 CONST END_OF_INPUT=256;
 TYPE
   T_symbolFrequency=array[0..255] of longint;
-
+  T_modelEntry=record previousSymbol:byte; followerFrequency:T_symbolFrequency end;
 CONST
   //TODO: Define additional stochastic models
   DEFAULT_PREV_SYMBOL=32;
-  STOCHASTIC_MODEL:array[0..96] of record previousSymbol:byte; followerFrequency:T_symbolFrequency end=
+  STOCHASTIC_MODEL:array[0..96] of T_modelEntry=
 ((previousSymbol: 9; followerFrequency:(0,0,0,0,0,0,0,0,0,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,25,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)),
  (previousSymbol:10; followerFrequency:(0,0,0,0,0,0,0,0,0,1,38702,0,0,1700,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,107870,0,0,0,0,0,0,3,1,1,1,0,1,0,29,240,0,6,2,1,1,1,1,1,1,1,0,0,561,0,0,0,0,26,3,70,37,31,533,3,9,112,12,3,6,10,8,7,356,0,13,25,104,93,41,8,0,6,2,49,0,0,0,0,0,1806,1698,2535,1384,1215,1041,921,1088,1077,306,309,914,1640,544,542,2326,133,1064,2789,1350,210,420,714,20,111,60,136,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)),
  (previousSymbol:13; followerFrequency:(0,0,0,0,0,0,0,0,0,0,18262,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)),
@@ -107,9 +106,6 @@ CONST
  (previousSymbol:124; followerFrequency:(0,0,0,0,0,0,0,0,0,0,13,0,0,37,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,69,0,1,0,0,1,0,14,28,9,0,0,3,0,4,0,3,1,0,0,0,0,0,0,0,0,0,0,1,29,0,0,0,0,1,2,0,0,1,0,0,0,1,0,5,0,0,0,0,0,0,0,0,0,0,0,1,0,0,9,4,0,0,9,0,0,1,2,2,5,3,0,1,1,0,1,2,1,0,1,3,0,4,10,4,0,1,0,2,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)),
  (previousSymbol:125; followerFrequency:(0,0,0,0,0,0,0,0,0,0,34,0,0,237,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,2,1,0,0,0,14,4,85,0,5,33,1,0,0,0,0,0,0,0,2,0,0,0,0,1,24,1,0,0,0,2,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,25,0,0,0,0,0,0,1,0,0,3,0,0,0,0,0,1,0,0,0,0,1,23,1,0,0,0,0,0,0,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)));
 TYPE
-
-  { T_bitArray }
-
   T_bitArray=object
     private
       datFill:longint;
@@ -133,7 +129,6 @@ TYPE
       FUNCTION hasNextBit:boolean;
   end;
 
-TYPE
   P_huffmanNode=^T_huffmanNode;
   T_huffmanNode=record
     symbol:word;
@@ -162,6 +157,7 @@ TYPE
       subCodes:array[-1..255] of P_huffmanCode;
     public
       CONSTRUCTOR create(CONST conservative:boolean);
+      CONSTRUCTOR create(CONST model:array of T_modelEntry; CONST conservative:boolean);
       DESTRUCTOR destroy;
       FUNCTION encode(CONST s:ansistring):ansistring;
       FUNCTION decode(CONST s:ansistring):ansistring;
@@ -172,7 +168,14 @@ FUNCTION huffyEncode(CONST s:ansistring):ansistring;
 FUNCTION huffyDecode2(CONST s:ansistring):ansistring;
 FUNCTION huffyEncode2(CONST s:ansistring):ansistring;
 IMPLEMENTATION
+USES myGenerics;
 VAR twoLevelCode,luckyCode:specialize G_lazyVar<T_twoLevelHuffmanCode>;
+
+OPERATOR +(x,y:T_symbolFrequency):T_symbolFrequency;
+  VAR i:longint;
+  begin
+    for i:=0 to 255 do result[i]:=x[i]+y[i];
+  end;
 
 FUNCTION huffyDecode(CONST s: ansistring): ansistring;
   begin
@@ -202,6 +205,19 @@ CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST conservative:boolean);
     for i:=0 to length(STOCHASTIC_MODEL)-1 do
       new(subCodes[STOCHASTIC_MODEL[i].previousSymbol],create(conservative,STOCHASTIC_MODEL[i].followerFrequency));
     for i:=0 to high(subCodes) do if (subCodes[i]=nil) then subCodes[i]:=subCodes[-1];
+  end;
+
+CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST model:array of T_modelEntry; CONST conservative:boolean);
+  VAR model0:T_symbolFrequency;
+      m:T_modelEntry;
+      i:longint;
+  begin
+    for i:=0 to 255 do model0  [i]:=0;
+    for i:=0 to 255 do subCodes[i]:=nil;
+    for m in model do model0+=m.followerFrequency;
+    new(subCodes[-1],create(true,model0));
+    for m in model do new(subCodes[m.previousSymbol],create(conservative,m.followerFrequency));
+    for i:=0 to 255 do if subCodes[i]=nil then subCodes[i]:=subCodes[-1];
   end;
 
 DESTRUCTOR T_twoLevelHuffmanCode.destroy;
