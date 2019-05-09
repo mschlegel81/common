@@ -25,10 +25,6 @@ CONST
   C_compression_huffman_mnh      :byte=6;
   C_compression_huffman_binary   :byte=7;
 
-
-
-
-
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:T_charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
 

@@ -73,10 +73,16 @@ IMPLEMENTATION
 USES myGenerics;
 VAR huffmanCode:array[HuffmanModel] of specialize G_lazyVar<T_twoLevelHuffmanCode>;
 
-OPERATOR +(x,y:T_symbolFrequency):T_symbolFrequency;
+OPERATOR +(CONST x,y:T_symbolFrequency):T_symbolFrequency;
   VAR i:longint;
+      k:int64;
   begin
-    for i:=0 to 255 do result[i]:=x[i]+y[i];
+    for i:=0 to 255 do begin
+      k:=int64(x[i])+int64(y[i]);
+      if (k>=0) and (k<maxLongint)
+      then result[i]:=k
+      else result[i]:=0;
+    end;
   end;
 
 FUNCTION huffyDecode(CONST s: ansistring; CONST model:HuffmanModel): ansistring;
@@ -105,20 +111,34 @@ CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST model:array of T_modelEntry);
   VAR model0:T_symbolFrequency;
       m:T_modelEntry;
       i:longint;
+      ok:boolean=true;
   begin
-    for i:=0 to 255 do model0  [i]:=0;
-    for i:=0 to 255 do subCodes[i]:=nil;
-    for m in model do model0+=m.followerFrequency;
-    for m in model do new(subCodes[m.previousSymbol],create(false,m.followerFrequency));
-    //Fill gaps by using default model:
-    for i:=0 to 255 do if subCodes[i]=nil then for m in DEFAULT_MODEL do if m.previousSymbol=i then begin
-      new(subCodes[i],create(true,m.followerFrequency));
-      model0+=m.followerFrequency;
+    try
+      for i:= 0 to 255 do model0  [i]:=0;
+      for i:=-1 to 255 do subCodes[i]:=nil;
+      for m in model do begin
+        new(subCodes[m.previousSymbol],create(false,m.followerFrequency));
+        model0+=m.followerFrequency;
+      end;
+      //Fill gaps by using default model:
+      for i:=0 to 255 do if subCodes[i]=nil then for m in DEFAULT_MODEL do if m.previousSymbol=i then begin
+        new(subCodes[i],create(true,m.followerFrequency));
+        model0+=m.followerFrequency;
+      end;
+      //Create fallback model for all of the rest:
+      new(subCodes[-1],create(true,model0));
+    except
+      ok:=false;
     end;
-    //Create fallback model for all of the rest:
-    new(subCodes[-1],create(true,model0));
-    //Fill gaps by using fallback model
-    for i:=0 to 255 do if subCodes[i]=nil then subCodes[i]:=subCodes[-1];
+    if ok then begin
+      //Fill gaps by using fallback model
+      for i:=0 to 255 do if subCodes[i]=nil then subCodes[i]:=subCodes[-1];
+    end else begin
+      for i:=-1 to 255 do if subCodes[i]<>nil then begin
+        dispose(subCodes[i],destroy);
+        subCodes[i]:=nil;
+      end;
+    end;
   end;
 
 DESTRUCTOR T_twoLevelHuffmanCode.destroy;
@@ -241,10 +261,21 @@ CONSTRUCTOR T_huffmanCode.create(CONST conservative:boolean; frequency: T_symbol
     end;
 
   VAR i:longint;
+      k:longint=0;
+      tot:int64=0;
+
   begin
+    //Fix frequencies:----------------------
+    for i:=0 to 255 do inc(tot,frequency[i]);
+    while tot>(maxLongint shr 2) do begin
+      tot:=tot shr 1;
+      inc(k);
+    end;
+    if k>0 then for i:=0 to 255 do frequency[i]:=frequency[i] shr k;
+    //----------------------:Fix frequencies
     for i:=0 to length(table)-1 do table[i].create;
     tree:=nil;
-    if conservative
+    if conservative or (k>0)
     then begin for i:=0 to length(frequency)-1 do if frequency[i]<=0 then frequency[i]:=1; end
     else begin for i:=0 to length(frequency)-1 do if frequency[i]<=0 then frequency[i]:=0; end;
     initModel;
