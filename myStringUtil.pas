@@ -887,7 +887,6 @@ FUNCTION compressString(CONST src: ansistring; CONST algorithmsToConsider:T_byte
     if 4 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_NUMBERS  ),#1);
     if 5 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_WIKIPEDIA),#2);
     if 6 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_MNH      ),#3);
-    if 7 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_BINARY   ),#4);
   end;
 
 FUNCTION decompressString(CONST src:ansistring):ansistring;
@@ -901,7 +900,6 @@ FUNCTION decompressString(CONST src:ansistring):ansistring;
        #1: exit(huffyDecode(          copy(src,2,length(src)-1),hm_NUMBERS  ));
        #2: exit(huffyDecode(          copy(src,2,length(src)-1),hm_WIKIPEDIA));
        #3: exit(huffyDecode(          copy(src,2,length(src)-1),hm_MNH      ));
-       #4: exit(huffyDecode(          copy(src,2,length(src)-1),hm_BINARY   ));
     end;
     result:=src;
   end;

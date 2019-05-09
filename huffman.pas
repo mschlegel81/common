@@ -5,7 +5,7 @@ TYPE
   T_symbolFrequency=array[0..255] of longint;
   T_modelEntry=record previousSymbol:byte; followerFrequency:T_symbolFrequency end;
 
-  HuffmanModel=(hm_DEFAULT,hm_LUCKY,hm_NUMBERS,hm_WIKIPEDIA,hm_MNH,hm_BINARY);
+  HuffmanModel=(hm_DEFAULT,hm_LUCKY,hm_NUMBERS,hm_WIKIPEDIA,hm_MNH);
 CONST
   DEFAULT_PREV_SYMBOL=32;
 
@@ -426,10 +426,10 @@ FUNCTION initLucky  :T_twoLevelHuffmanCode; begin result.create(false); end;
 FUNCTION initNumeric:T_twoLevelHuffmanCode; CONST NUMERIC_MODEL:{$i huffman_model_numeric.inc} begin result.create(NUMERIC_MODEL); end;
 FUNCTION initWiki   :T_twoLevelHuffmanCode; CONST WIKI_MODEL   :{$i huffman_model_wiki.inc}    begin result.create(WIKI_MODEL); end;
 FUNCTION initMnh    :T_twoLevelHuffmanCode; CONST MNH_MODEL    :{$i huffman_model_mnh.inc}     begin result.create(MNH_MODEL); end;
-FUNCTION initBinary :T_twoLevelHuffmanCode; CONST BINARY_MODEL :{$i huffman_model_binary.inc}  begin result.create(BINARY_MODEL); end;
 
 PROCEDURE clearCode(c:T_twoLevelHuffmanCode);
   begin
+    writeln('Destroying T_twoLevelHuffmanCode');
     c.destroy;
   end;
 
@@ -439,12 +439,10 @@ INITIALIZATION
   huffmanCode[hm_NUMBERS  ].create(@initNumeric,@clearCode);
   huffmanCode[hm_WIKIPEDIA].create(@initWiki   ,@clearCode);
   huffmanCode[hm_MNH      ].create(@initMnh    ,@clearCode);
-  huffmanCode[hm_BINARY   ].create(@initBinary ,@clearCode);
-FINALIZATION;
+FINALIZATION
   huffmanCode[hm_DEFAULT  ].destroy;
   huffmanCode[hm_LUCKY    ].destroy;
   huffmanCode[hm_NUMBERS  ].destroy;
   huffmanCode[hm_WIKIPEDIA].destroy;
   huffmanCode[hm_MNH      ].destroy;
-  huffmanCode[hm_BINARY   ].destroy;
 end.
