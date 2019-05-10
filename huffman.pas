@@ -4,8 +4,8 @@ CONST END_OF_INPUT=256;
 TYPE
   T_symbolFrequency=array[0..255] of longint;
   T_modelEntry=record previousSymbol:byte; followerFrequency:T_symbolFrequency end;
-
-  HuffmanModel=(hm_DEFAULT,hm_LUCKY,hm_NUMBERS,hm_WIKIPEDIA,hm_MNH);
+  T_arrayOfBoolean=array of boolean;
+  HuffmanModel=(hm_DEFAULT,hm_LUCKY,hm_NUMBERS,hm_WIKIPEDIA,hm_MNH,hm_DATASTORE);
 CONST
   DEFAULT_PREV_SYMBOL=32;
 
@@ -22,13 +22,14 @@ TYPE
       CONSTRUCTOR create(CONST rawData:ansistring);
       CONSTRUCTOR create(CONST prevArray:T_bitArray; CONST nextBit:boolean);
       DESTRUCTOR destroy;
-      PROCEDURE append(CONST nextBit:boolean);
+      PROCEDURE append(CONST nextBit:boolean); inline;
       PROCEDURE append(CONST arr:T_bitArray; CONST finalAppend:boolean=false);
       PROCEDURE parseString(CONST stringOfZeroesAndOnes:ansistring);
       FUNCTION size:longint;
       PROPERTY bit[CONST index:longint]:boolean read getBit; default;
       FUNCTION getRawDataAsString:ansistring;
       FUNCTION getBitString:ansistring;
+      FUNCTION bits:T_arrayOfBoolean;
       FUNCTION nextBit:boolean;
       FUNCTION hasNextBit:boolean;
   end;
@@ -101,51 +102,57 @@ CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST conservative:boolean);
   VAR i:longint;
   begin
     new(subCodes[-1],create);
-    for i:=0 to high(subCodes) do subCodes[i]:=nil;
+    for i:=0 to 255 do subCodes[i]:=nil;
     for i:=0 to length(DEFAULT_MODEL)-1 do
       new(subCodes[DEFAULT_MODEL[i].previousSymbol],create(conservative,DEFAULT_MODEL[i].followerFrequency));
-    for i:=0 to high(subCodes) do if (subCodes[i]=nil) then subCodes[i]:=subCodes[-1];
+    for i:=0 to 255 do if (subCodes[i]=nil) then subCodes[i]:=subCodes[-1];
   end;
 
 CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST model:array of T_modelEntry);
-  VAR model0:T_symbolFrequency;
+  VAR fallbackModel:T_symbolFrequency;
       m:T_modelEntry;
+      k:longint;
       i:longint;
-      ok:boolean=true;
+      initCount:longint=0;
   begin
-    try
-      for i:= 0 to 255 do model0  [i]:=0;
-      for i:=-1 to 255 do subCodes[i]:=nil;
-      for m in model do begin
-        new(subCodes[m.previousSymbol],create(false,m.followerFrequency));
-        model0+=m.followerFrequency;
-      end;
-      //Fill gaps by using default model:
-      for i:=0 to 255 do if subCodes[i]=nil then for m in DEFAULT_MODEL do if m.previousSymbol=i then begin
-        new(subCodes[i],create(true,m.followerFrequency));
-        model0+=m.followerFrequency;
-      end;
-      //Create fallback model for all of the rest:
-      new(subCodes[-1],create(true,model0));
-    except
-      ok:=false;
+    for i:= 0 to 255 do fallbackModel[i]:=0;
+    for i:=-1 to 255 do subCodes     [i]:=nil;
+
+    for i:=0 to 255 do if subCodes[i]=nil then
+    for k:=0 to length(model)-1 do
+    if model[k].previousSymbol=i then begin
+      m:=model[k];
+      if subCodes[i]=nil then begin
+        new(subCodes[i],create(false,m.followerFrequency));
+        inc(initCount);
+        fallbackModel+=m.followerFrequency;
+      end else writeln('DUPLICATE MODEL ENTRY FOR previousSymbol=',i,' at index ',k);
     end;
-    if ok then begin
-      //Fill gaps by using fallback model
-      for i:=0 to 255 do if subCodes[i]=nil then subCodes[i]:=subCodes[-1];
-    end else begin
-      for i:=-1 to 255 do if subCodes[i]<>nil then begin
-        dispose(subCodes[i],destroy);
-        subCodes[i]:=nil;
-      end;
+    //All initialized, no fallback needed
+    if initCount>=256 then exit;
+    //Fill gaps by using default model:
+    for i:=0 to 255 do if subCodes[i]=nil then
+    for k:=0 to length(DEFAULT_MODEL)-1 do
+    if DEFAULT_MODEL[k].previousSymbol=i then begin
+      m:=DEFAULT_MODEL[k];
+      new(subCodes[i],create(true,m.followerFrequency));
+      inc(initCount);
+      fallbackModel+=m.followerFrequency;
+    end;
+    //All initialized, no further fallback needed
+    if initCount>=256 then exit;
+    //Fill gaps by using fallback model
+    new(subCodes[-1],create(true,fallbackModel));
+    for i:=0 to 255 do if subCodes[i]=nil then begin
+      subCodes[i]:=subCodes[-1];
     end;
   end;
 
 DESTRUCTOR T_twoLevelHuffmanCode.destroy;
   VAR i:longint;
   begin
-    for i:=0 to high(subCodes) do if subCodes[i]=subCodes[-1] then subCodes[i]:=nil;
-    for i:=-1 to high(subCodes) do if subCodes[i]<>nil then dispose(subCodes[i],destroy);
+    for i:= 0 to 255 do if subCodes[i]=subCodes[-1] then subCodes[i]:=nil;
+    for i:=-1 to 255 do if subCodes[i]<>nil then dispose(subCodes[i],destroy)
   end;
 
 FUNCTION T_twoLevelHuffmanCode.encode(CONST s: ansistring): ansistring;
@@ -180,12 +187,11 @@ FUNCTION T_twoLevelHuffmanCode.decode(CONST s: ansistring): ansistring;
 
 CONSTRUCTOR T_huffmanCode.create;
   VAR symbolFrequency:T_symbolFrequency;
-      i,j:longint;
+      entry:T_modelEntry;
+      i:longint;
   begin
-    for i:=0 to length(symbolFrequency)-1 do begin
-      symbolFrequency[i]:=0;
-      for j:=low(DEFAULT_MODEL) to high(DEFAULT_MODEL) do inc(symbolFrequency[i],DEFAULT_MODEL[j].followerFrequency[i]);
-    end;
+    for i:=0 to 255 do symbolFrequency[i]:=0;
+    for entry in DEFAULT_MODEL do symbolFrequency+=entry.followerFrequency;
     create(true,symbolFrequency);
   end;
 
@@ -371,6 +377,7 @@ PROCEDURE T_bitArray.append(CONST nextBit: boolean);
 
 PROCEDURE T_bitArray.append(CONST arr: T_bitArray; CONST finalAppend: boolean);
   VAR i:longint;
+      b:boolean;
   begin
     if finalAppend then begin
       i:=0;
@@ -378,7 +385,7 @@ PROCEDURE T_bitArray.append(CONST arr: T_bitArray; CONST finalAppend: boolean);
         append(arr[i]);
         inc(i);
       end;
-    end else for i:=0 to arr.size-1 do append(arr[i]);
+    end else for b in arr.bits do append(b);
   end;
 
 PROCEDURE T_bitArray.parseString(CONST stringOfZeroesAndOnes: ansistring);
@@ -410,6 +417,26 @@ FUNCTION T_bitArray.getBitString: ansistring;
     else result:=result+'0';
   end;
 
+FUNCTION T_bitArray.bits:T_arrayOfBoolean;
+  CONST M:array[0..7] of byte=(1, 2, 4,  8,
+                              16,32,64,128);
+  VAR i:longint;
+      k:longint=0;
+  begin
+    setLength(result,datFill shl 3);
+    for i:=0 to datFill-1 do begin
+      result[k]:=(data[i] and M[7])>0; inc(k);
+      result[k]:=(data[i] and M[6])>0; inc(k);
+      result[k]:=(data[i] and M[5])>0; inc(k);
+      result[k]:=(data[i] and M[4])>0; inc(k);
+      result[k]:=(data[i] and M[3])>0; inc(k);
+      result[k]:=(data[i] and M[2])>0; inc(k);
+      result[k]:=(data[i] and M[1])>0; inc(k);
+      result[k]:=(data[i] and M[0])>0; inc(k);
+    end;
+    setLength(result,size);
+  end;
+
 FUNCTION T_bitArray.nextBit: boolean;
   begin
     result:=getBit(cursorIndex);
@@ -423,13 +450,13 @@ FUNCTION T_bitArray.hasNextBit: boolean;
 
 FUNCTION initDefault:T_twoLevelHuffmanCode; begin result.create(true); end;
 FUNCTION initLucky  :T_twoLevelHuffmanCode; begin result.create(false); end;
-FUNCTION initNumeric:T_twoLevelHuffmanCode; CONST NUMERIC_MODEL:{$i huffman_model_numeric.inc} begin result.create(NUMERIC_MODEL); end;
-FUNCTION initWiki   :T_twoLevelHuffmanCode; CONST WIKI_MODEL   :{$i huffman_model_wiki.inc}    begin result.create(WIKI_MODEL); end;
-FUNCTION initMnh    :T_twoLevelHuffmanCode; CONST MNH_MODEL    :{$i huffman_model_mnh.inc}     begin result.create(MNH_MODEL); end;
+FUNCTION initNumeric:T_twoLevelHuffmanCode; CONST NUMERIC_MODEL:{$i huffman_model_numeric.inc}  begin result.create(NUMERIC_MODEL); end;
+FUNCTION initWiki   :T_twoLevelHuffmanCode; CONST WIKI_MODEL   :{$i huffman_model_wiki.inc}     begin result.create(WIKI_MODEL); end;
+FUNCTION initMnh    :T_twoLevelHuffmanCode; CONST MNH_MODEL    :{$i huffman_model_mnh.inc}      begin result.create(MNH_MODEL); end;
+FUNCTION initDat    :T_twoLevelHuffmanCode; CONST DAT_MODEL    :{$i huffman_model_datastore.inc}begin result.create(DAT_MODEL); end;
 
 PROCEDURE clearCode(c:T_twoLevelHuffmanCode);
   begin
-    writeln('Destroying T_twoLevelHuffmanCode');
     c.destroy;
   end;
 
@@ -439,10 +466,12 @@ INITIALIZATION
   huffmanCode[hm_NUMBERS  ].create(@initNumeric,@clearCode);
   huffmanCode[hm_WIKIPEDIA].create(@initWiki   ,@clearCode);
   huffmanCode[hm_MNH      ].create(@initMnh    ,@clearCode);
+  huffmanCode[hm_DATASTORE].create(@initDat    ,@clearCode);
 FINALIZATION
   huffmanCode[hm_DEFAULT  ].destroy;
   huffmanCode[hm_LUCKY    ].destroy;
   huffmanCode[hm_NUMBERS  ].destroy;
   huffmanCode[hm_WIKIPEDIA].destroy;
   huffmanCode[hm_MNH      ].destroy;
+  huffmanCode[hm_DATASTORE].destroy;
 end.
