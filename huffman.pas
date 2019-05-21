@@ -60,9 +60,15 @@ TYPE
   T_twoLevelHuffmanCode=object
     private
       subCodes:array[-1..255] of P_huffmanCode;
+      initialized:boolean;
+      myModel:HuffmanModel;
+      codeCs:TRTLCriticalSection;
+      PROCEDURE initialize(CONST conservative:boolean);
+      PROCEDURE initialize(CONST model:array of T_modelEntry);
+      PROCEDURE initialize;
+      PROCEDURE clean;
     public
-      CONSTRUCTOR create(CONST conservative:boolean);
-      CONSTRUCTOR create(CONST model:array of T_modelEntry);
+      CONSTRUCTOR create(CONST model:HuffmanModel);
       DESTRUCTOR destroy;
       FUNCTION encode(CONST s:ansistring):ansistring;
       FUNCTION decode(CONST s:ansistring):ansistring;
@@ -71,8 +77,8 @@ TYPE
 FUNCTION huffyDecode(CONST s:ansistring; CONST model:HuffmanModel):ansistring;
 FUNCTION huffyEncode(CONST s:ansistring; CONST model:HuffmanModel):ansistring;
 IMPLEMENTATION
-USES myGenerics;
-VAR huffmanCode:array[HuffmanModel] of specialize G_lazyVar<T_twoLevelHuffmanCode>;
+USES mySys;
+VAR huffmanCode:array[HuffmanModel] of T_twoLevelHuffmanCode;
 
 OPERATOR +(CONST x,y:T_symbolFrequency):T_symbolFrequency;
   VAR i:longint;
@@ -88,17 +94,46 @@ OPERATOR +(CONST x,y:T_symbolFrequency):T_symbolFrequency;
 
 FUNCTION huffyDecode(CONST s: ansistring; CONST model:HuffmanModel): ansistring;
   begin
-    result:=huffmanCode[model].value.decode(s);
+    result:=huffmanCode[model].decode(s);
   end;
 
 FUNCTION huffyEncode(CONST s: ansistring; CONST model:HuffmanModel): ansistring;
   begin
-    result:=huffmanCode[model].value.encode(s);
+    result:=huffmanCode[model].encode(s);
+  end;
+
+CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST model:HuffmanModel);
+  begin
+    initCriticalSection(codeCs);
+    initialized:=false;
+    myModel:=model;
+    memoryCleaner.registerObjectForCleanup(@clean);
   end;
 
 CONST DEFAULT_MODEL:{$i huffman_model_default.inc}
 
-CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST conservative:boolean);
+PROCEDURE T_twoLevelHuffmanCode.initialize;
+  CONST NUMERIC_MODEL:{$i huffman_model_numeric.inc}
+  CONST WIKI_MODEL   :{$i huffman_model_wiki.inc}
+  CONST MNH_MODEL    :{$i huffman_model_mnh.inc}
+  CONST DAT_MODEL    :{$i huffman_model_datastore.inc}
+  begin
+    enterCriticalSection(codeCs);
+    try
+      if not(initialized) then case myModel of
+        hm_DEFAULT  : initialize(true);
+        hm_LUCKY    : initialize(false);
+        hm_NUMBERS  : initialize(NUMERIC_MODEL);
+        hm_WIKIPEDIA: initialize(WIKI_MODEL);
+        hm_MNH      : initialize(MNH_MODEL);
+        hm_DATASTORE: initialize(DAT_MODEL);
+      end;
+    finally
+      leaveCriticalSection(codeCs);
+    end;
+  end;
+
+PROCEDURE T_twoLevelHuffmanCode.initialize(CONST conservative:boolean);
   VAR i:longint;
   begin
     new(subCodes[-1],create);
@@ -106,9 +141,10 @@ CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST conservative:boolean);
     for i:=0 to length(DEFAULT_MODEL)-1 do
       new(subCodes[DEFAULT_MODEL[i].previousSymbol],create(conservative,DEFAULT_MODEL[i].followerFrequency));
     for i:=0 to 255 do if (subCodes[i]=nil) then subCodes[i]:=subCodes[-1];
+    initialized:=true;
   end;
 
-CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST model:array of T_modelEntry);
+PROCEDURE T_twoLevelHuffmanCode.initialize(CONST model:array of T_modelEntry);
   VAR fallbackModel:T_symbolFrequency;
       m:T_modelEntry;
       k:longint;
@@ -146,13 +182,29 @@ CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST model:array of T_modelEntry);
     for i:=0 to 255 do if subCodes[i]=nil then begin
       subCodes[i]:=subCodes[-1];
     end;
+    initialized:=true;
+  end;
+
+PROCEDURE T_twoLevelHuffmanCode.clean;
+  VAR i:longint;
+  begin
+    enterCriticalSection(codeCs);
+    try
+      if initialized then begin
+        for i:= 0 to 255 do if subCodes[i]=subCodes[-1] then subCodes[i]:=nil;
+        for i:=-1 to 255 do if subCodes[i]<>nil then dispose(subCodes[i],destroy);
+      end;
+      initialized:=false;
+    finally
+      leaveCriticalSection(codeCs);
+    end;
   end;
 
 DESTRUCTOR T_twoLevelHuffmanCode.destroy;
-  VAR i:longint;
   begin
-    for i:= 0 to 255 do if subCodes[i]=subCodes[-1] then subCodes[i]:=nil;
-    for i:=-1 to 255 do if subCodes[i]<>nil then dispose(subCodes[i],destroy)
+    memoryCleaner.unregisterObjectForCleanup(@clean);
+    clean;
+    doneCriticalSection(codeCs);
   end;
 
 FUNCTION T_twoLevelHuffmanCode.encode(CONST s: ansistring): ansistring;
@@ -160,14 +212,20 @@ FUNCTION T_twoLevelHuffmanCode.encode(CONST s: ansistring): ansistring;
       i:longint;
       prevSymbol:word=DEFAULT_PREV_SYMBOL;
   begin
-    resultArr.create;
-    for i:=1 to length(s) do begin
-      subCodes[prevSymbol]^.encodeNextSymbol(s[i],resultArr);
-      prevSymbol:=ord(s[i]);
+    enterCriticalSection(codeCs);
+    initialize;
+    try
+      resultArr.create;
+      for i:=1 to length(s) do begin
+        subCodes[prevSymbol]^.encodeNextSymbol(s[i],resultArr);
+        prevSymbol:=ord(s[i]);
+      end;
+      subCodes[prevSymbol]^.encodeEndOfInput(resultArr);
+      result:=resultArr.getRawDataAsString;
+      resultArr.destroy;
+    finally
+      leaveCriticalSection(codeCs);
     end;
-    subCodes[prevSymbol]^.encodeEndOfInput(resultArr);
-    result:=resultArr.getRawDataAsString;
-    resultArr.destroy;
   end;
 
 FUNCTION T_twoLevelHuffmanCode.decode(CONST s: ansistring): ansistring;
@@ -175,14 +233,20 @@ FUNCTION T_twoLevelHuffmanCode.decode(CONST s: ansistring): ansistring;
       prevSymbol:word=DEFAULT_PREV_SYMBOL;
       nextSymbol:word;
   begin
-    result:='';
-    inputArr.create(s);
-    while (inputArr.hasNextBit) and (prevSymbol<>END_OF_INPUT) do begin
-      nextSymbol:=subCodes[prevSymbol]^.decodeNextSymbol(inputArr);
-      if nextSymbol<>END_OF_INPUT then result:=result+chr(nextSymbol);
-      prevSymbol:=nextSymbol;
+    enterCriticalSection(codeCs);
+    initialize;
+    try
+      result:='';
+      inputArr.create(s);
+      while (inputArr.hasNextBit) and (prevSymbol<>END_OF_INPUT) do begin
+        nextSymbol:=subCodes[prevSymbol]^.decodeNextSymbol(inputArr);
+        if nextSymbol<>END_OF_INPUT then result:=result+chr(nextSymbol);
+        prevSymbol:=nextSymbol;
+      end;
+      inputArr.destroy;
+    finally
+      leaveCriticalSection(codeCs);
     end;
-    inputArr.destroy;
   end;
 
 CONSTRUCTOR T_huffmanCode.create;
@@ -448,25 +512,13 @@ FUNCTION T_bitArray.hasNextBit: boolean;
     result:=cursorIndex<size;
   end;
 
-FUNCTION initDefault:T_twoLevelHuffmanCode; begin result.create(true); end;
-FUNCTION initLucky  :T_twoLevelHuffmanCode; begin result.create(false); end;
-FUNCTION initNumeric:T_twoLevelHuffmanCode; CONST NUMERIC_MODEL:{$i huffman_model_numeric.inc}  begin result.create(NUMERIC_MODEL); end;
-FUNCTION initWiki   :T_twoLevelHuffmanCode; CONST WIKI_MODEL   :{$i huffman_model_wiki.inc}     begin result.create(WIKI_MODEL); end;
-FUNCTION initMnh    :T_twoLevelHuffmanCode; CONST MNH_MODEL    :{$i huffman_model_mnh.inc}      begin result.create(MNH_MODEL); end;
-FUNCTION initDat    :T_twoLevelHuffmanCode; CONST DAT_MODEL    :{$i huffman_model_datastore.inc}begin result.create(DAT_MODEL); end;
-
-PROCEDURE clearCode(c:T_twoLevelHuffmanCode);
-  begin
-    c.destroy;
-  end;
-
 INITIALIZATION
-  huffmanCode[hm_DEFAULT  ].create(@initDefault,@clearCode);
-  huffmanCode[hm_LUCKY    ].create(@initLucky  ,@clearCode);
-  huffmanCode[hm_NUMBERS  ].create(@initNumeric,@clearCode);
-  huffmanCode[hm_WIKIPEDIA].create(@initWiki   ,@clearCode);
-  huffmanCode[hm_MNH      ].create(@initMnh    ,@clearCode);
-  huffmanCode[hm_DATASTORE].create(@initDat    ,@clearCode);
+  huffmanCode[hm_DEFAULT  ].create(hm_DEFAULT  );
+  huffmanCode[hm_LUCKY    ].create(hm_LUCKY    );
+  huffmanCode[hm_NUMBERS  ].create(hm_NUMBERS  );
+  huffmanCode[hm_WIKIPEDIA].create(hm_WIKIPEDIA);
+  huffmanCode[hm_MNH      ].create(hm_MNH      );
+  huffmanCode[hm_DATASTORE].create(hm_DATASTORE);
 FINALIZATION
   huffmanCode[hm_DEFAULT  ].destroy;
   huffmanCode[hm_LUCKY    ].destroy;
