@@ -23,7 +23,6 @@ CONST
   C_compression_huffman_numbers  :byte=4;
   C_compression_huffman_wikipedia:byte=5;
   C_compression_huffman_mnh      :byte=6;
-  C_compression_huffman_datastore:byte=7;
 
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:T_charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
@@ -887,7 +886,6 @@ FUNCTION compressString(CONST src: ansistring; CONST algorithmsToConsider:T_byte
     if 4 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_NUMBERS  ),#1);
     if 5 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_WIKIPEDIA),#2);
     if 6 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_MNH      ),#3);
-    if 7 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_DATASTORE),#4);
   end;
 
 FUNCTION decompressString(CONST src:ansistring):ansistring;
@@ -901,7 +899,6 @@ FUNCTION decompressString(CONST src:ansistring):ansistring;
        #1: exit(huffyDecode(          copy(src,2,length(src)-1),hm_NUMBERS  ));
        #2: exit(huffyDecode(          copy(src,2,length(src)-1),hm_WIKIPEDIA));
        #3: exit(huffyDecode(          copy(src,2,length(src)-1),hm_MNH      ));
-       #4: exit(huffyDecode(          copy(src,2,length(src)-1),hm_DATASTORE));
     end;
     result:=src;
   end;

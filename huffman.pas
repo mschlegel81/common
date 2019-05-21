@@ -5,7 +5,7 @@ TYPE
   T_symbolFrequency=array[0..255] of longint;
   T_modelEntry=record previousSymbol:byte; followerFrequency:T_symbolFrequency end;
   T_arrayOfBoolean=array of boolean;
-  HuffmanModel=(hm_DEFAULT,hm_LUCKY,hm_NUMBERS,hm_WIKIPEDIA,hm_MNH,hm_DATASTORE);
+  HuffmanModel=(hm_DEFAULT,hm_LUCKY,hm_NUMBERS,hm_WIKIPEDIA,hm_MNH);
 CONST
   DEFAULT_PREV_SYMBOL=32;
 
@@ -116,7 +116,6 @@ PROCEDURE T_twoLevelHuffmanCode.initialize;
   CONST NUMERIC_MODEL:{$i huffman_model_numeric.inc}
   CONST WIKI_MODEL   :{$i huffman_model_wiki.inc}
   CONST MNH_MODEL    :{$i huffman_model_mnh.inc}
-  CONST DAT_MODEL    :{$i huffman_model_datastore.inc}
   begin
     enterCriticalSection(codeCs);
     try
@@ -126,7 +125,6 @@ PROCEDURE T_twoLevelHuffmanCode.initialize;
         hm_NUMBERS  : initialize(NUMERIC_MODEL);
         hm_WIKIPEDIA: initialize(WIKI_MODEL);
         hm_MNH      : initialize(MNH_MODEL);
-        hm_DATASTORE: initialize(DAT_MODEL);
       end;
     finally
       leaveCriticalSection(codeCs);
@@ -518,12 +516,10 @@ INITIALIZATION
   huffmanCode[hm_NUMBERS  ].create(hm_NUMBERS  );
   huffmanCode[hm_WIKIPEDIA].create(hm_WIKIPEDIA);
   huffmanCode[hm_MNH      ].create(hm_MNH      );
-  huffmanCode[hm_DATASTORE].create(hm_DATASTORE);
 FINALIZATION
   huffmanCode[hm_DEFAULT  ].destroy;
   huffmanCode[hm_LUCKY    ].destroy;
   huffmanCode[hm_NUMBERS  ].destroy;
   huffmanCode[hm_WIKIPEDIA].destroy;
   huffmanCode[hm_MNH      ].destroy;
-  huffmanCode[hm_DATASTORE].destroy;
 end.
