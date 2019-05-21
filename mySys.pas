@@ -47,15 +47,19 @@ TYPE
   end;
 
   F_cleanupCallback=PROCEDURE;
+  F_objectCleanupCallback=PROCEDURE of object;
 
   T_memoryCleaner=object
     private
       cleanerCs:TRTLCriticalSection;
       methods:array of F_cleanupCallback;
+      methods2:array of F_objectCleanupCallback;
       CONSTRUCTOR create;
       DESTRUCTOR destroy;
     public
       PROCEDURE registerCleanupMethod(CONST m:F_cleanupCallback);
+      PROCEDURE registerObjectForCleanup(CONST m:F_objectCleanupCallback);
+      PROCEDURE unregisterObjectForCleanup(CONST m:F_objectCleanupCallback);
       PROCEDURE callCleanupMethods;
       PROCEDURE stop;
   end;
@@ -114,12 +118,41 @@ PROCEDURE T_memoryCleaner.registerCleanupMethod(CONST m:F_cleanupCallback);
     end;
   end;
 
-PROCEDURE T_memoryCleaner.callCleanupMethods;
-  VAR m:F_cleanupCallback;
+PROCEDURE T_memoryCleaner.registerObjectForCleanup(CONST m:F_objectCleanupCallback);
   begin
     enterCriticalSection(cleanerCs);
     try
-      for m in methods do m();
+      setLength(methods2,length(methods2)+1);
+      methods2[length(methods2)-1]:=m;
+    finally
+      leaveCriticalSection(cleanerCs);
+    end;
+  end;
+
+PROCEDURE T_memoryCleaner.unregisterObjectForCleanup(CONST m:F_objectCleanupCallback);
+  VAR i:longint=0;
+  begin
+    enterCriticalSection(cleanerCs);
+    try
+      while i<length(methods2) do begin
+        if methods2[i]=m then begin
+          methods2[i]:=methods2[length(methods2)-1];
+          setLength   (methods2,length(methods2)-1);
+        end else inc(i);
+      end;
+    finally
+      leaveCriticalSection(cleanerCs);
+    end;
+  end;
+
+PROCEDURE T_memoryCleaner.callCleanupMethods;
+  VAR m :F_cleanupCallback;
+      m2:F_objectCleanupCallback;
+  begin
+    enterCriticalSection(cleanerCs);
+    try
+      for m  in methods  do m();
+      for m2 in methods2 do m2();
     finally
       leaveCriticalSection(cleanerCs);
     end;
