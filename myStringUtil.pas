@@ -63,6 +63,9 @@ FUNCTION getListOfSimilarWords(CONST typedSoFar:string; CONST completionList:T_a
 FUNCTION percentEncode(CONST s:string):string;
 FUNCTION percentDecode(CONST s:string):string;
 
+FUNCTION base92Encode(CONST src:ansistring):ansistring;
+FUNCTION base92Decode(CONST src:ansistring):ansistring;
+
 IMPLEMENTATION
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
@@ -1130,6 +1133,65 @@ FUNCTION percentDecode(CONST s:string):string;
   begin
     result:=s;
     for c:=0 to 255 do result:=replaceAll(result,percentCode(c),chr(c));
+  end;
+
+FUNCTION base92Encode(CONST src:ansistring):ansistring;
+  VAR k:longint;
+
+  FUNCTION encodeQuartet(CONST startIdx:longint):string;
+    CONST CODE92:array[0..91] of char=('!','"','#','$','%','&','(',')','*','+',',','-','.','/','0','1','2','3','4','5','6','7','8','9',':',';','<','=','>','?','@','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','[','\',']','^','_','`','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','{','|','}');
+    VAR i:longint;
+        j:byte;
+        value:int64=0;
+    begin
+      for i:=3 downto 0 do if startIdx+i<=length(src)
+      then value:=value*257+ord(src[startIdx+i])
+      else value:=value*257+256;
+
+      setLength(result,5);
+      for i:=0 to 4 do begin
+        j:=value mod 92; value:=value div 92;
+        result[i+1]:=CODE92[j];
+      end;
+    end;
+
+  begin
+    result:='';
+    k:=1;
+    while k<=length(src) do begin
+      result:=result+encodeQuartet(k);
+      inc(k,4);
+    end;
+  end;
+
+FUNCTION base92Decode(CONST src:ansistring):ansistring;
+  VAR oneNum:int64;
+      i,j,k:longint;
+
+  FUNCTION nextNum:longint;
+    CONST CODED:T_charSet=['!'..'&','('..'}'];
+          DECODE92:array['!'..'}'] of byte=(0,1,2,3,4,5,0,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91);
+    begin
+      inc(i);
+      while (i<=length(src)) and not(src[i] in coded) do inc(i);
+      if i>length(src) then exit(91)
+      else result:=DECODE92[src[i]];
+    end;
+
+  begin
+    result:='';
+    i:=0;
+    while i<length(src) do begin
+      oneNum:=nextNum;
+      oneNum:=oneNum+int64(92      )*nextNum;
+      oneNum:=oneNum+int64(8464    )*nextNum;
+      oneNum:=oneNum+int64(778688  )*nextNum;
+      oneNum:=oneNum+int64(71639296)*nextNum;
+      for j:=0 to 3 do begin
+        k:=oneNum mod 257; oneNum:=oneNum div 257;
+        if (k<256) and (k>=0) then result:=result+chr(k);
+      end;
+    end;
   end;
 
 end.
