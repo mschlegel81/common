@@ -582,10 +582,12 @@ VAR memCheckThreadsRunning:longint=0;
     memCheckKillRequests:longint=0;
     MemoryUsed:ptrint=0;
 FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
+  CONST minCleanupInterval=10/(24*60*60); //=10 seconds
   VAR Process:TProcess;
       output: TStringList;
       i:longint;
       tempMem:ptrint;
+      lastCleanupCall:double=0;
   begin
     Process:=TProcess.create(nil);
     {$ifdef UNIX}
@@ -609,11 +611,12 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
       if tempMem<0 then MemoryUsed:=GetHeapStatus.TotalAllocated
                    else MemoryUsed:=tempMem;
       output.destroy;
-      if MemoryUsed>memoryComfortThreshold then begin
+      if (MemoryUsed>memoryComfortThreshold) and (now>lastCleanupCall+minCleanupInterval) then begin
         {$ifdef debugMode}
         writeln(stdErr,'Memory panic (',MemoryUsed,' | ',MemoryUsed/memoryComfortThreshold*100:0:3,'% used) - calling cleanup methods');
         {$endif}
         memoryCleaner.callCleanupMethods;
+        lastCleanupCall:=now;
       end;
       if (memCheckKillRequests=0) then begin
         ThreadSwitch;
