@@ -32,7 +32,7 @@ FUNCTION isBlank(CONST s: ansistring): boolean;
 FUNCTION replaceAll(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
 FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT isValid: boolean): ansistring; inline;
 FUNCTION replaceOne(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
-FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; OUT nonescapableFound:boolean): ansistring;
+FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stringEncoding; OUT nonescapableFound:boolean): ansistring;
 FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parsedLength: longint): ansistring;
 FUNCTION isIdentifier(CONST s: ansistring; CONST allowDot: boolean): boolean;
 FUNCTION isFilename(CONST s: ansistring; CONST acceptedExtensions:array of string):boolean;
@@ -288,7 +288,7 @@ FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT 
     end;
   end;
 
-FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; OUT nonescapableFound:boolean): ansistring;
+FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stringEncoding; OUT nonescapableFound:boolean): ansistring;
   CONST javaEscapes:array[0..9,0..1] of char=(('\','\'),(C_backspaceChar ,'b'),
                                               (C_tabChar ,'t'),
                                               (C_lineBreakChar,'n'),
@@ -302,7 +302,8 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; OUT nonesc
   FUNCTION isJavaEscapable:boolean;
     VAR c:char;
     begin
-      for c in s do if (c<#32) and not(c in javaEscapable) then exit(false);
+      if enc=se_testPending then enc:=encoding(s);
+      for c in s do if (c<#32) and not(c in javaEscapable) or ((enc<>se_utf8) and (c>#127)) then exit(false);
       result:=true;
     end;
 
