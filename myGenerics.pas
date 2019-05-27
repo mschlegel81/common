@@ -189,7 +189,7 @@ TYPE
       FUNCTION registeredCount:longint;
   end;
 
-FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; inline;
+FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; {$ifndef debugMode} inline; {$endif}
 
 IMPLEMENTATION
 {$define arrayFunctionImpl:=
@@ -333,7 +333,7 @@ FUNCTION C_EMPTY_DOUBLE_ARRAY :T_arrayOfDouble ; begin setLength(result,0); end;
 FUNCTION C_EMPTY_LONGINT_ARRAY:T_arrayOfLongint; begin setLength(result,0); end;
 FUNCTION C_EMPTY_INT64_ARRAY  :T_arrayOfInt64  ; begin setLength(result,0); end;
 
-FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; inline;
+FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; {$ifndef debugMode} inline; {$endif}
   VAR i:longint;
   begin
     {$Q-}{$R-}
