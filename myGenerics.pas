@@ -172,9 +172,10 @@ TYPE
          T_parameterizedOperationOnEntry=PROCEDURE(x:ENTRY_TYPE;p:pointer);
          T_attributeOnEntry=FUNCTION(x:ENTRY_TYPE):boolean;
          T_parameterizedAttributeOnEntry=FUNCTION(x:ENTRY_TYPE;p:pointer):boolean;
+         ARRAY_OF_ENTRY_TYPE=array of ENTRY_TYPE;
     private
       cs:TRTLCriticalSection;
-      registered:array of ENTRY_TYPE;
+      registered:ARRAY_OF_ENTRY_TYPE;
     public
       CONSTRUCTOR create;
       DESTRUCTOR destroy;
@@ -182,6 +183,8 @@ TYPE
       PROCEDURE forEach      (CONST op:T_parameterizedOperationOnEntry; p:pointer);
       FUNCTION  anyMatch     (CONST at:T_attributeOnEntry):boolean;
       FUNCTION  anyMatch     (CONST at:T_parameterizedAttributeOnEntry; p:pointer):boolean;
+      FUNCTION  filter       (CONST at:T_attributeOnEntry):ARRAY_OF_ENTRY_TYPE;
+      FUNCTION  filter       (CONST at:T_parameterizedAttributeOnEntry; p:pointer):ARRAY_OF_ENTRY_TYPE;
       PROCEDURE onCreation   (CONST x:ENTRY_TYPE);
       PROCEDURE onDestruction(CONST x:ENTRY_TYPE);
       PROCEDURE enterCs;
@@ -416,6 +419,38 @@ FUNCTION G_instanceRegistry.anyMatch(CONST at:T_parameterizedAttributeOnEntry; p
     end;
     result:=false;
     for x in regCopy do if at(x,p) then result:=true;
+  end;
+
+FUNCTION G_instanceRegistry.filter(CONST at:T_attributeOnEntry):ARRAY_OF_ENTRY_TYPE;
+  VAR i:longint;
+      x:ENTRY_TYPE;
+  begin
+    setLength(result,0);
+    enterCriticalSection(cs);
+    try
+      for i:=0 to length(registered)-1 do if at(registered[i]) then begin
+        setLength(result,length(result)+1);
+        result[length(result)-1]:=registered[i];
+      end;
+    finally
+      leaveCriticalSection(cs);
+    end;
+  end;
+
+FUNCTION G_instanceRegistry.filter(CONST at:T_parameterizedAttributeOnEntry; p:pointer):ARRAY_OF_ENTRY_TYPE;
+  VAR i:longint;
+      x:ENTRY_TYPE;
+  begin
+    setLength(result,0);
+    enterCriticalSection(cs);
+    try
+      for i:=0 to length(registered)-1 do if at(registered[i],p) then begin
+        setLength(result,length(result)+1);
+        result[length(result)-1]:=registered[i];
+      end;
+    finally
+      leaveCriticalSection(cs);
+    end;
   end;
 
 PROCEDURE G_instanceRegistry.onCreation(CONST x: ENTRY_TYPE);
