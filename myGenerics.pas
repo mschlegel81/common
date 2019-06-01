@@ -423,7 +423,6 @@ FUNCTION G_instanceRegistry.anyMatch(CONST at:T_parameterizedAttributeOnEntry; p
 
 FUNCTION G_instanceRegistry.filter(CONST at:T_attributeOnEntry):ARRAY_OF_ENTRY_TYPE;
   VAR i:longint;
-      x:ENTRY_TYPE;
   begin
     setLength(result,0);
     enterCriticalSection(cs);
@@ -439,7 +438,6 @@ FUNCTION G_instanceRegistry.filter(CONST at:T_attributeOnEntry):ARRAY_OF_ENTRY_T
 
 FUNCTION G_instanceRegistry.filter(CONST at:T_parameterizedAttributeOnEntry; p:pointer):ARRAY_OF_ENTRY_TYPE;
   VAR i:longint;
-      x:ENTRY_TYPE;
   begin
     setLength(result,0);
     enterCriticalSection(cs);
