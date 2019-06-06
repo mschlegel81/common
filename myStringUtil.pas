@@ -1167,10 +1167,10 @@ FUNCTION base92Encode(CONST src:ansistring):ansistring;
 FUNCTION base92Decode(CONST src:ansistring):ansistring;
   VAR oneNum:int64;
       i,j,k:longint;
+  CONST coded:T_charSet=['!'..'&','('..'}'];
 
   FUNCTION nextNum:longint;
-    CONST coded:T_charSet=['!'..'&','('..'}'];
-          DECODE92:array['!'..'}'] of byte=(0,1,2,3,4,5,0,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91);
+    CONST DECODE92:array['!'..'}'] of byte=(0,1,2,3,4,5,0,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91);
     begin
       inc(i);
       while (i<=length(src)) and not(src[i] in coded) do inc(i);
@@ -1191,6 +1191,7 @@ FUNCTION base92Decode(CONST src:ansistring):ansistring;
         k:=oneNum mod 257; oneNum:=oneNum div 257;
         if (k<256) and (k>=0) then result:=result+chr(k);
       end;
+      while (i<length(src)) and not(src[i+1] in coded) do inc(i);
     end;
   end;
 
