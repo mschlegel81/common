@@ -618,9 +618,9 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
         memoryCleaner.callCleanupMethods;
         lastCleanupCall:=now;
       end;
-      if (memCheckKillRequests=0) then begin
+      for i:=0 to 9 do if (memCheckKillRequests=0) then begin
         ThreadSwitch;
-        sleep(1000);
+        sleep(95);
       end;
     end;
     Process.destroy;
@@ -664,11 +664,7 @@ INITIALIZATION
   memoryCleaner.create;
 
 FINALIZATION
-  while memCheckThreadsRunning>0 do begin
-    interLockedIncrement(memCheckKillRequests);
-    ThreadSwitch;
-    sleep(10);
-  end;
+  if memCheckThreadsRunning>0 then interLockedIncrement(memCheckKillRequests);
   if clearConsoleProcess<>nil then clearConsoleProcess.destroy;
   memoryCleaner.destroy;
 
