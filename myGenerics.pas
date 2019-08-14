@@ -51,6 +51,8 @@ TYPE
       bucket:array of KEY_VALUE_LIST;
       disposer:VALUE_DISPOSER;
       PROCEDURE rehash(CONST grow:boolean);
+    protected
+      PROCEDURE disposeValue(VAR v:VALUE_TYPE); virtual;
     public
       CONSTRUCTOR create(CONST rebalanceFactor:double; CONST disposer_:VALUE_DISPOSER=nil);
       CONSTRUCTOR create(CONST disposer_:VALUE_DISPOSER=nil);
@@ -718,11 +720,16 @@ CONSTRUCTOR M_MAP_TYPE.create(CONST rebalanceFactor: double; CONST disposer_:VAL
     disposer:=disposer_;
   end;
 
+PROCEDURE M_MAP_TYPE.disposeValue(VAR v:VALUE_TYPE);
+  begin
+    if disposer<>nil then disposer(v);
+  end;
+
 PROCEDURE M_MAP_TYPE.clear;
   VAR i,j:longint;
   begin
     for i:=0 to length(bucket)-1 do begin
-      if disposer<>nil then for j:=0 to length(bucket[i])-1 do disposer(bucket[i,j].value);
+      for j:=0 to length(bucket[i])-1 do disposeValue(bucket[i,j].value);
       setLength(bucket[i],0);
     end;
     setLength(bucket,1);
@@ -797,7 +804,7 @@ PROCEDURE M_MAP_TYPE.put(CONST key: M_KEY_TYPE; CONST value: VALUE_TYPE);
       inc(entryCount);
       if entryCount>length(bucket)*rebalanceFac then rehash(true);
     end else begin
-      if disposer<>nil then disposer(bucket[i][j].value);
+      disposeValue(bucket[i][j].value);
       bucket[i][j].value:=value;
     end;
   end;
@@ -815,7 +822,7 @@ PROCEDURE M_MAP_TYPE.dropKey(CONST key: M_KEY_TYPE);
     j:=0;
     while (j<length(bucket[i])) and (bucket[i][j].key<>key) do inc(j);
     if j<length(bucket[i]) then begin
-      if disposer<>nil then disposer(bucket[i][j].value);
+      disposeValue(bucket[i][j].value);
       while j<length(bucket[i])-1 do begin
         bucket[i][j]:=bucket[i][j+1];
         inc(j);
