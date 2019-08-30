@@ -310,6 +310,7 @@ PROCEDURE sort(VAR entry:M_ARRAY_TYPE);
 PROCEDURE sortUnique(VAR entry:M_ARRAY_TYPE);
   VAR i,j:longint;
   begin
+    if length(entry)=0 then exit;
     sort(entry);
     j:=1;
     for i:=1 to length(entry)-1 do if entry[i]<>entry[i-1] then begin
