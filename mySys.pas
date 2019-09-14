@@ -593,7 +593,7 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
     {$ifdef UNIX}
       Process.executable:='ps';
       Process.parameters.add('o');
-      Process.parameters.add('vsize');
+      Process.parameters.add('size');
       Process.parameters.add('-p');
       Process.parameters.add(intToStr(GetProcessID));
     {$else}
@@ -609,7 +609,7 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
       tempMem:=-1;
       for i:=0 to output.count-1 do if tempMem<0 then tempMem:=StrToInt64Def(trim(output[i]),-1);
       if tempMem<0 then MemoryUsed:=GetHeapStatus.TotalAllocated
-                   else MemoryUsed:=tempMem;
+                   else MemoryUsed:=tempMem{$ifdef UNIX}*1024{$endif};
       output.destroy;
       if (MemoryUsed>memoryComfortThreshold) and (now>lastCleanupCall+minCleanupInterval) then begin
         {$ifdef debugMode}
