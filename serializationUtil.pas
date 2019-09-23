@@ -233,7 +233,7 @@ PROCEDURE T_bufferedInputStreamWrapper.read(VAR targetBuffer; CONST count: longi
   //         offset:          ^             ^ : fill
   begin
     if count>bufferFill-bufferOffset then begin
-      move(buffer[bufferOffset],buffer,bufferFill-bufferOffset);
+      if bufferFill>bufferOffset then move(buffer[bufferOffset],buffer,bufferFill-bufferOffset);
       dec(bufferFill,bufferOffset);
       bufferOffset:=0;
       //buffer: [a b c d e f g . . . . . . . .]
