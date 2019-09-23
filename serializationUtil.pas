@@ -1,7 +1,7 @@
 UNIT serializationUtil;
 INTERFACE
 USES Classes;
-CONST C_bufferSize=4096;
+CONST C_bufferSize=8192;
 TYPE
   T_abstractStreamWrapper=object
     private
@@ -53,6 +53,7 @@ TYPE
     private
       buffer:array[0..C_bufferSize-1] of byte;
       bufferFill:longint;
+      bufferOffset:longint;
     public
       PROCEDURE read(VAR targetBuffer; CONST count: longint); virtual;
       CONSTRUCTOR create(CONST stream_:TStream);
@@ -197,7 +198,12 @@ FUNCTION T_inputStreamWrapper.readAnsiString: ansistring;
   VAR i:longint;
   begin
     setLength(result,readNaturalNumber);
-    for i:=1 to length(result) do if not(earlyEndOfFileError) then result[i]:=readChar;
+    i:=0;
+    while i<length(result) do begin
+      if (length(result)-i)>C_bufferSize
+      then begin read(result[i+1],C_bufferSize); inc(i,C_bufferSize); end
+      else begin read(result[i+1],length(result)-i); i:=length(result); end;
+    end;
     if earlyEndOfFileError then result:='';
   end;
 
@@ -223,8 +229,16 @@ FUNCTION T_inputStreamWrapper.readInteger:int64;
 
 PROCEDURE T_bufferedInputStreamWrapper.read(VAR targetBuffer; CONST count: longint);
   VAR toRead,actuallyRead:longint;
+  //Initial: buffer: [. . . . a b c d e f g . . . .]
+  //         offset:          ^             ^ : fill
   begin
-    if count>bufferFill then begin
+    if count>bufferFill-bufferOffset then begin
+      move(buffer[bufferOffset],buffer,bufferFill-bufferOffset);
+      dec(bufferFill,bufferOffset);
+      bufferOffset:=0;
+      //buffer: [a b c d e f g . . . . . . . .]
+      //offset:  ^             ^ : fill
+      //                       |<-  toRead ->|
       toRead:=length(buffer)-bufferFill;
       try
         actuallyRead:=stream.read(buffer[bufferFill],toRead);
@@ -233,32 +247,40 @@ PROCEDURE T_bufferedInputStreamWrapper.read(VAR targetBuffer; CONST count: longi
         exit;
       end;
       inc(bufferFill,actuallyRead);
+      //buffer: [a b c d e f g 1 2 3 4 . . . .]
+      //offset:  ^                     ^ : fill
     end;
-    if count>bufferFill
+    if count>bufferFill-bufferOffset
     then earlyEndOfFileError:=true
     else begin
-      move(buffer,targetBuffer,count);
-      move(buffer[count],buffer,bufferFill-count);
-      dec(bufferFill,count);
+      //offset:          v             v : fill
+      //buffer: [. . . . a b c d e f g . . . .]
+      //target:        [ a b c d ]
+      move(buffer[bufferOffset],targetBuffer,count);
+      inc(bufferOffset,count);
+      //buffer: [. . . . . . . . e f g . . . .]
+      //offset:                  ^     ^ : fill
     end;
   end;
 
 FUNCTION T_bufferedInputStreamWrapper.streamPos:longint;
   begin
     result:=stream.position
-           -bufferFill;
+           -bufferFill+bufferOffset;
   end;
 
 CONSTRUCTOR T_bufferedInputStreamWrapper.create(CONST stream_: TStream);
   begin
     inherited create(stream_);
     bufferFill:=0;
+    bufferOffset:=0;
   end;
 
 CONSTRUCTOR T_bufferedInputStreamWrapper.createToReadFromFile(CONST fileName: string);
   begin
     inherited createToReadFromFile(fileName);
     bufferFill:=0;
+    bufferOffset:=0;
   end;
 
 DESTRUCTOR T_bufferedInputStreamWrapper.destroy;
