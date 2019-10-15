@@ -422,37 +422,18 @@ PROCEDURE T_bigInt.fromString(CONST s: string);
   end;
 
 PROCEDURE T_bigInt.fromFloat(CONST f: extended; CONST rounding: T_roundingMode);
-  VAR unsigned:extended;
-      fraction:extended;
-      addOne:boolean=false;
-      k:longint;
-      d:DigitType;
+  VAR r:TDoubleRec;
+      fraction:double;
   begin
-    if isInfinite(f) or isNan(f) then raise Exception.create('Cannot create bigint from infinite or Nan float.');
-
-    negative:=f<0;
-    if negative then unsigned:=-f else unsigned:=f;
-    fraction:=frac(unsigned);
-
-    k:=0;
-    while unsigned>=1 do begin
-      inc(k);
-      unsigned/=(DIGIT_MAX_VALUE+1);
-    end;
-    setLength(digits,k);
-    for k:=length(digits)-1 downto 0 do begin
-      unsigned*=(DIGIT_MAX_VALUE+1);
-      d:=trunc(unsigned);
-      digits[k]:=d;
-      unsigned-=d;
-    end;
+    r.value:=f;
+    fromInt(r.Mantissa+4503599627370496);
+    negative:=r.sign;
+    shiftRight(52-r.exponent);
     case rounding of
-      RM_DEFAULT: addOne:=(fraction>0.5) or (fraction=0.5) and getBit(0);
-      RM_UP     : addOne:=not(negative) and (fraction<>0  );
-      RM_DOWN   : addOne:=    negative  and (fraction<>0  );
+      RM_DEFAULT: begin fraction:=frac(abs(f)); if (fraction>0.5) or (fraction=0.5) and getBit(0) then incAbsValue(1); end;
+      RM_UP     :                               if not(negative) and (frac(f)<>0) then incAbsValue(1);
+      RM_DOWN   :                               if     negative  and (frac(f)<>0) then incAbsValue(1);
     end;
-    if addOne then incAbsValue(1);
-    trimLeadingZeros(digits);
   end;
 
 PROCEDURE T_bigInt.create(CONST toClone: T_bigInt);
@@ -510,11 +491,19 @@ FUNCTION T_bigInt.toInt: int64;
   end;
 
 FUNCTION T_bigInt.toFloat: extended;
-  VAR k:longint;
+  VAR r:TDoubleRec;
+      c:T_bigInt;
+      i:longint;
   begin
-    result:=0;
-    for k:=length(digits)-1 downto 0 do result:=result*(DIGIT_MAX_VALUE+1)+digits[k];
-    if negative then result:=-result;
+    c.create(self);
+    i:=c.relevantBits;
+    if i=0 then exit(0);
+    c.shiftRight(i-53);
+    c.setBit(53,false);
+    r.data:=c.digits[0] or (qword(c.digits[1] ) shl BITS_PER_DIGIT);
+    r.exp:=1022+i;
+    r.sign:=negative;
+    result:=r.value;
   end;
 
 FUNCTION T_bigInt.canBeRepresentedAsInt64(CONST examineNicheCase: boolean): boolean;
