@@ -491,19 +491,11 @@ FUNCTION T_bigInt.toInt: int64;
   end;
 
 FUNCTION T_bigInt.toFloat: extended;
-  VAR r:TDoubleRec;
-      c:T_bigInt;
-      i:longint;
+  VAR k:longint;
   begin
-    c.create(self);
-    i:=c.relevantBits;
-    if i=0 then exit(0);
-    c.shiftRight(i-53);
-    c.setBit(53,false);
-    r.data:=c.digits[0] or (qword(c.digits[1] ) shl BITS_PER_DIGIT);
-    r.exp:=1022+i;
-    r.sign:=negative;
-    result:=r.value;
+    result:=0;
+    for k:=length(digits)-1 downto 0 do result:=result*(DIGIT_MAX_VALUE+1)+digits[k];
+    if negative then result:=-result;
   end;
 
 FUNCTION T_bigInt.canBeRepresentedAsInt64(CONST examineNicheCase: boolean): boolean;
