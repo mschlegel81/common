@@ -523,34 +523,15 @@ FUNCTION reSplit(CONST s:T_arrayOfString):T_arrayOfString;
 FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString; CONST retainSplitters:boolean=false):T_arrayOfString;
   PROCEDURE nextSplitterPos(CONST startSearchAt:longint; OUT splitterStart,splitterEnd:longint); inline;
     VAR splitter:string;
-        firstSplitterChar:char;
-        thisSplitterFound:boolean;
         i:longint;
     begin
       splitterStart:=length(s)+1;
       splitterEnd:=splitterStart;
       for splitter in splitters do if length(splitter)>0 then begin
-        firstSplitterChar:=splitter[1];
-        thisSplitterFound:=false;
-        i:=startSearchAt;
-        if length(splitter)=1 then begin
-          while (i<splitterStart) and not(thisSplitterFound) do begin
-            if (s[i]=firstSplitterChar) then begin
-              thisSplitterFound:=true;
-              splitterStart:=i;
-              splitterEnd:=i+1;
-            end;
-            inc(i);
-          end;
-        end else begin
-          while (i<splitterStart) and not(thisSplitterFound) do begin
-            if (s[i]=firstSplitterChar) and (copy(s,i,length(splitter))=splitter) then begin
-              thisSplitterFound:=true;
-              splitterStart:=i;
-              splitterEnd:=i+length(splitter);
-            end;
-            inc(i);
-          end;
+        i:=PosEx(splitter,s,startSearchAt);
+        if (i>0) and (i<splitterStart) then begin
+          splitterStart:=i;
+          splitterEnd:=i+length(splitter);
         end;
       end;
     end;
