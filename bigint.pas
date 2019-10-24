@@ -75,10 +75,7 @@ TYPE
       FUNCTION compare(CONST big:T_bigInt):T_comparisonResult; inline;
       FUNCTION compare(CONST int:int64   ):T_comparisonResult; inline;
       FUNCTION compare(CONST f:extended  ):T_comparisonResult; inline;
-      FUNCTION plus (CONST big:T_bigInt):T_bigInt;
-      FUNCTION minus(CONST big:T_bigInt):T_bigInt;
       FUNCTION minus(CONST small:DigitType):T_bigInt;
-      FUNCTION mult (CONST big:T_bigInt):T_bigInt;
       FUNCTION pow  (power:dword ):T_bigInt;
       FUNCTION powMod(CONST power,modul:T_bigInt):T_bigInt;
       FUNCTION isOdd:boolean;
@@ -100,7 +97,6 @@ TYPE
       FUNCTION isOne:boolean;
 
       FUNCTION isBetween(CONST lowerBoundInclusive,upperBoundInclusive:longint):boolean;
-      FUNCTION divideIfRestless(CONST divisor:DigitType):boolean;
 
       PROCEDURE writeToStream(CONST stream:P_outputStreamWrapper);
       PROCEDURE readFromStream(CONST stream:P_inputStreamWrapper);
@@ -136,13 +132,16 @@ FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_b
 FUNCTION readLongintFromStream(CONST markerByte:byte; CONST stream:P_inputStreamWrapper):longint;
 PROCEDURE writeLongintToStream(CONST value:longint; CONST stream:P_outputStreamWrapper);
 
-FUNCTION plus   (CONST x:T_bigInt; CONST y:int64):T_bigInt;
-FUNCTION minus  (CONST x:T_bigInt; CONST y:int64):T_bigInt;
-FUNCTION minus  (CONST x:int64; CONST y:T_bigInt):T_bigInt;
-FUNCTION mult   (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+OPERATOR +(CONST x:T_bigInt; CONST y:int64):T_bigInt;
+OPERATOR +(CONST x,y:T_bigInt):T_bigInt;
+OPERATOR -(CONST x:T_bigInt; CONST y:int64):T_bigInt;
+OPERATOR -(CONST x:int64; CONST y:T_bigInt):T_bigInt;
+OPERATOR -(CONST x,y:T_bigInt):T_bigInt;
+OPERATOR *(CONST x:T_bigInt; CONST y:int64):T_bigInt;
+OPERATOR *(CONST x,y:T_bigInt):T_bigInt;
 FUNCTION divide (CONST x:T_bigInt; CONST y:int64):T_bigInt;
 FUNCTION divide (CONST x:int64; CONST y:T_bigInt):T_bigInt;
-FUNCTION modulus(CONST x:T_bigInt; CONST y:int64):int64;
+OPERATOR mod(CONST x:T_bigInt; CONST y:int64):int64;
 FUNCTION modulus(CONST x:int64; CONST y:T_bigInt):T_bigInt;
 
 IMPLEMENTATION
@@ -172,61 +171,11 @@ FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclus
     result:=temp.modulus(maxValExclusive);
   end;
 
-FUNCTION plus   (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+OPERATOR +(CONST x:T_bigInt; CONST y:int64):T_bigInt;
   VAR bigY:T_bigInt;
   begin
     bigY.fromInt(y);
-    result:=x.plus(bigY);
-  end;
-
-FUNCTION minus  (CONST x:T_bigInt; CONST y:int64):T_bigInt;
-  VAR bigY:T_bigInt;
-  begin
-    bigY.fromInt(y);
-    result:=x.minus(bigY);
-  end;
-
-FUNCTION minus  (CONST x:int64; CONST y:T_bigInt):T_bigInt;
-  VAR bigX:T_bigInt;
-  begin
-    bigX.fromInt(x);
-    result:=bigX.minus(y);
-  end;
-
-FUNCTION mult   (CONST x:T_bigInt; CONST y:int64):T_bigInt;
-  VAR bigY:T_bigInt;
-  begin
-    bigY.fromInt(y);
-    result:=x.mult(bigY);
-  end;
-
-FUNCTION divide (CONST x:T_bigInt; CONST y:int64):T_bigInt;
-  VAR bigY:T_bigInt;
-  begin
-    bigY.fromInt(y);
-    result:=x.divide(bigY);
-  end;
-
-FUNCTION divide (CONST x:int64; CONST y:T_bigInt):T_bigInt;
-  VAR bigX:T_bigInt;
-  begin
-    bigX.fromInt(x);
-    result:=bigX.divide(y);
-  end;
-
-FUNCTION modulus(CONST x:T_bigInt; CONST y:int64):int64;
-  VAR bigY,bigResult,bigQuotient:T_bigInt;
-  begin
-    bigY.fromInt(y);
-    x.divMod(bigY,bigQuotient,bigResult);
-    result:=bigResult.toInt;
-  end;
-
-FUNCTION modulus(CONST x:int64; CONST y:T_bigInt):T_bigInt;
-  VAR bigX:T_bigInt;
-  begin
-    bigX.fromInt(x);
-    result:=bigX.modulus(y);
+    result:=x+bigY;
   end;
 
 FUNCTION rawDataPlus(CONST xDigits,yDigits:DigitTypeArray):DigitTypeArray;
@@ -283,6 +232,145 @@ FUNCTION rawDataMinus(CONST xDigits,yDigits:DigitTypeArray):DigitTypeArray; inli
       end;
     end;
     trimLeadingZeros(result);
+  end;
+
+OPERATOR +(CONST x,y:T_bigInt):T_bigInt;
+  begin
+    if x.negative=y.negative
+    then result.createFromRawData(x.negative,rawDataPlus(x.digits,y.digits))
+    else case x.compareAbsValue(y) of
+      CR_EQUAL  : result.createZero;
+      CR_LESSER : result.createFromRawData(y.negative,rawDataMinus(y.digits,x.digits));
+      CR_GREATER: result.createFromRawData(x.negative,rawDataMinus(x.digits,y.digits));
+    end;
+  end;
+
+OPERATOR -(CONST x:T_bigInt; CONST y:int64):T_bigInt;
+  VAR bigY:T_bigInt;
+  begin
+    bigY.fromInt(y);
+    result:=x-bigY;
+  end;
+
+OPERATOR -(CONST x:int64; CONST y:T_bigInt):T_bigInt;
+  VAR bigX:T_bigInt;
+  begin
+    bigX.fromInt(x);
+    result:=bigX-y;
+  end;
+
+OPERATOR -(CONST x,y:T_bigInt):T_bigInt;
+  begin
+    if x.negative xor y.negative then
+      //(-x)-y = -(x+y)
+      //x-(-y) =   x+y
+      result.createFromRawData(x.negative,rawDataPlus(x.digits,y.digits))
+    else case x.compareAbsValue(y) of
+      CR_EQUAL  : result.createZero;
+      CR_LESSER : // x-y = -(y-x) //opposed sign as y
+                  result.createFromRawData(not(y.negative),rawDataMinus(y.digits,x.digits));
+      CR_GREATER: result.createFromRawData(x.negative     ,rawDataMinus(x.digits,y.digits));
+    end;
+  end;
+
+OPERATOR *(CONST x:T_bigInt; CONST y:int64):T_bigInt;
+  VAR bigY:T_bigInt;
+  begin
+    bigY.fromInt(y);
+    result:=x*bigY;
+  end;
+
+OPERATOR *(CONST x,y:T_bigInt):T_bigInt;
+  VAR i,j,k:longint;
+      carry:CarryType=0;
+  begin
+    {$ifndef debugMode}
+    if canBeRepresentedAsInt32() then begin
+      if big.canBeRepresentedAsInt32()  then begin
+        result.fromInt(toInt*big.toInt);
+        exit(result);
+      end else begin
+        result.create(big);
+        result.multWith(toInt);
+        exit(result);
+      end;
+    end else if big.canBeRepresentedAsInt32() then begin
+      result.create(self);
+      result.multWith(big.toInt);
+      exit(result);
+    end;
+    {$endif}
+    result.create(x.negative xor y.negative,length(x.digits)+length(y.digits));
+    for k:=0 to length(result.digits)-1 do result.digits[k]:=0;
+    for i:=0 to length(x.digits)-1 do
+    for j:=0 to length(y.digits)-1 do begin
+      k:=i+j;
+      carry:=CarryType(x.digits[i])*CarryType(y.digits[j]);
+      while carry>0 do begin
+        //x[i]*y[i]+r[i] <= (2^n-1)*(2^n-1)+2^n-1
+        //                = (2^n)^2 - 2*2^n + 1 + 2^n-1
+        //                = (2^n)^2 - 2*2^n + 1
+        //                < (2^n)^2 - 2     + 1 = (max value of carry type)
+        carry+=result.digits[k];
+        result.digits[k]:=carry and DIGIT_MAX_VALUE;
+        carry:=carry shr BITS_PER_DIGIT;
+        inc(k);
+      end;
+    end;
+    trimLeadingZeros(result.digits);
+  end;
+
+FUNCTION divide (CONST x:T_bigInt; CONST y:int64):T_bigInt;
+  VAR bigY:T_bigInt;
+  begin
+    bigY.fromInt(y);
+    result:=x.divide(bigY);
+  end;
+
+FUNCTION divide (CONST x:int64; CONST y:T_bigInt):T_bigInt;
+  VAR bigX:T_bigInt;
+  begin
+    bigX.fromInt(x);
+    result:=bigX.divide(y);
+  end;
+
+OPERATOR mod(CONST x:T_bigInt; CONST y:int64):int64;
+  FUNCTION digitValue(CONST index:longint):int64; inline;
+    VAR f:int64;
+        i:longint;
+    begin
+      result:=x.digits[index] mod y;
+      i:=index;
+      f:=(DIGIT_MAX_VALUE+1) mod y;
+      while i>0 do begin
+        if odd(i) then begin
+          result:=(result * f) mod y;
+        end;
+        f:=(f*f) mod y;
+        i:=i shr 1;
+      end;
+    end;
+
+  VAR bigY,bigResult,bigQuotient:T_bigInt;
+      k:longint;
+  begin
+    if (y>-3025451648) and (y<3025451648) then begin
+      result:=0;
+      for k:=0 to length(x.digits)-1 do result:=(result+digitValue(k)) mod y;
+    end else begin
+      bigY.fromInt(y);
+      x.divMod(bigY,bigQuotient,bigResult);
+      result:=bigResult.toInt;
+    end;
+  end;
+
+FUNCTION modulus(CONST x:int64; CONST y:T_bigInt):T_bigInt;
+  VAR bigX:T_bigInt;
+  begin
+    if y.canBeRepresentedAsInt64() then result.fromInt(x) else begin
+      bigX.fromInt(x);
+      result:=bigX.modulus(y);
+    end;
   end;
 
 FUNCTION T_bigInt.isOdd:boolean; begin result:=(length(digits)>0) and odd(digits[0]); end;
@@ -475,8 +563,8 @@ FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_b
       end;
     end else begin
       for i:=0 to length(digits)-1 do begin
-        tmp:=result.mult(base);
-        result:=tmp.plus(digits[i]);
+        tmp:=result*base;
+        result:=tmp + digits[i];
       end;
     end;
   end;
@@ -641,31 +729,6 @@ FUNCTION T_bigInt.compare(CONST f: extended): T_comparisonResult;
     result:=CR_EQUAL;
   end;
 
-FUNCTION T_bigInt.plus(CONST big: T_bigInt): T_bigInt;
-  begin
-    if negative=big.negative
-    then result.createFromRawData(negative,rawDataPlus(digits,big.digits))
-    else case compareAbsValue(big) of
-      CR_EQUAL  : result.createZero;
-      CR_LESSER : result.createFromRawData(big.negative,rawDataMinus(big.digits,digits));
-      CR_GREATER: result.createFromRawData(negative    ,rawDataMinus(digits,big.digits));
-    end;
-  end;
-
-FUNCTION T_bigInt.minus(CONST big: T_bigInt): T_bigInt;
-  begin
-    if negative xor big.negative then
-      //(-x)-y = -(x+y)
-      //x-(-y) =   x+y
-      result.createFromRawData(negative,rawDataPlus(digits,big.digits))
-    else case compareAbsValue(big) of
-      CR_EQUAL  : result.createZero;
-      CR_LESSER : // x-y = -(y-x) //opposed sign as y
-                  result.createFromRawData(not(big.negative),rawDataMinus(big.digits,digits));
-      CR_GREATER: result.createFromRawData(negative,rawDataMinus(digits,big.digits));
-    end;
-  end;
-
 FUNCTION T_bigInt.minus(CONST small:DigitType):T_bigInt;
   VAR smallAsArray:DigitTypeArray;
   begin
@@ -681,46 +744,6 @@ FUNCTION T_bigInt.minus(CONST small:DigitType):T_bigInt;
                   result.createFromRawData(true ,rawDataMinus(smallAsArray,digits));
       CR_GREATER: result.createFromRawData(false,rawDataMinus(digits,smallAsArray));
     end;
-  end;
-
-FUNCTION T_bigInt.mult(CONST big: T_bigInt): T_bigInt;
-  VAR i,j,k:longint;
-      carry:CarryType=0;
-  begin
-    {$ifndef debugMode}
-    if canBeRepresentedAsInt32() then begin
-      if big.canBeRepresentedAsInt32()  then begin
-        result.fromInt(toInt*big.toInt);
-        exit(result);
-      end else begin
-        result.create(big);
-        result.multWith(toInt);
-        exit(result);
-      end;
-    end else if big.canBeRepresentedAsInt32() then begin
-      result.create(self);
-      result.multWith(big.toInt);
-      exit(result);
-    end;
-    {$endif}
-    result.create(negative xor big.negative,length(digits)+length(big.digits));
-    for k:=0 to length(result.digits)-1 do result.digits[k]:=0;
-    for i:=0 to length(    digits)-1 do
-    for j:=0 to length(big.digits)-1 do begin
-      k:=i+j;
-      carry:=CarryType(digits[i])*CarryType(big.digits[j]);
-      while carry>0 do begin
-        //x[i]*y[i]+r[i] <= (2^n-1)*(2^n-1)+2^n-1
-        //                = (2^n)^2 - 2*2^n + 1 + 2^n-1
-        //                = (2^n)^2 - 2*2^n + 1
-        //                < (2^n)^2 - 2     + 1 = (max value of carry type)
-        carry+=result.digits[k];
-        result.digits[k]:=carry and DIGIT_MAX_VALUE;
-        carry:=carry shr BITS_PER_DIGIT;
-        inc(k);
-      end;
-    end;
-    trimLeadingZeros(result.digits);
   end;
 
 FUNCTION T_bigInt.pow(power: dword): T_bigInt;
@@ -898,7 +921,7 @@ PROCEDURE T_bigInt.multWith(CONST l: longint);
 PROCEDURE T_bigInt.multWith(CONST b: T_bigInt);
   VAR temp:T_bigInt;
   begin
-    temp      :=mult(b);
+    temp      :=self*b;
     setLength(digits,0);
     digits    :=temp.digits;
     negative  :=temp.negative;
@@ -1048,29 +1071,6 @@ PROCEDURE T_bigInt.divBy(CONST divisor: DigitType; OUT rest: DigitType);
       setLength(digits,0);
       digits:=quotient.digits;
       rest:=tempRest;
-    end;
-  end;
-
-FUNCTION T_bigInt.divideIfRestless(CONST divisor:DigitType):boolean;
-  VAR bitIdx:longint;
-      quotient:T_bigInt;
-      tempRest:CarryType=0;
-  begin
-    quotient.createZero;
-    for bitIdx:=relevantBits-1 downto 0 do begin
-      tempRest:=tempRest shl 1;
-      if getBit(bitIdx) then inc(tempRest);
-      if tempRest>=divisor then begin
-        dec(tempRest,divisor);
-        quotient.setBit(bitIdx,true);
-      end;
-    end;
-    if tempRest=0 then begin;
-      setLength(digits,0);
-      digits:=quotient.digits;
-      result:=true;
-    end else begin
-      result:=false;
     end;
   end;
 
@@ -1426,7 +1426,7 @@ FUNCTION T_bigInt.modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInvers
         r0.divMod(r1,quotient,rest);
         r0:=r1;
         r1:=rest;
-        quotient:=t0.minus(quotient.mult(t1));
+        quotient:=t0-quotient*t1;
         t0:=t1;
         t1:=quotient;
       end;
@@ -1437,7 +1437,7 @@ FUNCTION T_bigInt.modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInvers
       setLength(quotient.digits,0);
       thereIsAModularInverse:=r0.compare(1) in [CR_LESSER,CR_EQUAL];
       if (t0.isNegative) then begin
-        result:=t0.plus(modul);
+        result:=t0 + modul;
       end else  result:=t0;
     end;
   end;
@@ -1487,7 +1487,7 @@ FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; CONST roundingMode
     repeat
       selfShl16.divMod(result,resDt,temp);     //resDt = y div x@pre; temp = y mod x@pre
       isSquare:=temp.isZero;
-      temp:=resDt.plus(result);                //temp = y div x@pre + x@pre
+      temp:=resDt + result;                //temp = y div x@pre + x@pre
       isSquare:=isSquare and not odd(temp.digits[0]);
       temp.shiftRightOneBit;
       done:=result.equals(temp);
@@ -1648,7 +1648,10 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
             append(result.smallFactors,p);
           end;
         end else begin
-          while inputAndRest.divideIfRestless(p) do append(result.smallFactors,p);
+          while (inputAndRest mod p)=0 do begin
+            inputAndRest:=divide(inputAndRest,p);
+            append(result.smallFactors,p);
+          end;
         end;
       end;
       if (continue<>nil) and not(continue()) then exit;
@@ -1667,7 +1670,10 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
             append(result.smallFactors,p);
           end;
         end else begin
-          while inputAndRest.divideIfRestless(p) do append(result.smallFactors,p);
+          while (inputAndRest mod p)=0 do begin
+            inputAndRest:=divide(inputAndRest,p);
+            append(result.smallFactors,p);
+          end;
         end;
         inc(p,skip[skipIdx]);
         skipIdx:=(skipIdx+1) mod length(skip);
@@ -1684,7 +1690,8 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
             thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
           end;
         end else begin
-          while inputAndRest.divideIfRestless(p) do begin
+          while (inputAndRest mod p)=0 do begin
+            inputAndRest:=divide(inputAndRest,p);
             append(result.smallFactors,p);
             thirdRootOfInputAndRest:=power(inputAndRest.toFloat,1/3);
           end;
@@ -1714,7 +1721,7 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
   FUNCTION squareOfMinus4kn(CONST z:int64):T_bigInt;
     begin
       result.fromInt(z);
-      result:=result.mult(result).minus(bigFourKN);
+      result:=result*result-bigFourKN;
     end;
 
   FUNCTION floor64(CONST d:double):int64; begin result:=trunc(d); if frac(d)<0 then dec(result); end;
@@ -1723,7 +1730,7 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
     VAR tmp:T_bigInt;
     begin
       tmp.fromInt(toBeSqared);
-      result:=not(tmp.mult(tmp).compare(comparand) in [CR_GREATER,CR_EQUAL]);
+      result:=not((tmp*tmp).compare(comparand) in [CR_GREATER,CR_EQUAL]);
     end;
   FUNCTION bigOfFloat(CONST f:double; CONST rounding:T_roundingMode):T_bigInt;
     begin
@@ -1780,7 +1787,7 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
     else kMax:=9223372036854774000;
     k:=1;
     if not(isPrime(r)) then while (k<=kMax) and not(lehmannTestCompleted) and ((continue=nil) or continue()) do begin
-      bigFourKN:=mult(r,k);
+      bigFourKN:=r*k;
       bigFourKN.shlInc(false);
       bigFourKN.shlInc(false);
       if r.compare(59172824724903) in [CR_LESSER,CR_EQUAL] then begin
@@ -1793,7 +1800,7 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
           bigY:=squareOfMinus4kn(x);
           bigRootOfY:=bigY.iSqrt(false,RM_DEFAULT,yIsSquare);
           if yIsSquare then begin
-            bigY:=plus(bigRootOfY,x).greatestCommonDivider(r); //=gcd(sqrt(bigY)+x,r)
+            bigY:=(bigRootOfY + x).greatestCommonDivider(r); //=gcd(sqrt(bigY)+x,r)
             bigRootOfY:=r.divide(bigY);
             if bigY.isOne
             then       setLength(result.bigFactors,length(result.bigFactors)+1)
@@ -1810,10 +1817,10 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
         bigXMax:=bigOfFloat(sqrt(bigFourKN.toFloat)+sixthRootOfR/(4*sqrt(k)),RM_DOWN);
         while bigX.compare(bigXMax) in [CR_EQUAL,CR_LESSER] do begin
           if (continue<>nil) and not(continue()) then exit;
-          bigY:=bigX.mult(bigX).minus(bigFourKN);
+          bigY:=bigX*bigX-bigFourKN;
           bigRootOfY:=bigY.iSqrt(false,RM_DEFAULT,yIsSquare);
           if yIsSquare then begin
-            bigY:=bigRootOfY.plus(bigX).greatestCommonDivider(r); //=gcd(sqrt(bigY)+x,r)
+            bigY:=(bigRootOfY + bigX).greatestCommonDivider(r); //=gcd(sqrt(bigY)+x,r)
             bigRootOfY:=r.divide(bigY);
             if bigY.isOne
             then       setLength(result.bigFactors,length(result.bigFactors)+1)
@@ -1878,7 +1885,7 @@ FUNCTION isPrime(CONST B:T_bigInt):boolean;
         y:int64=2*3*5*7*11*13*17*19*23*29*31*37*41*43*47;
         z:int64=1;
     begin
-      x:=modulus(B,y);
+      x:=B mod y;
       z:=y;
       y:=x;
       while (y<>0) do begin x:=z mod y; z:=y; y:=x; end;
@@ -1900,7 +1907,7 @@ FUNCTION isPrime(CONST B:T_bigInt):boolean;
       tmp.fromInt(a); t:=tmp.powMod(d,n);
       if (t.compare(1)=CR_EQUAL) or (t.compare(n1)=CR_EQUAL) then exit(true);
       for k:=1 to j-1 do begin
-        tmp:=t.mult(t);
+        tmp:=t*t;
         t:=tmp.modulus(n);
         if (t.compare(n1)=CR_EQUAL) then begin
           exit(true);
