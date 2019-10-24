@@ -285,18 +285,18 @@ OPERATOR *(CONST x,y:T_bigInt):T_bigInt;
       carry:CarryType=0;
   begin
     {$ifndef debugMode}
-    if canBeRepresentedAsInt32() then begin
-      if big.canBeRepresentedAsInt32()  then begin
-        result.fromInt(toInt*big.toInt);
+    if x.canBeRepresentedAsInt32() then begin
+      if y.canBeRepresentedAsInt32()  then begin
+        result.fromInt(x.toInt*y.toInt);
         exit(result);
       end else begin
-        result.create(big);
-        result.multWith(toInt);
+        result.create(y);
+        result.multWith(x);
         exit(result);
       end;
-    end else if big.canBeRepresentedAsInt32() then begin
-      result.create(self);
-      result.multWith(big.toInt);
+    end else if y.canBeRepresentedAsInt32() then begin
+      result.create(x);
+      result.multWith(y.toInt);
       exit(result);
     end;
     {$endif}
@@ -1471,7 +1471,7 @@ FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; CONST roundingMode
       exit;
     end else if relevantBits<102 then begin
       result.fromFloat(sqrt(toFloat),RM_DOWN);
-      temp:=result.mult(result);
+      temp:=result*result;
       isSquare:=equals(temp);
       exit;
     end;
