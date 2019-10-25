@@ -515,13 +515,13 @@ PROCEDURE T_bigInt.fromFloat(CONST f: extended; CONST rounding: T_roundingMode);
   begin
     r.value:=f;
     fromInt(r.Mantissa+4503599627370496);
-    negative:=r.sign;
     shiftRight(52-r.exponent);
     case rounding of
       RM_DEFAULT: begin fraction:=frac(abs(f)); if (fraction>0.5) or (fraction=0.5) and getBit(0) then incAbsValue(1); end;
-      RM_UP     :                               if not(negative) and (frac(f)<>0) then incAbsValue(1);
-      RM_DOWN   :                               if     negative  and (frac(f)<>0) then incAbsValue(1);
+      RM_UP     :                               if not(r.sign) and (frac(f)<>0) then incAbsValue(1);
+      RM_DOWN   :                               if     r.sign  and (frac(f)<>0) then incAbsValue(1);
     end;
+    negative:=r.sign;
   end;
 
 PROCEDURE T_bigInt.create(CONST toClone: T_bigInt);
