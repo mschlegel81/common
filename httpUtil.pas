@@ -52,23 +52,77 @@ CONST HTTP_404_RESPONSE='HTTP/1.0 404' + CRLF;
       HTTP_503_RESPONSE='HTTP/1.0 503' + CRLF + 'Retry-After: 10' + CRLF;
 
 FUNCTION wrapTextInHttp(CONST OutputDataString,serverInfo:string; CONST contentType:string='Text/Html'):string;
+FUNCTION wrapTextInHttp(CONST data:string; CONST code:longint; CONST header:T_httpHeader):string;
 FUNCTION cleanIp(CONST dirtyIp:ansistring):ansistring;
+PROCEDURE setHeaderDefaults(VAR header:T_httpHeader; CONST contentLength:longint=0; CONST contentType:string=''; CONST serverInfo:string='');
 IMPLEMENTATION
 PROCEDURE disposeSocket(VAR socket:P_socketPair);
   begin
     dispose(socket,destroy);
   end;
 
-FUNCTION wrapTextInHttp(CONST OutputDataString,serverInfo: string; CONST contentType:string='Text/Html'): string;
+CONST
+  HP_Splitter=': ';
+  HP_ContentType='Content-type';
+  HP_ContentLength='Content-length';
+  HP_Connection='Connection';
+  HP_Date='Date';
+  HP_Server='Server';
+
+FUNCTION emptyHeader:T_httpHeader;
+  begin setLength(result,0); end;
+
+PROCEDURE setHeaderDefaults(VAR header:T_httpHeader; CONST contentLength:longint=0; CONST contentType:string=''; CONST serverInfo:string='');
+  VAR i               :longint;
+      idxContentType  :longint=-1;
+      idxContentLength:longint=-1;
+      hasConnection   :boolean=false;
+      hasServer       :boolean=false;
+      hasDate         :boolean=false;
   begin
-    result:='HTTP/1.0 200' + CRLF +
-            'Content-type: '+ contentType + CRLF +
-            'Content-length: ' + intToStr(length(OutputDataString)) + CRLF +
-            'Connection: close' + CRLF +
-            'Date: ' + Rfc822DateTime(now) + CRLF +
-            'Server: '+serverInfo + CRLF +
-            '' + CRLF +
-            OutputDataString;
+    for i:=0 to length(header)-1 do begin
+      if header[i].key=HP_ContentType then begin
+        if contentType<>'' then header[i].value:=contentType;
+        idxContentType:=i;
+      end else if header[i].key=HP_ContentLength then begin
+        if contentLength<>0 then header[i].value:=intToStr(contentLength);
+        idxContentLength:=i;
+      end else if header[i].key=HP_Connection then begin
+        header[i].value:='close';
+        hasConnection:=true;
+      end else if header[i].key=HP_Server then begin
+        hasServer:=true;
+      end else if header[i].key=HP_Date then begin
+        header[i].value:=Rfc822DateTime(now);
+        hasDate:=true;
+      end;
+    end;
+    if not(hasDate)                               then begin i:=length(header); setLength(header,i+1); header[i].key:=HP_Date;          header[i].value:=Rfc822DateTime(now);     end;
+    if not(hasServer) and (serverInfo<>'')        then begin i:=length(header); setLength(header,i+1); header[i].key:=HP_Server;        header[i].value:=serverInfo;              end;
+    if not(hasConnection)                         then begin i:=length(header); setLength(header,i+1); header[i].key:=HP_Connection;    header[i].value:='close';                 end;
+    if (contentLength>0) and (idxContentLength<0) then begin i:=length(header); setLength(header,i+1); header[i].key:=HP_ContentLength; header[i].value:=intToStr(contentLength); end;
+    if (contentType<>'') and (idxContentType  <0) then begin i:=length(header); setLength(header,i+1); header[i].key:=HP_ContentType;   header[i].value:=contentType;             end;
+  end;
+
+FUNCTION wrapTextInHttp(CONST OutputDataString,serverInfo: string; CONST contentType:string='Text/Html'): string;
+  VAR header:T_httpHeader;
+  begin
+    header:=emptyHeader;
+    setHeaderDefaults(header,length(OutputDataString),contentType,serverInfo);
+    result:=wrapTextInHttp(OutputDataString,200,header);
+  end;
+
+FUNCTION wrapTextInHttp(CONST data:string; CONST code:longint; CONST header:T_httpHeader):string;
+  FUNCTION headerToString:string;
+    VAR i:longint;
+    begin
+      result:='';
+      for i:=0 to length(header)-1 do result+=trim(header[i].key)+HP_Splitter+trim(header[i].value)+CRLF;
+    end;
+  begin
+   result:='HTTP/1.0 '+intToStr(code) + CRLF +
+           headerToString + CRLF +
+           data;
   end;
 
 PROCEDURE cleanSocket(VAR ipAndPort:string; OUT ip,port:string);
