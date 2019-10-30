@@ -223,7 +223,9 @@ CONSTRUCTOR T_socketPair.create(CONST ip, port: string);
 
 DESTRUCTOR T_socketPair.destroy;
   begin
+    ListenerSocket.CloseSocket;
     ListenerSocket.free;
+    ConnectionSocket.CloseSocket;
     ConnectionSocket.free;
   end;
 
