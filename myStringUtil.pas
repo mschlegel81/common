@@ -219,32 +219,18 @@ FUNCTION replaceOne(CONST original, lookFor, replaceBy: ansistring): ansistring;
   end;
 
 FUNCTION replaceAll(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
-  FUNCTION isValidSplitIndex(CONST splitIndex:longint):boolean;
-    VAR lookOffset:longint;
-        k:longint;
-        match:boolean;
-    begin
-      //Splitting at splitIndex is valid, if no occurence of "lookFor" is lost.
-      //Thus we have to check:
-      //         ###### | ######
-      //            LOO   K       -> lookOffset= -length(lookFor)
-      //             LO   OK
-      //              L   OOK     -> lookOffset= -2
-      for lookOffset:=-length(lookFor) to -2 do begin
-        match:=true;
-        for k:=1 to length(lookFor) do match:=match and (original[splitIndex+lookOffset+k]=lookFor[k]);
-        if match then exit(false);
-      end;
-      result:=true;
-    end;
-
-  VAR i:longint;
+  VAR potentialSplitters:T_charSet=[];
+      i:longint;
+      c:char;
   begin
     if length(original)>65536 then begin
+      for c in lookFor do include(potentialSplitters,c);
       i:=round(length(original)*0.49);
-      while (i<=length(original)) and not(isValidSplitIndex(i)) do inc(i);
-      result:=replaceAll(copy(original,1,                 i-1),lookFor,replaceBy)+
-              replaceAll(copy(original,i,length(original)+1-i),lookFor,replaceBy);
+      while (i<=length(original)) and not(original[i] in potentialSplitters) do inc(i);
+      if i>length(original)*0.9
+      then result:=AnsiReplaceStr(original,lookFor,replaceBy)
+      else result:=replaceAll(copy(original,1,                 i-1),lookFor,replaceBy)+
+                   replaceAll(copy(original,i,length(original)+1-i),lookFor,replaceBy);
     end else result:=AnsiReplaceStr(original,lookFor,replaceBy);
   end;
 
@@ -268,16 +254,27 @@ FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT 
       result:=true;
     end;
 
-  VAR prev:ansistring;
+  VAR potentialSplitters:T_charSet=[];
+      prev:ansistring;
       i   :longint;
+      c   :char;
   begin
     if pos(lookFor, replaceBy)>0 then begin
       isValid:=false;
       exit(replaceAll(original, lookFor, replaceBy));
     end else isValid:=true;
     if length(original)>65536 then begin
+      for c in lookFor do include(potentialSplitters,c);
       i:=round(length(original)*0.49);
-      while (i<length(original)) and not(isValidSplitIndex(i)) do inc(i);
+      while (i<=length(original)) and not(original[i] in potentialSplitters) do inc(i);
+      if i>length(original)*0.9
+      then begin
+        result:=original;
+        repeat
+          prev:=result;
+          result:=AnsiReplaceStr(prev,lookFor,replaceBy);
+        until prev=result;
+      end else
       result:=replaceRecursively(
               replaceRecursively(copy(original,1,                 i-1),lookFor,replaceBy,isValid)+
               replaceRecursively(copy(original,i,length(original)+1-i),lookFor,replaceBy,isValid)
