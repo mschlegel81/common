@@ -536,7 +536,7 @@ FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString; CONST retain
   VAR resultLen:longint=0;
   PROCEDURE appendToResult(CONST part:string); inline;
     begin
-      if length(result)<resultLen+1 then setLength(result,round(length(result)*1.1)+2);
+      if length(result)<resultLen+1 then setLength(result,round(length(result)*1.2)+2);
       result[resultLen]:=part;
       inc(resultLen);
     end;
