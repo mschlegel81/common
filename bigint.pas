@@ -1870,13 +1870,26 @@ FUNCTION millerRabinTest(CONST n,a:longint):boolean;
   end;
 
 FUNCTION isPrime(CONST n:longint ):boolean;
+  FUNCTION isComposite:boolean;
+    VAR x:int64=1;
+        y:int64=2*3*5*7*11*13*17*19*23*29*31*37*41*43*47;
+        z:int64=1;
+    begin
+      x:=n mod y;
+      z:=y;
+      y:=x;
+      while (y<>0) do begin x:=z mod y; z:=y; y:=x; end;
+      result:=z>1;
+    end;
+
   begin
-    if (n    =2)   or (n    =3  ) or (n    =5  ) or (n    =7  ) then exit(true);
-    if (n   <=1) or
-       (n mod 2=0) or (n mod 3=0) or (n mod 5=0) or (n mod 7=0) then exit(false);
-    if n<1373653 then exit(millerRabinTest(n, 2) and millerRabinTest(n, 3));
-    if n<9080191 then exit(millerRabinTest(n,31) and millerRabinTest(n,37));
-    exit(millerRabinTest(n,2) and millerRabinTest(n,7) and millerRabinTest(n,61));
+    if (n<48) then exit(byte(n) in [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47]);
+    if (n<2209) then exit(not(isComposite));
+
+    result:=millerRabinTest(n,2) and
+            millerRabinTest(n,3) and
+            millerRabinTest(n,5) and
+            millerRabinTest(n,7);
   end;
 
 FUNCTION isPrime(CONST B:T_bigInt):boolean;
