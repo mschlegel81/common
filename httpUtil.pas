@@ -56,6 +56,7 @@ FUNCTION wrapTextInHttp(CONST data:string; CONST code:longint; CONST header:T_ht
 FUNCTION cleanIp(CONST dirtyIp:ansistring):ansistring;
 PROCEDURE setHeaderDefaults(VAR header:T_httpHeader; CONST contentLength:longint=0; CONST contentType:string=''; CONST serverInfo:string='');
 IMPLEMENTATION
+USES strutils;
 PROCEDURE disposeSocket(VAR socket:P_socketPair);
   begin
     dispose(socket,destroy);
@@ -136,9 +137,9 @@ PROCEDURE cleanSocket(VAR ipAndPort:string; OUT ip,port:string);
       if intPort<0 then intPort:=default_port;
     end else intPort:=default_port;
     port:=intToStr(intPort);
-    ip:=replaceAll(
+    ip:=ansiReplaceStr(
           cleanString(
-            replaceAll(
+            ansiReplaceStr(
               lowercase(trim(temp[0])),
               'localhost',
               '127.0.0.1'),

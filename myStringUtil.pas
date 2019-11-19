@@ -29,7 +29,6 @@ CONST
 
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
 FUNCTION isBlank(CONST s: ansistring): boolean;
-FUNCTION replaceAll(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
 FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT isValid: boolean): ansistring; inline;
 FUNCTION replaceOne(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
 FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stringEncoding; OUT nonescapableFound:boolean): ansistring;
@@ -155,8 +154,8 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
     setLength(matrix,length(result));
     if anyInvisibleTab then begin
       if anyTab then
-      for i:=0 to length(result)-1 do result[i]:=replaceAll(result[i],C_tabChar         ,' '+C_tabChar);
-      for i:=0 to length(result)-1 do result[i]:=replaceAll(result[i],C_invisibleTabChar,    C_tabChar);
+      for i:=0 to length(result)-1 do result[i]:=ansiReplaceStr(result[i],C_tabChar         ,' '+C_tabChar);
+      for i:=0 to length(result)-1 do result[i]:=ansiReplaceStr(result[i],C_invisibleTabChar,    C_tabChar);
     end;
     j:=-1;
     maxJ:=-1;
@@ -218,72 +217,18 @@ FUNCTION replaceOne(CONST original, lookFor, replaceBy: ansistring): ansistring;
       result:=original;
   end;
 
-FUNCTION replaceAll(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
-  VAR potentialSplitters:T_charSet=[];
-      i:longint;
-      c:char;
-  begin
-    if length(original)>65536 then begin
-      for c in lookFor do include(potentialSplitters,c);
-      i:=round(length(original)*0.49);
-      while (i<=length(original)) and not(original[i] in potentialSplitters) do inc(i);
-      if i>length(original)*0.9
-      then result:=AnsiReplaceStr(original,lookFor,replaceBy)
-      else result:=replaceAll(copy(original,1,                 i-1),lookFor,replaceBy)+
-                   replaceAll(copy(original,i,length(original)+1-i),lookFor,replaceBy);
-    end else result:=AnsiReplaceStr(original,lookFor,replaceBy);
-  end;
-
 FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT isValid: boolean): ansistring; inline;
-  FUNCTION isValidSplitIndex(CONST splitIndex:longint):boolean;
-    VAR lookOffset:longint;
-        k:longint;
-        match:boolean;
-    begin
-      //Splitting at splitIndex is valid, if no occurence of "lookFor" is lost.
-      //Thus we have to check:
-      //         ###### | ######
-      //            LOO   K       -> lookOffset= -length(lookFor)
-      //             LO   OK
-      //              L   OOK     -> lookOffset= -2
-      for lookOffset:=-length(lookFor) to -2 do begin
-        match:=true;
-        for k:=1 to length(lookFor) do match:=match and (original[splitIndex+lookOffset+k]=lookFor[k]);
-        if match then exit(false);
-      end;
-      result:=true;
-    end;
-
-  VAR potentialSplitters:T_charSet=[];
-      prev:ansistring;
-      i   :longint;
-      c   :char;
+  VAR prev:ansistring;
   begin
     if pos(lookFor, replaceBy)>0 then begin
       isValid:=false;
-      exit(replaceAll(original, lookFor, replaceBy));
-    end else isValid:=true;
-    if length(original)>65536 then begin
-      for c in lookFor do include(potentialSplitters,c);
-      i:=round(length(original)*0.49);
-      while (i<=length(original)) and not(original[i] in potentialSplitters) do inc(i);
-      if i>length(original)*0.9
-      then begin
-        result:=original;
-        repeat
-          prev:=result;
-          result:=AnsiReplaceStr(prev,lookFor,replaceBy);
-        until prev=result;
-      end else
-      result:=replaceRecursively(
-              replaceRecursively(copy(original,1,                 i-1),lookFor,replaceBy,isValid)+
-              replaceRecursively(copy(original,i,length(original)+1-i),lookFor,replaceBy,isValid)
-                                                                      ,lookFor,replaceBy,isValid);
+      exit(ansiReplaceStr(original, lookFor, replaceBy));
     end else begin
+      isValid:=true;
       result:=original;
       repeat
         prev:=result;
-        result:=AnsiReplaceStr(prev,lookFor,replaceBy);
+        result:=ansiReplaceStr(prev,lookFor,replaceBy);
       until prev=result;
     end;
   end;
@@ -310,7 +255,7 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stri
   FUNCTION pascalStyle:ansistring;
     CONST DELIM='''';
     begin
-      result:=DELIM+replaceAll(s,DELIM,DELIM+DELIM)+DELIM;
+      result:=DELIM+ansiReplaceStr(s,DELIM,DELIM+DELIM)+DELIM;
     end;
 
   FUNCTION strictPascalStyle:ansistring;
@@ -341,7 +286,7 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stri
     VAR i:longint;
     begin
       result:=s;
-      for i:=0 to length(javaEscapes)-1 do result:=replaceAll(result,javaEscapes[i,0],'\'+javaEscapes[i,1]);
+      for i:=0 to length(javaEscapes)-1 do result:=ansiReplaceStr(result,javaEscapes[i,0],'\'+javaEscapes[i,1]);
       result:='"'+result+'"';
     end;
 
@@ -1110,7 +1055,7 @@ FUNCTION percentDecode(CONST s:string):string;
   VAR c:byte;
   begin
     result:=s;
-    for c:=0 to 255 do result:=replaceAll(result,percentCode(c),chr(c));
+    for c:=0 to 255 do result:=ansiReplaceStr(result,percentCode(c),chr(c));
   end;
 
 FUNCTION base92Encode(CONST src:ansistring):ansistring;
