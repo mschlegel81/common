@@ -583,11 +583,16 @@ VAR memCheckThreadsRunning:longint=0;
     MemoryUsed:ptrint=0;
 FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
   CONST minCleanupInterval=10/(24*60*60); //=10 seconds
+        maxSleepMillis    =10000;         //=10 seconds
   VAR Process:TProcess;
       output: TStringList;
       i:longint;
       tempMem:ptrint;
       lastCleanupCall:double=0;
+      sleepMillis:longint;
+      relUse:double;
+      relGrowth:double;
+      previouslyUsed:ptrint=0;
   begin
     Process:=TProcess.create(nil);
     {$ifdef UNIX}
@@ -611,16 +616,31 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
       if tempMem<0 then MemoryUsed:=GetHeapStatus.TotalAllocated
                    else MemoryUsed:=tempMem{$ifdef UNIX}*1024{$endif};
       output.destroy;
-      if (MemoryUsed>memoryComfortThreshold) and (now>lastCleanupCall+minCleanupInterval) then begin
-        {$ifdef debugMode}
-        writeln(stdErr,'Memory panic (',MemoryUsed,' | ',MemoryUsed/memoryComfortThreshold*100:0:3,'% used) - calling cleanup methods');
-        {$endif}
-        memoryCleaner.callCleanupMethods;
-        lastCleanupCall:=now;
+      if (MemoryUsed>memoryComfortThreshold) then begin
+        if (now>lastCleanupCall+minCleanupInterval) then begin
+          {$ifdef debugMode}
+          writeln(stdErr,'Memory panic (',MemoryUsed,' | ',MemoryUsed/memoryComfortThreshold*100:0:3,'% used) - calling cleanup methods');
+          {$endif}
+          memoryCleaner.callCleanupMethods;
+          lastCleanupCall:=now;
+        end;
+        sleepMillis:=0;
+      end else begin
+        relUse   :=      MemoryUsed                /memoryComfortThreshold;
+        relGrowth:=10.0*(MemoryUsed-previouslyUsed)/memoryComfortThreshold;
+        previouslyUsed:=MemoryUsed;
+        if relGrowth>relUse then relUse:=relGrowth;
+        if relUse<0 then relUse:=0 else if (relUse>1) then relUse:=1;
+        relUse:=1-relUse;
+        sleepMillis:=round(maxSleepMillis*relUse);
       end;
-      for i:=0 to 9 do if (memCheckKillRequests=0) then begin
+      {$ifdef debugMode}
+      writeln(stdErr,'Mem checker sleeps for ',sleepMillis,'ms');
+      {$endif}
+      while (sleepMillis>0) and (memCheckKillRequests=0) do begin
         ThreadSwitch;
-        sleep(95);
+        sleep(min(sleepMillis,100));
+        dec(sleepMillis,100);
       end;
     end;
     Process.destroy;
