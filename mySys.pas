@@ -639,7 +639,9 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
       {$endif}
       while (sleepMillis>0) and (memCheckKillRequests=0) do begin
         ThreadSwitch;
-        sleep(min(sleepMillis,100));
+        if sleepMillis>100
+        then sleep(100)
+        else sleep(sleepMillis);
         dec(sleepMillis,100);
       end;
     end;
