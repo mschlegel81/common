@@ -95,7 +95,7 @@ TYPE
   {$define M_SET_TYPE:=T_setOfString}
   {$define M_KEY_ARRAY_TYPE:=T_arrayOfString}
   {$define M_HASH_FUNC:=hashOfAnsistring}
-  generic G_stringKeyMap<VALUE_TYPE>=someKeyMapInterface;
+  GENERIC G_stringKeyMap<VALUE_TYPE>=someKeyMapInterface;
   T_setOfString=someSetInterface;
 
   {$define M_KEY_TYPE:=pointer}
@@ -103,7 +103,7 @@ TYPE
   {$define M_SET_TYPE:=T_setOfPointer}
   {$define M_KEY_ARRAY_TYPE:=T_arrayOfPointer}
   {$define M_HASH_FUNC:=ptruint}
-  generic G_pointerKeyMap<VALUE_TYPE>=someKeyMapInterface;
+  GENERIC G_pointerKeyMap<VALUE_TYPE>=someKeyMapInterface;
   T_setOfPointer=someSetInterface;
 
   {$define M_KEY_TYPE:=longint}
@@ -111,13 +111,13 @@ TYPE
   {$define M_SET_TYPE:=T_setOfLongint}
   {$define M_KEY_ARRAY_TYPE:=T_arrayOfLongint}
   {$define M_HASH_FUNC:=}
-  generic G_longintKeyMap<VALUE_TYPE>=someKeyMapInterface;
+  GENERIC G_longintKeyMap<VALUE_TYPE>=someKeyMapInterface;
   T_setOfLongint=someSetInterface;
 
   {$undef someKeyMapInterface}
   {$undef someSetInterface}
 
-  generic G_safeVar<ENTRY_TYPE>=object
+  GENERIC G_safeVar<ENTRY_TYPE>=object
     private VAR
       v :ENTRY_TYPE;
       saveCS:TRTLCriticalSection;
@@ -131,7 +131,7 @@ TYPE
       PROCEDURE unlock;
   end;
 
-  generic G_safeArray<ENTRY_TYPE>=object
+  GENERIC G_safeArray<ENTRY_TYPE>=object
     TYPE ENTRY_TYPE_ARRAY=array of ENTRY_TYPE;
     private VAR
       data :ENTRY_TYPE_ARRAY;
@@ -150,7 +150,7 @@ TYPE
       PROCEDURE unlock;
   end;
 
-  generic G_lazyVar<ENTRY_TYPE>=object
+  GENERIC G_lazyVar<ENTRY_TYPE>=object
     TYPE T_obtainer=FUNCTION():ENTRY_TYPE;
          T_disposer=PROCEDURE(x:ENTRY_TYPE);
     private
@@ -169,7 +169,7 @@ TYPE
 
   { G_instanceRegistry }
 
-  generic G_instanceRegistry<ENTRY_TYPE>=object
+  GENERIC G_instanceRegistry<ENTRY_TYPE>=object
     TYPE T_operationOnEntry=PROCEDURE(x:ENTRY_TYPE);
          T_parameterizedOperationOnEntry=PROCEDURE(x:ENTRY_TYPE;p:pointer);
          T_attributeOnEntry=FUNCTION(x:ENTRY_TYPE):boolean;

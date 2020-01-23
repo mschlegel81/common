@@ -1,12 +1,22 @@
 UNIT pixMaps;
 INTERFACE
-USES math,myGenerics,myColors;
+USES math,types, myGenerics,myColors;
 TYPE
-  T_imageDimensions=record
-    width,height:longint;
-  end;
 
-  generic G_pixelMap<PIXEL_TYPE>=object
+  { T_imageDimensions }
+
+  T_imageDimensions=object
+    width,height:longint;
+    FUNCTION fitsInto(CONST containedIn:T_imageDimensions):boolean;
+    FUNCTION max(CONST other:T_imageDimensions):T_imageDimensions;
+    FUNCTION min(CONST other:T_imageDimensions):T_imageDimensions;
+    FUNCTION getFittingRectangle(CONST aspectRatio:double):T_imageDimensions;
+    FUNCTION toRect:TRect;
+  end;
+CONST
+  C_maxImageDimensions:T_imageDimensions=(width:9999;height:9999);
+TYPE
+  GENERIC G_pixelMap<PIXEL_TYPE>=object
     TYPE PIXEL_POINTER=^PIXEL_TYPE;
          SELF_TYPE=specialize G_pixelMap<PIXEL_TYPE>;
          P_SELF_TYPE=^SELF_TYPE;
@@ -46,10 +56,49 @@ FUNCTION crop(CONST dim:T_imageDimensions; CONST rx0,rx1,ry0,ry1:double):T_image
 
 FUNCTION getSmoothingKernel(CONST sigma:double):T_arrayOfDouble;
 OPERATOR =(CONST d1,d2:T_imageDimensions):boolean;
+FUNCTION imageDimensions(CONST width,height:longint):T_imageDimensions;
+//FUNCTION getFittingRectangle(CONST availableWidth,availableHeight:longint; CONST aspectRatio:double):TRect;
+
 IMPLEMENTATION
 OPERATOR =(CONST d1,d2:T_imageDimensions):boolean;
   begin
     result:=(d1.width=d2.width) and (d1.height=d2.height);
+  end;
+
+FUNCTION imageDimensions(CONST width, height: longint): T_imageDimensions;
+  begin
+    result.width:=width;
+    result.height:=height;
+  end;
+
+FUNCTION T_imageDimensions.fitsInto(CONST containedIn: T_imageDimensions): boolean;
+  begin
+    result:=(width <=containedIn.width ) and
+            (height<=containedIn.height);
+  end;
+
+FUNCTION T_imageDimensions.max(CONST other: T_imageDimensions): T_imageDimensions;
+  begin
+    result.width :=math.max(width ,other.width );
+    result.height:=math.max(height,other.height);
+  end;
+
+FUNCTION T_imageDimensions.min(CONST other: T_imageDimensions): T_imageDimensions;
+  begin
+    result.width :=math.min(width ,other.width );
+    result.height:=math.min(height,other.height);
+  end;
+
+FUNCTION T_imageDimensions.getFittingRectangle(CONST aspectRatio: double): T_imageDimensions;
+  begin
+    if height*aspectRatio<width
+    then result:=imageDimensions(round(height*aspectRatio),height)
+    else result:=imageDimensions(width,round(width/aspectRatio));
+  end;
+
+FUNCTION T_imageDimensions.toRect: TRect;
+  begin
+    result:=rect(0,0,width,height);
   end;
 
 FUNCTION getSmoothingKernel(CONST sigma:double):T_arrayOfDouble;
