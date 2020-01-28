@@ -74,6 +74,11 @@ FUNCTION calcErr       (CONST c00,c01,c02,c10,c11,c12,c20,c21,c22:T_rgbFloatColo
 FUNCTION colDiff       (CONST x,y:T_rgbFloatColor):double;
 FUNCTION innerProduct  (CONST x,y:T_rgbFloatColor):double;
 
+FUNCTION rgbMax   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
+FUNCTION rgbMin   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
+FUNCTION rgbDiv   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
+FUNCTION rgbScreen(CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
+
 CONST HISTOGRAM_ADDITIONAL_SPREAD=128;
 TYPE
   T_histogram=object
@@ -123,12 +128,12 @@ TYPE
       hist:T_intMapOfInt;
       table:array of T_rgbFloatColor;
     public
-    CONSTRUCTOR create;
-    DESTRUCTOR destroy;
-    PROCEDURE addSample(CONST c:T_rgbColor);
-    PROCEDURE finishSampling(CONST colors:longint);
-    FUNCTION getQuantizedColorIndex(CONST c:T_rgbFloatColor):longint;
-    FUNCTION getQuantizedColor(CONST c:T_rgbFloatColor):T_rgbFloatColor;
+      CONSTRUCTOR create;
+      DESTRUCTOR destroy;
+      PROCEDURE addSample(CONST c:T_rgbColor);
+      PROCEDURE finishSampling(CONST colors:longint);
+      FUNCTION getQuantizedColorIndex(CONST c:T_rgbFloatColor):longint;
+      FUNCTION getQuantizedColor(CONST c:T_rgbFloatColor):T_rgbFloatColor;
   end;
 
 IMPLEMENTATION
@@ -448,6 +453,11 @@ FUNCTION innerProduct  (CONST x,y:T_rgbFloatColor):double;
     for i in RGB_CHANNELS do result+=x[i]*y[i];
   end;
 
+FUNCTION rgbMax   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline; VAR i:T_colorChannel; begin initialize(result);  for i in RGB_CHANNELS do if a[i]>b[i] then result[i]:=a[i] else result[i]:=b[i]; end;
+FUNCTION rgbMin   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline; VAR i:T_colorChannel; begin initialize(result);  for i in RGB_CHANNELS do if a[i]<b[i] then result[i]:=a[i] else result[i]:=b[i]; end;
+FUNCTION rgbDiv   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline; VAR i:T_colorChannel; begin initialize(result); for i in RGB_CHANNELS do result[i]:=a[i]/b[i]; end;
+FUNCTION rgbScreen(CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline; VAR i:T_colorChannel; begin initialize(result); for i in RGB_CHANNELS do result[i]:=1-(1-a[i])*(1-b[i]); end;
+
 PROCEDURE T_histogram.switch;
   VAR i:longint;
   begin
@@ -503,8 +513,7 @@ PROCEDURE T_histogram.putSample(CONST value: single; CONST weight: single);
     incBin(round(max(min(value,8E6),-8E6)*255),weight);
   end;
 
-PROCEDURE T_histogram.putSampleSmooth(CONST value: single; CONST weight: single
-  );
+PROCEDURE T_histogram.putSampleSmooth(CONST value: single; CONST weight: single);
   VAR i:longint;
   begin
     if isIncremental then switch;

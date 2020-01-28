@@ -2,9 +2,6 @@ UNIT pixMaps;
 INTERFACE
 USES math,types, myGenerics,myColors;
 TYPE
-
-  { T_imageDimensions }
-
   T_imageDimensions=object
     width,height:longint;
     FUNCTION fitsInto(CONST containedIn:T_imageDimensions):boolean;
@@ -14,7 +11,8 @@ TYPE
     FUNCTION toRect:TRect;
   end;
 CONST
-  C_maxImageDimensions:T_imageDimensions=(width:9999;height:9999);
+  MAX_HEIGHT_OR_WIDTH=9999;
+  C_maxImageDimensions:T_imageDimensions=(width:MAX_HEIGHT_OR_WIDTH;height:MAX_HEIGHT_OR_WIDTH);
 TYPE
   GENERIC G_pixelMap<PIXEL_TYPE>=object
     TYPE PIXEL_POINTER=^PIXEL_TYPE;
