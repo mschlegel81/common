@@ -106,6 +106,7 @@ TYPE
       PROCEDURE merge(CONST other:T_histogram; CONST weight:single);
       FUNCTION lookup(CONST value:T_rgbFloatColor):T_rgbFloatColor;
       FUNCTION lookup(CONST value:single):single;
+      FUNCTION sampleCount:longint;
   end;
 
   T_compoundHistogram=object
@@ -120,18 +121,21 @@ TYPE
     FUNCTION subjectiveGreyHistogram:T_histogram;
     FUNCTION sumHistorgram:T_histogram;
     FUNCTION mightHaveOutOfBoundsValues:boolean;
+    PROCEDURE clear;
   end;
 
+  T_colorList=array of T_rgbFloatColor;
   T_intMapOfInt=specialize G_longintKeyMap<longint>;
   T_colorTree=object
     private
       hist:T_intMapOfInt;
-      table:array of T_rgbFloatColor;
+      table:T_colorList;
     public
       CONSTRUCTOR create;
       DESTRUCTOR destroy;
       PROCEDURE addSample(CONST c:T_rgbColor);
       PROCEDURE finishSampling(CONST colors:longint);
+      PROPERTY colorTable:T_colorList read table;
       FUNCTION getQuantizedColorIndex(CONST c:T_rgbFloatColor):longint;
       FUNCTION getQuantizedColor(CONST c:T_rgbFloatColor):T_rgbFloatColor;
   end;
@@ -642,6 +646,12 @@ FUNCTION T_histogram.lookup(CONST value: single): single;
     result:=bins[i]*(1/bins[high(bins)]);
   end;
 
+FUNCTION T_histogram.sampleCount: longint;
+  begin
+    if not(isIncremental) then switch;
+    result:=round(bins[high(bins)]);
+  end;
+
 CONSTRUCTOR T_compoundHistogram.create;
   begin
     r.create;
@@ -708,6 +718,13 @@ FUNCTION T_compoundHistogram.mightHaveOutOfBoundsValues: boolean;
     result:=r.mightHaveOutOfBoundsValues or
             g.mightHaveOutOfBoundsValues or
             b.mightHaveOutOfBoundsValues;
+  end;
+
+PROCEDURE T_compoundHistogram.clear;
+  begin
+    r.clear;
+    g.clear;
+    b.clear;
   end;
 
 CONSTRUCTOR T_colorTree.create;
