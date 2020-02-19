@@ -78,6 +78,7 @@ FUNCTION rgbMax   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
 FUNCTION rgbMin   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
 FUNCTION rgbDiv   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
 FUNCTION rgbScreen(CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
+FUNCTION hasNanOrInfiniteComponent(CONST c:T_rgbFloatColor):boolean;
 
 CONST HISTOGRAM_ADDITIONAL_SPREAD=128;
 TYPE
@@ -461,6 +462,13 @@ FUNCTION rgbMax   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline; VAR i:T_c
 FUNCTION rgbMin   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline; VAR i:T_colorChannel; begin initialize(result);  for i in RGB_CHANNELS do if a[i]<b[i] then result[i]:=a[i] else result[i]:=b[i]; end;
 FUNCTION rgbDiv   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline; VAR i:T_colorChannel; begin initialize(result); for i in RGB_CHANNELS do result[i]:=a[i]/b[i]; end;
 FUNCTION rgbScreen(CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline; VAR i:T_colorChannel; begin initialize(result); for i in RGB_CHANNELS do result[i]:=1-(1-a[i])*(1-b[i]); end;
+
+FUNCTION hasNanOrInfiniteComponent(CONST c:T_rgbFloatColor):boolean;
+  VAR i:T_colorChannel;
+  begin
+    for i in RGB_CHANNELS do if isNan(c[i]) or isInfinite(c[i]) then exit(true);
+    result:=false;
+  end;
 
 PROCEDURE T_histogram.switch;
   VAR i:longint;
