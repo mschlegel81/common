@@ -438,10 +438,16 @@ FUNCTION absCol(CONST c:T_rgbFloatColor):T_rgbFloatColor;
   end;
 
 FUNCTION calcErr(CONST c00,c01,c02,c10,c11,c12,c20,c21,c22:T_rgbFloatColor):double; inline;
+  VAR a0,a1,b0,b1:T_rgbFloatColor;
   begin
-    result:=10*(sqr(c11[cc_red  ]-0.166666666666667*(c00[cc_red  ]+c01[cc_red  ]+c02[cc_red  ]+c10[cc_red  ])-0.0833333333333333*(c12[cc_red  ]+c20[cc_red  ]+c21[cc_red  ]+c22[cc_red  ]))
-               +sqr(c11[cc_green]-0.166666666666667*(c00[cc_green]+c01[cc_green]+c02[cc_green]+c10[cc_green])-0.0833333333333333*(c12[cc_green]+c20[cc_green]+c21[cc_green]+c22[cc_green]))
-               +sqr(c11[cc_blue ]-0.166666666666667*(c00[cc_blue ]+c01[cc_blue ]+c02[cc_blue ]+c10[cc_blue ])-0.0833333333333333*(c12[cc_blue ]+c20[cc_blue ]+c21[cc_blue ]+c22[cc_blue ])));
+    a0:=c11-(c01+c21)*0.5;
+    a1:=c11-(c10+c12)*0.5;
+    b0:=c11-(c00+c22)*0.5;
+    b1:=c11-(c20+c02)*0.5;
+    result:=(a0[cc_red]*a0[cc_red]+a0[cc_green]*a0[cc_green]+a0[cc_blue]*a0[cc_blue]+
+             a1[cc_red]*a1[cc_red]+a1[cc_green]*a1[cc_green]+a1[cc_blue]*a1[cc_blue])*3+
+            (b0[cc_red]*b0[cc_red]+b0[cc_green]*b0[cc_green]+b0[cc_blue]*b0[cc_blue]+
+             b1[cc_red]*b1[cc_red]+b1[cc_green]*b1[cc_green]+b1[cc_blue]*b1[cc_blue])*1.5;
   end;
 
 FUNCTION colDiff(CONST x,y:T_rgbFloatColor):double;
