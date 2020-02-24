@@ -308,6 +308,7 @@ FUNCTION myCommandLineParameters:T_arrayOfString;
 VAR clearConsoleProcess:TProcess=nil;
 PROCEDURE clearConsole;
   begin
+    if FileTruncate(StdOutputHandle,0) then exit;
     if clearConsoleProcess=nil then begin
       clearConsoleProcess := TProcess.create(nil);
       clearConsoleProcess.options:=clearConsoleProcess.options+[poWaitOnExit];
