@@ -72,6 +72,7 @@ FUNCTION invert        (CONST c:T_rgbFloatColor):T_rgbFloatColor;
 FUNCTION absCol        (CONST c:T_rgbFloatColor):T_rgbFloatColor;
 FUNCTION calcErr       (CONST c00,c01,c02,c10,c11,c12,c20,c21,c22:T_rgbFloatColor):double; inline;
 FUNCTION colDiff       (CONST x,y:T_rgbFloatColor):double;
+FUNCTION subjectiveColDiff(CONST x,y:T_rgbFloatColor):double; inline;
 FUNCTION innerProduct  (CONST x,y:T_rgbFloatColor):double;
 
 FUNCTION rgbMax   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
@@ -452,9 +453,20 @@ FUNCTION calcErr(CONST c00,c01,c02,c10,c11,c12,c20,c21,c22:T_rgbFloatColor):doub
 
 FUNCTION colDiff(CONST x,y:T_rgbFloatColor):double;
   begin
-    result:=(SUBJECTIVE_GREY_RED_WEIGHT  *sqr(x[cc_red  ]-y[cc_red  ])+
-             SUBJECTIVE_GREY_GREEN_WEIGHT*sqr(x[cc_green]-y[cc_green])+
-             SUBJECTIVE_GREY_BLUE_WEIGHT *sqr(x[cc_blue ]-y[cc_blue ]))*3;
+    result:=(sqr(x[cc_red  ]-y[cc_red  ])+
+             sqr(x[cc_green]-y[cc_green])+
+             sqr(x[cc_blue ]-y[cc_blue ]));
+  end;
+
+FUNCTION subjectiveColDiff(CONST x,y:T_rgbFloatColor):double; inline;
+  VAR dr,dg,db:double;
+  begin
+    dr:=x[cc_red]  -y[cc_red];
+    dg:=x[cc_green]-y[cc_green];
+    db:=x[cc_blue] -y[cc_blue];
+    result:=sqr(dr*0.49   +dg*0.31  +db*0.2    )+
+            sqr(dr*0.17697+dg*0.8124+db*0.01063)+
+            sqr(           dg*0.01  +db*0.99   );
   end;
 
 FUNCTION innerProduct  (CONST x,y:T_rgbFloatColor):double;
