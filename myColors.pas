@@ -81,6 +81,8 @@ FUNCTION rgbDiv   (CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
 FUNCTION rgbScreen(CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
 FUNCTION hasNanOrInfiniteComponent(CONST c:T_rgbFloatColor):boolean;
 
+FUNCTION simpleIlluminatedColor(CONST baseColor:T_rgbFloatColor; CONST nx,ny,nz:double):T_rgbFloatColor;
+
 CONST HISTOGRAM_ADDITIONAL_SPREAD=128;
 TYPE
   T_histogram=object
@@ -486,6 +488,22 @@ FUNCTION hasNanOrInfiniteComponent(CONST c:T_rgbFloatColor):boolean;
   begin
     for i in RGB_CHANNELS do if isNan(c[i]) or isInfinite(c[i]) then exit(true);
     result:=false;
+  end;
+
+FUNCTION simpleIlluminatedColor(CONST baseColor:T_rgbFloatColor; CONST nx,ny,nz:double):T_rgbFloatColor;
+  CONST lx=-1/4;
+        ly=-1/2;
+        lz= 1;
+        whiteFactor=6.866060555964674;
+  VAR illumination:double;
+  begin
+    illumination:=nx*lx+ny*ly+nz*lz;
+    if      illumination<0                then result:=BLACK
+    else if illumination<1                then result:=baseColor*illumination
+    else if illumination<1.14564392373896 then begin
+      illumination:=whiteFactor*(illumination-1);
+      result:=baseColor*(1-illumination)+WHITE*illumination;
+    end;
   end;
 
 PROCEDURE T_histogram.switch;
