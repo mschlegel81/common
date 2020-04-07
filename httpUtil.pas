@@ -1,6 +1,6 @@
 UNIT httpUtil;
 INTERFACE
-USES Classes, blcksock, synautil, sysutils, myGenerics,myStringUtil;
+USES Classes, blcksock, synautil, sysutils, myGenerics,myStringUtil,synsock;
 TYPE
   T_httpRequestMethod=(htrm_no_request,htrm_GET,htrm_POST,htrm_HEAD,htrm_PUT,htrm_PATCH,htrm_DELETE,htrm_TRACE,htrm_OPTIONS,htrm_CONNECT);
 CONST
@@ -8,44 +8,45 @@ CONST
 TYPE
   T_httpHeader=array of record key,value:string; end;
 
-  T_httpRequest=record
-    method:T_httpRequestMethod;
-    request,protocol:string;
-    header:T_httpHeader;
-    body:string;
+  P_httpListener=^T_httpListener;
+  P_httpConnectionForRequest=^T_httpConnectionForRequest;
+  T_httpConnectionForRequest=object
+    private
+      //parent listener
+      relatedListener:P_httpListener;
+      //connection for this request
+      ConnectionSocket: TTCPBlockSocket;
+      //data parsed from request
+      method:T_httpRequestMethod;
+      request,protocol:string;
+      header:T_httpHeader;
+      body:string;
+    public
+      CONSTRUCTOR create(CONST conn:TSocket; CONST parent:P_httpListener);
+      DESTRUCTOR destroy;
+      PROCEDURE sendStringAndClose(CONST s:ansistring);
+      //Read only access to parsed http fields
+      PROPERTY getMethod:T_httpRequestMethod read method;
+      PROPERTY getRequest :string            read request;
+      PROPERTY getProtocol:string            read protocol;
+      PROPERTY getHeader  :T_httpHeader      read header;
+      PROPERTY getBody    :string            read body;
   end;
 
-  P_socketPair=^T_socketPair;
-  T_socketPair=object
+  T_httpListener=object
     private
-      ListenerSocket,
-      ConnectionSocket: TTCPBlockSocket;
+      ListenerSocket: TTCPBlockSocket;
       id:ansistring;
-      acceptingRequest:boolean;
+      maxConnections:longint;
+      openConnections:longint;
     public
-      CONSTRUCTOR create(CONST ipAndPort:string);
-      CONSTRUCTOR create(CONST ip,port:string);
+      CONSTRUCTOR create(CONST ipAndPort:string; CONST maxConnections_:longint=8);
+      CONSTRUCTOR create(CONST ip,port:string; CONST maxConnections_:longint=8);
       DESTRUCTOR destroy;
-      FUNCTION getRequest(CONST timeOutInMilliseconds:longint=100):T_httpRequest;
-      PROCEDURE sendString(CONST s:ansistring);
+      FUNCTION getRequest(CONST timeOutInMilliseconds:longint=100):P_httpConnectionForRequest;
+      FUNCTION getRawRequestSocket(CONST timeOutInMilliseconds:longint=100):TSocket;
       FUNCTION toString:ansistring;
       FUNCTION getLastListenerSocketError:longint;
-      PROPERTY isAcceptingRequest:boolean read acceptingRequest;
-  end;
-
-  F_stringX3ToString=FUNCTION(CONST method:T_httpRequestMethod; CONST request,protocol:string):string;
-
-  P_customSocketListener=^T_customSocketListener;
-  T_customSocketListener=object
-    private
-      socket:T_socketPair;
-      requestToResponseMapper:F_stringX3ToString;
-      killSignalled:boolean;
-    public
-      CONSTRUCTOR create(CONST ipAndPort:string; CONST requestToResponseMapper_:F_stringX3ToString);
-      DESTRUCTOR destroy;
-      PROCEDURE attend;
-      PROCEDURE kill;
   end;
 
 CONST HTTP_404_RESPONSE='HTTP/1.0 404' + CRLF;
@@ -57,7 +58,7 @@ FUNCTION cleanIp(CONST dirtyIp:ansistring):ansistring;
 PROCEDURE setHeaderDefaults(VAR header:T_httpHeader; CONST contentLength:longint=0; CONST contentType:string=''; CONST serverInfo:string='');
 IMPLEMENTATION
 USES strutils;
-PROCEDURE disposeSocket(VAR socket:P_socketPair);
+PROCEDURE disposeSocket(VAR socket:P_httpListener);
   begin
     dispose(socket,destroy);
   end;
@@ -158,144 +159,124 @@ FUNCTION cleanIp(CONST dirtyIp:ansistring):ansistring;
     cleanSocket(result,ip,port);
   end;
 
-FUNCTION customSocketListenerThread(p:pointer):ptrint;
-  begin
-    P_customSocketListener(p)^.attend;
-    dispose(P_customSocketListener(p),destroy);
-    result:=0;
-  end;
-
-CONSTRUCTOR T_customSocketListener.create(CONST ipAndPort: string; CONST requestToResponseMapper_: F_stringX3ToString);
-  begin
-    socket.create(ipAndPort);
-    requestToResponseMapper:=requestToResponseMapper_;
-    killSignalled:=false;
-    beginThread(@customSocketListenerThread,@self);
-  end;
-
-DESTRUCTOR T_customSocketListener.destroy;
-  begin
-    socket.destroy;
-  end;
-
-PROCEDURE T_customSocketListener.attend;
-  CONST minSleepTime=1;
-        maxSleepTime=100;
-  VAR request:T_httpRequest;
-      sleepTime:longint=minSleepTime;
-  begin
-    repeat
-      request:=socket.getRequest(sleepTime);
-      if request.method=htrm_no_request then begin
-        sleep(sleepTime);
-        inc(sleepTime);
-        if sleepTime>maxSleepTime then sleepTime:=maxSleepTime;
-      end else begin
-        socket.sendString(requestToResponseMapper(request.method,request.request,request.protocol));
-        sleepTime:=minSleepTime;
-      end;
-    until killSignalled;
-  end;
-
-PROCEDURE T_customSocketListener.kill;
-  begin
-    killSignalled:=true;
-  end;
-
-CONSTRUCTOR T_socketPair.create(CONST ipAndPort: string);
-  VAR ip,port:string;
-  begin
-    id:=ipAndPort;
-    cleanSocket(id,ip,port);
-    create(ip,port);
-  end;
-
-CONSTRUCTOR T_socketPair.create(CONST ip, port: string);
-  begin
-    ListenerSocket := TTCPBlockSocket.create;
-    ConnectionSocket := TTCPBlockSocket.create;
-    ListenerSocket.CreateSocket;
-    ListenerSocket.setLinger(true,1);
-    ListenerSocket.bind(ip,port);
-    ListenerSocket.listen;
-    id:=ip+':'+port;
-    acceptingRequest:=false;
-  end;
-
-DESTRUCTOR T_socketPair.destroy;
-  begin
-    ListenerSocket.CloseSocket;
-    ListenerSocket.free;
-    ConnectionSocket.CloseSocket;
-    ConnectionSocket.free;
-  end;
-
-FUNCTION T_socketPair.getRequest(CONST timeOutInMilliseconds: longint):T_httpRequest;
-  VAR s:string;
-      receiveTimeout:longint=100;
-
-  FUNCTION parseTriplet(VAR s:string):T_httpRequest; inline;
+CONSTRUCTOR T_httpConnectionForRequest.create(CONST conn: TSocket; CONST parent: P_httpListener);
+  PROCEDURE parseTriplet(VAR s:string);
     VAR temp:string;
         inputLine:string;
         htrm:T_httpRequestMethod;
     begin
       //initialize result
-      result.method:=htrm_no_request;
-      result.request:='';
-      result.protocol:='';
-      result.body:='';
-      setLength(result.header,0);
+      method:=htrm_no_request;
+      request:='';
+      protocol:='';
+      body:='';
+      setLength(header,0);
       //Parse request line
       inputLine:=fetch(s,CRLF);
       temp:=fetch(inputLine,' ');
-      for htrm in T_httpRequestMethod do if C_httpRequestMethodName[htrm]=temp then result.method:=htrm;
-      if result.method=htrm_no_request then exit(result);
-      result.request :=fetch(inputLine, ' ');
-      result.protocol:=fetch(inputLine, ' ');
+      for htrm in T_httpRequestMethod do if C_httpRequestMethodName[htrm]=temp then method:=htrm;
+      if method=htrm_no_request then exit;
+      request :=fetch(inputLine, ' ');
+      protocol:=fetch(inputLine, ' ');
       //parse additional header entries
       inputLine:=fetch(s,CRLF);
       while inputLine<>'' do begin
-        setLength(result.header,length(result.header)+1);
-        with result.header[length(result.header)-1] do begin
+        setLength(header,length(header)+1);
+        with header[length(header)-1] do begin
           key:=fetch(inputLine,':');
           value:=trim(inputLine);
         end;
         inputLine:=fetch(s,CRLF);
       end;
-      result.body:=s;
+      body:=s;
     end;
 
+  VAR s:string;
+      receiveTimeout:longint=2000;
   begin
-    result.method:=htrm_no_request;
-    result.request:='';
-    result.protocol:='';
-    if acceptingRequest then sendString(HTTP_503_RESPONSE);
-    if not(ListenerSocket.canread(timeOutInMilliseconds)) then exit(result);
-    ConnectionSocket.socket := ListenerSocket.accept;
+    relatedListener:=parent;
+    ConnectionSocket := TTCPBlockSocket.create;
+    ConnectionSocket.socket:=conn;
+    ConnectionSocket.GetSins;
     repeat
       s := ConnectionSocket.RecvPacket(receiveTimeout);
-      if result.method=htrm_no_request then begin
-        result:=parseTriplet(s);
-        if result.method<>htrm_no_request then receiveTimeout:=1;
+      if method=htrm_no_request then begin
+        parseTriplet(s);
+        if method<>htrm_no_request then receiveTimeout:=1;
       end;
     until ConnectionSocket.LastError<>0;
-    acceptingRequest:=result.method<>htrm_no_request;
-    if not(acceptingRequest) then sendString(HTTP_404_RESPONSE);
   end;
 
-PROCEDURE T_socketPair.sendString(CONST s: ansistring);
+DESTRUCTOR T_httpConnectionForRequest.destroy;
+  begin
+    ConnectionSocket.free;
+  end;
+
+PROCEDURE T_httpConnectionForRequest.sendStringAndClose(CONST s: ansistring);
   begin
     ConnectionSocket.sendString(s);
     ConnectionSocket.CloseSocket;
-    acceptingRequest:=false;
+    interlockedDecrement(relatedListener^.openConnections);
   end;
 
-FUNCTION T_socketPair.toString: ansistring;
+CONSTRUCTOR T_httpListener.create(CONST ipAndPort: string; CONST maxConnections_:longint=8);
+  VAR ip,port:string;
+  begin
+    id:=ipAndPort;
+    cleanSocket(id,ip,port);
+    create(ip,port,maxConnections_);
+  end;
+
+CONSTRUCTOR T_httpListener.create(CONST ip, port: string; CONST maxConnections_:longint=8);
+  begin
+    ListenerSocket := TTCPBlockSocket.create;
+    ListenerSocket.CreateSocket;
+    ListenerSocket.setLinger(true,100);
+    ListenerSocket.bind(ip,port);
+    ListenerSocket.listen;
+    id:=ip+':'+port;
+    maxConnections:=maxConnections_;
+    openConnections:=0;
+  end;
+
+DESTRUCTOR T_httpListener.destroy;
+  VAR shutdownTimeout:double;
+  begin
+    shutdownTimeout:=now+1/(24*60*60);
+    ListenerSocket.CloseSocket;
+    ListenerSocket.free;
+    while (openConnections>0) and (now<shutdownTimeout) do sleep(1);
+  end;
+
+FUNCTION T_httpListener.getRequest(CONST timeOutInMilliseconds: longint):P_httpConnectionForRequest;
+  begin
+    if not(ListenerSocket.canread(timeOutInMilliseconds)) then exit(nil);
+    new(result,create(ListenerSocket.accept,@self));
+    interLockedIncrement(openConnections);
+    if result^.getMethod=htrm_no_request then begin
+      result^.sendStringAndClose(HTTP_404_RESPONSE);
+      dispose(result,destroy);
+      result:=nil;
+    end else while openConnections>maxConnections do sleep(1);
+  end;
+
+FUNCTION T_httpListener.getRawRequestSocket(CONST timeOutInMilliseconds:longint=100):TSocket;
+  begin
+    if not(ListenerSocket.canread(timeOutInMilliseconds))
+    then exit(0)
+    else begin
+      interLockedIncrement(openConnections);
+      result:=ListenerSocket.accept;
+      while openConnections>maxConnections do sleep(1);
+    end;
+  end;
+
+FUNCTION T_httpListener.toString: ansistring;
   begin
     result:=id;
   end;
 
-FUNCTION T_socketPair.getLastListenerSocketError:longint;
+FUNCTION T_httpListener.getLastListenerSocketError:longint;
   begin
     result:=ListenerSocket.LastError;
   end;
