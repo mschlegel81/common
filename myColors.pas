@@ -503,7 +503,7 @@ FUNCTION simpleIlluminatedColor(CONST baseColor:T_rgbFloatColor; CONST nx,ny,nz:
     else if illumination<1.14564392373896 then begin
       illumination:=whiteFactor*(illumination-1);
       result:=baseColor*(1-illumination)+WHITE*illumination;
-    end;
+    end else result:=BLACK;
   end;
 
 PROCEDURE T_histogram.switch;
