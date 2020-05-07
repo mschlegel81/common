@@ -635,9 +635,6 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
         relUse:=1-relUse;
         sleepMillis:=round(maxSleepMillis*relUse);
       end;
-      {$ifdef debugMode}
-      writeln(stdErr,'Mem checker sleeps for ',sleepMillis,'ms');
-      {$endif}
       while (sleepMillis>0) and (memCheckKillRequests=0) do begin
         ThreadSwitch;
         if sleepMillis>100
