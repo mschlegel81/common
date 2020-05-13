@@ -87,6 +87,7 @@ PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 PROCEDURE startMemChecker(CONST threshold:int64);
 FUNCTION isMemoryInComfortZone:boolean;
+FUNCTION getMemoryUsedInBytes:int64;
 FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold:double):string;
 VAR memoryCleaner:T_memoryCleaner;
 IMPLEMENTATION
@@ -651,6 +652,11 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
 PROCEDURE T_memoryCleaner.stop;
   begin
     interLockedIncrement(memCheckKillRequests);
+  end;
+
+FUNCTION getMemoryUsedInBytes:int64;
+  begin
+    result:=MemoryUsed;
   end;
 
 FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold:double):string;
