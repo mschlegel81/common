@@ -82,6 +82,7 @@ FUNCTION rgbScreen(CONST a,b:T_rgbFloatColor):T_rgbFloatColor; inline;
 FUNCTION hasNanOrInfiniteComponent(CONST c:T_rgbFloatColor):boolean;
 
 FUNCTION simpleIlluminatedColor(CONST baseColor:T_rgbFloatColor; CONST nx,ny,nz:double):T_rgbFloatColor;
+PROCEDURE averageIllumination(CONST borderAccrossFraction,borderUpFraction:double; OUT baseFraction,whiteFraction:double);
 
 CONST HISTOGRAM_ADDITIONAL_SPREAD=128;
 TYPE
@@ -504,6 +505,30 @@ FUNCTION simpleIlluminatedColor(CONST baseColor:T_rgbFloatColor; CONST nx,ny,nz:
       illumination:=whiteFactor*(illumination-1);
       result:=baseColor*(1-illumination)+WHITE*illumination;
     end else result:=BLACK;
+  end;
+
+PROCEDURE averageIllumination(CONST borderAccrossFraction,borderUpFraction:double; OUT baseFraction,whiteFraction:double);
+  CONST lx=-1/4;
+        ly=-1/2;
+        lz= 1;
+        whiteFactor=6.866060555964674;
+  VAR illumination:double;
+      alpha:double;
+      k:longint;
+  begin
+    baseFraction:=0;
+    whiteFraction:=0;
+    for k:=0 to 999 do begin
+      alpha:=k*2*pi/1000;
+      illumination:=borderAccrossFraction*(cos(alpha)*lx+sin(alpha)*ly)+borderUpFraction*lz;
+      if      illumination<0                then begin end
+      else if illumination<1                then baseFraction+=illumination*1E-3
+      else if illumination<1.14564392373896 then begin
+        illumination:=whiteFactor*(illumination-1);
+        baseFraction+=(1-illumination)*1E-3;
+        whiteFraction+=illumination   *1E-3;
+      end;
+    end;
   end;
 
 PROCEDURE T_histogram.switch;
