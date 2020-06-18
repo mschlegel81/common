@@ -85,7 +85,7 @@ TYPE
       PROCEDURE writeDouble(CONST value:double);
       PROCEDURE writeSingle(CONST value:single);
       PROCEDURE writeChar(CONST value:char);
-      PROCEDURE writeAnsiString(CONST value:ansistring);
+      PROCEDURE writeAnsiString(CONST value:ansistring); virtual;
       PROCEDURE writeNaturalNumber(CONST value:qword);
       PROCEDURE writeInteger(CONST value:int64);
   end;
@@ -103,6 +103,7 @@ TYPE
       DESTRUCTOR destroy;
       //For debugging
       FUNCTION streamPos:longint;
+      PROCEDURE writeAnsiString(CONST value:ansistring); virtual;
   end;
 
   T_serializable=object
@@ -335,10 +336,19 @@ PROCEDURE T_outputStreamWrapper.writeDouble(CONST value: double);     begin writ
 PROCEDURE T_outputStreamWrapper.writeSingle(CONST value: single);     begin write(value,sizeOf(value)); end;
 PROCEDURE T_outputStreamWrapper.writeChar(CONST value: char);         begin write(value,sizeOf(value)); end;
 PROCEDURE T_outputStreamWrapper.writeAnsiString(CONST value: ansistring);
+  begin
+    writeNaturalNumber(length(value));
+    if length(value)>0 then write(value[1],length(value));
+  end;
+
+PROCEDURE T_bufferedOutputStreamWrapper.writeAnsiString(CONST value:ansistring);
   VAR i:longint;
   begin
     writeNaturalNumber(length(value));
-    for i:=1 to length(value) do writeChar(value[i]);
+    if length(value)>C_bufferSize then begin
+      flush;
+      if length(value)>0 then inherited write(value[1],length(value));
+    end else for i:=1 to length(value) do writeChar(value[i]);
   end;
 
 PROCEDURE T_outputStreamWrapper.writeNaturalNumber(CONST value: qword);
