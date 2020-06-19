@@ -43,7 +43,7 @@ TYPE
       FUNCTION readDouble:double;
       FUNCTION readSingle:single;
       FUNCTION readChar:char;
-      FUNCTION readAnsiString:ansistring;
+      FUNCTION readAnsiString:ansistring; virtual;
       FUNCTION readNaturalNumber:qword;
       FUNCTION readInteger:int64;
   end;
@@ -61,6 +61,7 @@ TYPE
       DESTRUCTOR destroy;
       //For debugging
       FUNCTION streamPos:longint;
+      FUNCTION readAnsiString:ansistring; virtual;
   end;
 
   P_outputStreamWrapper=^T_outputStreamWrapper;
@@ -196,6 +197,14 @@ FUNCTION T_inputStreamWrapper.readDouble: double;     begin initialize(result); 
 FUNCTION T_inputStreamWrapper.readSingle: single;     begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readChar: char;         begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readAnsiString: ansistring;
+  VAR i:longint;
+  begin
+    setLength(result,readNaturalNumber);
+    read(result[1],length(result));
+    if earlyEndOfFileError then result:='';
+  end;
+
+FUNCTION T_bufferedInputStreamWrapper.readAnsiString: ansistring;
   VAR i:longint;
   begin
     setLength(result,readNaturalNumber);
