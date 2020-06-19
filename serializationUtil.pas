@@ -200,7 +200,7 @@ FUNCTION T_inputStreamWrapper.readAnsiString: ansistring;
   VAR i:longint;
   begin
     setLength(result,readNaturalNumber);
-    read(result[1],length(result));
+    if length(result)>0 then read(result[1],length(result));
     if earlyEndOfFileError then result:='';
   end;
 
