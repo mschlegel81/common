@@ -751,48 +751,29 @@ FUNCTION gzip_compressString(CONST ASrc: ansistring):ansistring;
     end;
   end;
 
-FUNCTION gzip_decompressString(CONST ASrc; CONST ASrcSize: int64):ansistring;
-  CONST MAXWORD=65535;
+FUNCTION gzip_decompressString(CONST ASrc:ansistring):ansistring;
   VAR vDest: TStringStream;
       vSource: TStream;
       vDecompressor: TDecompressionStream;
-      vBuffer: pointer;
-      vCount : integer;
   begin
     result:='';
     vSource := TMemoryStream.create;
     try
-      vSource.write(ASrc, ASrcSize);
+      vSource.write(ASrc[1], length(ASrc));
       vSource.position := 0;
       vDecompressor := TDecompressionStream.create(vSource,false);
       try
 	vDest := TStringStream.create('');
-	try
-	  getMem(vBuffer, MAXWORD);
-	  try
-	    repeat
-	      vCount := vDecompressor.read(vBuffer^, MAXWORD);
-	      if vCount > 0 then vDest.WriteBuffer(vBuffer^, vCount);
-	    until vCount < MAXWORD;
-	  finally
-	    freeMem(vBuffer);
-	  end;
-	  vDest.position := 0;
-	  result := vDest.DataString;
-	finally
-	  vDest.free;
-	end;
+        vDest.copyFrom(vDecompressor,0);
+	vDest.position := 0;
+	result := vDest.DataString;
+	vDest.free;
       finally
 	vDecompressor.free;
       end;
     finally
       vSource.free;
     end;
-  end;
-
-FUNCTION gzip_decompressString(CONST src:ansistring):ansistring;
-  begin
-    result:=gzip_decompressString(src[1],length(src));
   end;
 
 FUNCTION compressString(CONST src: ansistring; CONST algorithmsToConsider:T_byteSet):ansistring;
