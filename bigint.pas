@@ -10,7 +10,7 @@ TYPE
   DigitTypeArray=array of DigitType;
 CONST
   BITS_PER_DIGIT=32;
-  DIGIT_MAX_VALUE=(1 shl BITS_PER_DIGIT)-1;
+  DIGIT_MAX_VALUE:int64=(1 shl BITS_PER_DIGIT)-1;
   UPPER_DIGIT_BIT=1 shl (BITS_PER_DIGIT-1);
   WORD_BIT:array[0..BITS_PER_DIGIT-1] of DigitType=
     (      1,       2,       4,        8,       16,       32,        64,       128,
