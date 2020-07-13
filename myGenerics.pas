@@ -52,6 +52,7 @@ TYPE
       disposer:VALUE_DISPOSER;
       PROCEDURE rehash(CONST grow:boolean);
     protected
+      TYPE MY_VALUE_TYPE=VALUE_TYPE;
       PROCEDURE disposeValue(VAR v:VALUE_TYPE); virtual;
     public
       CONSTRUCTOR create(CONST rebalanceFactor:double; CONST disposer_:VALUE_DISPOSER=nil);
