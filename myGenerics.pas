@@ -28,11 +28,11 @@ TYPE
   {$undef arrayFunctions}
   {$undef arrayOp}
 
-  FUNCTION C_EMPTY_STRING_ARRAY :T_arrayOfString ;
-  FUNCTION C_EMPTY_POINTER_ARRAY:T_arrayOfPointer;
-  FUNCTION C_EMPTY_DOUBLE_ARRAY :T_arrayOfDouble ;
-  FUNCTION C_EMPTY_LONGINT_ARRAY:T_arrayOfLongint;
-  FUNCTION C_EMPTY_INT64_ARRAY  :T_arrayOfInt64  ;
+  CONST C_EMPTY_STRING_ARRAY :T_arrayOfString =();
+  CONST C_EMPTY_POINTER_ARRAY:T_arrayOfPointer=();
+  CONST C_EMPTY_DOUBLE_ARRAY :T_arrayOfDouble =();
+  CONST C_EMPTY_LONGINT_ARRAY:T_arrayOfLongint=();
+  CONST C_EMPTY_INT64_ARRAY  :T_arrayOfInt64  =();
 
 TYPE
   {$define someKeyMapInterface:=
@@ -262,7 +262,7 @@ PROCEDURE dropValues(VAR x:M_ARRAY_TYPE; CONST toDrop:M_VALUE_TYPE);
 PROCEDURE sort(VAR entry:M_ARRAY_TYPE);
   VAR scale    :longint;
       i,j0,j1,k:longint;
-      temp     :M_ARRAY_TYPE;
+      temp     :M_ARRAY_TYPE=();
   begin
     scale:=1;
     setLength(temp,length(entry));
@@ -322,6 +322,7 @@ PROCEDURE sortUnique(VAR entry:M_ARRAY_TYPE);
 {$define arrayOpImpl:=
 OPERATOR :=(x:M_VALUE_TYPE):M_ARRAY_TYPE;
   begin
+    initialize(result);
     setLength(result,1);
     result[0]:=x;
   end}
@@ -333,12 +334,6 @@ OPERATOR :=(x:M_VALUE_TYPE):M_ARRAY_TYPE;
 {$define M_ARRAY_TYPE:=T_arrayOfInt64  } {$define M_VALUE_TYPE:=int64     } arrayFunctionImpl; arrayOpImpl;
 {$undef arrayFunctionImpl}
 {$undef arrayOpImpl}
-
-FUNCTION C_EMPTY_STRING_ARRAY :T_arrayOfString ; begin setLength(result,0); end;
-FUNCTION C_EMPTY_POINTER_ARRAY:T_arrayOfPointer; begin setLength(result,0); end;
-FUNCTION C_EMPTY_DOUBLE_ARRAY :T_arrayOfDouble ; begin setLength(result,0); end;
-FUNCTION C_EMPTY_LONGINT_ARRAY:T_arrayOfLongint; begin setLength(result,0); end;
-FUNCTION C_EMPTY_INT64_ARRAY  :T_arrayOfInt64  ; begin setLength(result,0); end;
 
 FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; {$ifndef debugMode} inline; {$endif}
   VAR i:longint;
@@ -364,7 +359,7 @@ DESTRUCTOR G_instanceRegistry.destroy;
   end;
 
 PROCEDURE G_instanceRegistry.forEach(CONST op: T_operationOnEntry);
-  VAR regCopy:array of ENTRY_TYPE;
+  VAR regCopy:array of ENTRY_TYPE=();
       i:longint;
       x:ENTRY_TYPE;
   begin
@@ -379,7 +374,7 @@ PROCEDURE G_instanceRegistry.forEach(CONST op: T_operationOnEntry);
   end;
 
 PROCEDURE G_instanceRegistry.forEach(CONST op:T_parameterizedOperationOnEntry; p:pointer);
-  VAR regCopy:array of ENTRY_TYPE;
+  VAR regCopy:array of ENTRY_TYPE=();
       i:longint;
       x:ENTRY_TYPE;
   begin
@@ -394,7 +389,7 @@ PROCEDURE G_instanceRegistry.forEach(CONST op:T_parameterizedOperationOnEntry; p
   end;
 
 FUNCTION G_instanceRegistry.anyMatch(CONST at:T_attributeOnEntry):boolean;
-  VAR regCopy:array of ENTRY_TYPE;
+  VAR regCopy:array of ENTRY_TYPE=();
       i:longint;
       x:ENTRY_TYPE;
   begin
@@ -410,7 +405,7 @@ FUNCTION G_instanceRegistry.anyMatch(CONST at:T_attributeOnEntry):boolean;
   end;
 
 FUNCTION G_instanceRegistry.anyMatch(CONST at:T_parameterizedAttributeOnEntry; p:pointer):boolean;
-  VAR regCopy:array of ENTRY_TYPE;
+  VAR regCopy:array of ENTRY_TYPE=();
       i:longint;
       x:ENTRY_TYPE;
   begin
@@ -428,6 +423,7 @@ FUNCTION G_instanceRegistry.anyMatch(CONST at:T_parameterizedAttributeOnEntry; p
 FUNCTION G_instanceRegistry.filter(CONST at:T_attributeOnEntry):ARRAY_OF_ENTRY_TYPE;
   VAR i:longint;
   begin
+    initialize(result);
     setLength(result,0);
     enterCriticalSection(cs);
     try
@@ -443,6 +439,7 @@ FUNCTION G_instanceRegistry.filter(CONST at:T_attributeOnEntry):ARRAY_OF_ENTRY_T
 FUNCTION G_instanceRegistry.filter(CONST at:T_parameterizedAttributeOnEntry; p:pointer):ARRAY_OF_ENTRY_TYPE;
   VAR i:longint;
   begin
+    initialize(result);
     setLength(result,0);
     enterCriticalSection(cs);
     try

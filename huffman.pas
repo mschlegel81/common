@@ -309,7 +309,7 @@ CONSTRUCTOR T_huffmanCode.create(CONST conservative:boolean; frequency: T_symbol
   end;
 
   PROCEDURE initModel;
-    VAR parentNodes:array of P_huffmanNode;
+    VAR parentNodes:array of P_huffmanNode=();
         i:longint;
     begin
       setLength(parentNodes,END_OF_INPUT+1);
@@ -485,6 +485,7 @@ FUNCTION T_bitArray.bits:T_arrayOfBoolean;
   VAR i:longint;
       k:longint=0;
   begin
+    initialize(result);
     setLength(result,datFill shl 3);
     for i:=0 to datFill-1 do begin
       result[k]:=(data[i] and M[7])>0; inc(k);

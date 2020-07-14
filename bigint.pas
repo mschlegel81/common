@@ -185,6 +185,7 @@ FUNCTION rawDataPlus(CONST xDigits,yDigits:DigitTypeArray):DigitTypeArray;
        i:=length(xDigits);
     if i< length(yDigits) then
        i:=length(yDigits);
+    initialize(result);
     setLength(result,i);
     for i:=0 to length(result)-1 do begin
       if i<length(xDigits) then carry+=xDigits[i];
@@ -211,6 +212,7 @@ FUNCTION rawDataMinus(CONST xDigits,yDigits:DigitTypeArray):DigitTypeArray; inli
   VAR carry:CarryType=0;
       i    :longint;
   begin
+    initialize(result);
     setLength(result,length(xDigits));
     for i:=0 to length(yDigits)-1 do begin
       carry+=yDigits[i];
@@ -730,7 +732,7 @@ FUNCTION T_bigInt.compare(CONST f: extended): T_comparisonResult;
   end;
 
 FUNCTION T_bigInt.minus(CONST small:DigitType):T_bigInt;
-  VAR smallAsArray:DigitTypeArray;
+  VAR smallAsArray:DigitTypeArray=();
   begin
     setLength(smallAsArray,1);
     smallAsArray[0]:=small;
@@ -1130,6 +1132,7 @@ FUNCTION T_bigInt.getDigits(CONST base: longint): T_arrayOfLongint;
       s:string;
       resLen:longint=0;
   begin
+    initialize(result);
     setLength(result,0);
     if isZero then exit(0);
     if canBeRepresentedAsInt64(false) then begin
@@ -1170,6 +1173,7 @@ FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
       k:longint;
       resSize:longint=0;
   begin
+    initialize(result);
     if base.canBeRepresentedAsInt32 then begin
       smallDigits:=value.getDigits(base.toInt);
       setLength(result,length(smallDigits));
@@ -1420,6 +1424,8 @@ FUNCTION T_bigInt.modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInvers
       t1.fromInt(1);
       r0.create(modul); r0.negative:=false;
       r1.create(self);  r1.negative:=false;
+      initialize(quotient);
+      initialize(rest);
       while not(r1.isZero) do begin
         setLength(quotient.digits,0);
         setLength(rest.digits,0);
@@ -1539,6 +1545,7 @@ FUNCTION T_bigInt.getRawBytes: T_arrayOfByte;
   begin
     i:=relevantBits shr 3;
     if i*8<relevantBits then inc(i);
+    initialize(result);
     setLength(result,i);
     for i:=0 to length(result)-1 do begin
       if i and 3=0 then tmp:=digits[i shr 2]
@@ -1553,6 +1560,7 @@ FUNCTION factorizeSmall(n:longint):T_arrayOfLongint;
   VAR p:longint;
       skipIdx:longint=0;
   begin
+    initialize(result);
     setLength(result,0);
     if n<0 then begin
       n:=-n;
@@ -1621,6 +1629,7 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
         thirdRootOfInputAndRest:double;
     begin
       furtherFactorsPossible:=true;
+      initialize(result);
       setLength(result.smallFactors,0);
       setLength(result.bigFactors,0);
       //2:
@@ -1752,6 +1761,7 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
       yIsSquare:boolean;
       lehmannTestCompleted:boolean=false;
   begin
+    initialize(result);
     setLength(result.bigFactors,0);
     if B.isZero or (B.compareAbsValue(1)=CR_EQUAL) then begin
       setLength(result.smallFactors,1);

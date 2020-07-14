@@ -177,6 +177,7 @@ FUNCTION T_ISAAC.iRandA: byte;
 FUNCTION T_ISAAC.Vernam(CONST msg: string): string;
   VAR i: dword;
   begin
+    initialize(result);
     setLength(result,length(msg));
     for i:=1 to length(msg) do result[i]:=chr(iRandA xor ord(msg[i]));
   end;

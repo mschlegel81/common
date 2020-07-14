@@ -190,6 +190,7 @@ FUNCTION getEnvironment:T_arrayOfString;
   VAR i:longint;
       s:string;
   begin
+    initialize(result);
     setLength(result,0);
     for i:=1 to GetEnvironmentVariableCount do begin
       s:=GetEnvironmentString(i);
@@ -302,6 +303,7 @@ PROCEDURE runDetachedCommand(CONST executable: ansistring; CONST parameters: T_a
 FUNCTION myCommandLineParameters:T_arrayOfString;
   VAR i:longint;
   begin
+    initialize(result);
     setLength(result,paramCount);
     for i:=1 to paramCount do result[i-1]:=paramStr(i);
   end;
@@ -340,6 +342,7 @@ FUNCTION findFileInfo(CONST pathOrPattern:string):T_fileInfoArray;
        path: ansistring;
    begin
      path := extractFilePath(pathOrPattern);
+     initialize(result);
      setLength(result, 0);
      if findFirst(pathOrPattern, faAnyFile, info) = 0 then repeat
        if (info.name<>'.') and (info.name<>'..') then begin

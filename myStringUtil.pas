@@ -137,7 +137,7 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
       inc(c.txtLength,count);
     end;
 
-  VAR matrix: array of array of TcellInfo;
+  VAR matrix: array of array of TcellInfo=();
       i, j, maxJ, maxLength, dotPos: longint;
       anyTab:boolean=false;
       anyInvisibleTab:boolean=false;
@@ -458,6 +458,7 @@ FUNCTION split(CONST s:ansistring):T_arrayOfString;
 FUNCTION reSplit(CONST s:T_arrayOfString):T_arrayOfString;
   VAR i:longint;
   begin
+    initialize(result);
     setLength(result,0);
     for i:=0 to length(s)-1 do append(result,split(s[i]));
   end;
@@ -508,6 +509,7 @@ FUNCTION splitCommandLine(CONST s:ansistring):T_arrayOfString;
   VAR parseIndex:longint=1;
       k:longint;
   begin
+    initialize(result);
     setLength(result,0);
     while parseIndex<=length(s) do case s[parseIndex] of
       ' ': inc(parseIndex);
@@ -980,7 +982,7 @@ FUNCTION getListOfSimilarWords(CONST typedSoFar:string; CONST completionList:T_a
       j:longint=0;
       s:string;
       typedUpper:string;
-      buckets:array of T_arrayOfString;
+      buckets:array of T_arrayOfString=();
   PROCEDURE putToBucket(CONST match:string; CONST dist,uppercaseDist:longint);
     VAR bin:longint=BUCKET_COUNT;
     begin

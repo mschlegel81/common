@@ -70,9 +70,7 @@ CONST
   HP_Connection='Connection';
   HP_Date='Date';
   HP_Server='Server';
-
-FUNCTION emptyHeader:T_httpHeader;
-  begin setLength(result,0); end;
+  emptyHeader:T_httpHeader=();
 
 PROCEDURE setHeaderDefaults(VAR header:T_httpHeader; CONST contentLength:longint=0; CONST contentType:string=''; CONST serverInfo:string='');
   VAR i               :longint;

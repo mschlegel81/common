@@ -197,16 +197,29 @@ FUNCTION T_inputStreamWrapper.readDouble: double;     begin initialize(result); 
 FUNCTION T_inputStreamWrapper.readSingle: single;     begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readChar: char;         begin initialize(result); read(result,sizeOf(result)); end;
 FUNCTION T_inputStreamWrapper.readAnsiString: ansistring;
+  VAR i:int64;
   begin
-    setLength(result,readNaturalNumber);
+    initialize(result);
+    i:=readNaturalNumber;
+    if i>maxLongint then begin
+      logWrongTypeError;
+      exit('');
+    end;
+    setLength(result,i);
     if length(result)>0 then read(result[1],length(result));
     if earlyEndOfFileError then result:='';
   end;
 
 FUNCTION T_bufferedInputStreamWrapper.readAnsiString: ansistring;
-  VAR i:longint;
+  VAR i:int64;
   begin
-    setLength(result,readNaturalNumber);
+    initialize(result);
+    i:=readNaturalNumber;
+    if i>maxLongint then begin
+      logWrongTypeError;
+      exit('');
+    end;
+    setLength(result,i);
     i:=0;
     while i<length(result) do begin
       if (length(result)-i)>C_bufferSize
@@ -219,6 +232,7 @@ FUNCTION T_bufferedInputStreamWrapper.readAnsiString: ansistring;
 FUNCTION T_inputStreamWrapper.readNaturalNumber: qword;
   begin
     result:=readByte;
+    if not(allOkay) then exit(result);
     if result>=128 then result:=result and 127 + (readNaturalNumber() shl 7);
   end;
 
@@ -438,7 +452,7 @@ PROCEDURE T_serializable.saveToFile(CONST fileName: string);
   VAR stream:T_bufferedOutputStreamWrapper;
   begin
     stream.createToWriteToFile(fileName);
-    saveToStream(stream);
+    if stream.allOkay then saveToStream(stream);
     stream.flush;
     stream.destroy;
   end;
