@@ -3,16 +3,16 @@ INTERFACE
 USES math,myGenerics;
 TYPE
   T_colorChannel   =(cc_red, cc_green, cc_blue, cc_alpha);
-  T_rgbColor       =array[cc_red..cc_blue] of byte;
-  T_rgbaColor      =array[T_colorChannel ] of byte;
-  T_rgbFloatColor  =array[cc_red..cc_blue] of single;
-  T_rgbaFloatColor =array[T_colorChannel ] of single;
+  RGB_CHANNELS     =cc_red..cc_blue;
+  T_rgbColor       =array[RGB_CHANNELS  ] of byte;
+  T_rgbaColor      =array[T_colorChannel] of byte;
+  T_rgbFloatColor  =array[RGB_CHANNELS  ] of single;
+  T_rgbaFloatColor =array[T_colorChannel] of single;
   T_hsvChannel     =(hc_hue,hc_saturation,hc_value,hc_alpha);
-  T_hsvColor       =array[hc_hue..hc_value] of single;
-  T_hsvaColor      =array[hc_hue..hc_alpha] of single;
+  HSV_CHANNELS     =hc_hue..hc_value;
+  T_hsvColor       =array[HSV_CHANNELS] of single;
+  T_hsvaColor      =array[T_hsvChannel] of single;
 CONST
-  RGB_CHANNELS:set of T_colorChannel=[cc_red,cc_green,cc_blue];
-  HSV_CHANNELS:set of T_hsvChannel  =[hc_hue,hc_saturation,hc_value];
 
   SUBJECTIVE_GREY_RED_WEIGHT  =0.2126;
   SUBJECTIVE_GREY_GREEN_WEIGHT=0.7152;

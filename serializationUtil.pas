@@ -430,7 +430,7 @@ FUNCTION T_serializable.loadFromFile(CONST fileName: string): boolean;
 
 FUNCTION T_serializable.loadFromStream(VAR stream:T_bufferedInputStreamWrapper): boolean;
   begin
-    result:=stream.readDWord=getSerialVersion;
+    result:=stream.allOkay and (stream.readDWord=getSerialVersion);
     if not(result) then stream.wrongTypeError:=true;
   end;
 
