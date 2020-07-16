@@ -199,7 +199,6 @@ FUNCTION T_inputStreamWrapper.readChar: char;         begin initialize(result); 
 FUNCTION T_inputStreamWrapper.readAnsiString: ansistring;
   VAR i:int64;
   begin
-    initialize(result);
     i:=readNaturalNumber;
     if i>maxLongint then begin
       logWrongTypeError;
@@ -213,7 +212,6 @@ FUNCTION T_inputStreamWrapper.readAnsiString: ansistring;
 FUNCTION T_bufferedInputStreamWrapper.readAnsiString: ansistring;
   VAR i:int64;
   begin
-    initialize(result);
     i:=readNaturalNumber;
     if i>maxLongint then begin
       logWrongTypeError;

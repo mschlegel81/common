@@ -322,7 +322,6 @@ PROCEDURE sortUnique(VAR entry:M_ARRAY_TYPE);
 {$define arrayOpImpl:=
 OPERATOR :=(x:M_VALUE_TYPE):M_ARRAY_TYPE;
   begin
-    initialize(result);
     setLength(result,1);
     result[0]:=x;
   end}

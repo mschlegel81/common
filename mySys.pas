@@ -583,6 +583,7 @@ FUNCTION T_xosPrng.dwordRandom:dword;
     end;
   end;
 
+CONST MEM_CHECK_KILL_INTERVAL_MS=100;
 VAR memCheckThreadsRunning:longint=0;
     memCheckKillRequests:longint=0;
     MemoryUsed:ptrint=0;
@@ -641,10 +642,10 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
       end;
       while (sleepMillis>0) and (memCheckKillRequests=0) do begin
         ThreadSwitch;
-        if sleepMillis>100
-        then sleep(100)
+        if sleepMillis>MEM_CHECK_KILL_INTERVAL_MS
+        then sleep(MEM_CHECK_KILL_INTERVAL_MS)
         else sleep(sleepMillis);
-        dec(sleepMillis,100);
+        dec(sleepMillis,MEM_CHECK_KILL_INTERVAL_MS);
       end;
     end;
     Process.destroy;
@@ -689,12 +690,20 @@ FUNCTION isMemoryInComfortZone:boolean; inline;
     result:=MemoryUsed<memoryComfortThreshold;
   end;
 
+PROCEDURE finalizeGracefully;
+  VAR timeout:double;
+  begin
+    interLockedIncrement(memCheckKillRequests);
+    timeout:=now+ MEM_CHECK_KILL_INTERVAL_MS/(24*60*60*1000);
+    if clearConsoleProcess<>nil then clearConsoleProcess.destroy;
+    while (now<timeout) and (memCheckThreadsRunning>0) do sleep(1);
+    memoryCleaner.destroy;
+  end;
+
 INITIALIZATION
   memoryCleaner.create;
 
 FINALIZATION
-  if memCheckThreadsRunning>0 then interLockedIncrement(memCheckKillRequests);
-  if clearConsoleProcess<>nil then clearConsoleProcess.destroy;
-  memoryCleaner.destroy;
+  finalizeGracefully;
 
 end.
