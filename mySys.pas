@@ -604,7 +604,7 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
     {$ifdef UNIX}
       Process.executable:='ps';
       Process.parameters.add('o');
-      Process.parameters.add('size');
+      Process.parameters.add('rss');
       Process.parameters.add('-p');
       Process.parameters.add(intToStr(GetProcessID));
     {$else}
