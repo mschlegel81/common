@@ -1,6 +1,6 @@
 UNIT httpUtil;
 INTERFACE
-USES Classes, blcksock, synautil, sysutils, myGenerics,myStringUtil,synsock;
+USES Classes, blcksock, synautil, sysutils, myGenerics,myStringUtil,synsock,opensslsockets;
 TYPE
   T_httpRequestMethod=(htrm_no_request,htrm_GET,htrm_POST,htrm_HEAD,htrm_PUT,htrm_PATCH,htrm_DELETE,htrm_TRACE,htrm_OPTIONS,htrm_CONNECT);
 CONST
