@@ -195,6 +195,20 @@ TYPE
       FUNCTION registeredCount:longint;
   end;
 
+  GENERIC G_queue<ENTRY_TYPE>=object
+    TYPE ELEMENT_ARRAY=array of ENTRY_TYPE;
+    private
+      CONST MINIMUM_DATA_SIZE=16;
+      VAR firstIdx,lastIdx:longint;
+          data:ELEMENT_ARRAY;
+     public
+      CONSTRUCTOR create;
+      DESTRUCTOR destroy;
+      PROCEDURE append(CONST newValue:ENTRY_TYPE);
+      FUNCTION next:ENTRY_TYPE;
+      FUNCTION hasNext:boolean;
+  end;
+
 FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; {$ifndef debugMode} inline; {$endif}
 
 IMPLEMENTATION
@@ -907,6 +921,53 @@ someSetImplementation;
 {$define M_HASH_FUNC:=}
 someKeyMapImplementation;
 someSetImplementation;
+
+CONSTRUCTOR G_queue.create;
+  begin
+    setLength(data,MINIMUM_DATA_SIZE);
+    firstIdx:=0;
+    lastIdx:=-1;
+  end;
+
+DESTRUCTOR G_queue.destroy;
+  begin
+    setLength(data,0);
+  end;
+
+PROCEDURE G_queue.append(CONST newValue:ENTRY_TYPE);
+  begin
+    inc(lastIdx);
+    if (lastIdx>=length(data)) then setLength(data,length(data)*2);
+    data[lastIdx]:=newValue;
+  end;
+
+FUNCTION G_queue.next:ENTRY_TYPE;
+  VAR i:longint;
+  begin
+    if firstIdx>lastIdx then begin
+      {$ifdef debugMode}
+      raise Exception.create('THIS MUST NOT BE CALLED WHEN THE QUEUE IS EMPTY!');
+      {$endif}
+      initialize(result);
+      exit;
+    end;
+    result:=data[firstIdx];
+    inc(firstIdx);
+
+    if (firstIdx+firstIdx>length(data)) then begin
+      for i:=firstIdx to lastIdx do data[i-firstIdx]:=data[i];
+      dec(lastIdx,firstIdx);
+      firstIdx:=0;
+      i:=lastIdx+lastIdx;
+      if i<MINIMUM_DATA_SIZE then i:=MINIMUM_DATA_SIZE;
+      if (length(data)>i) then setLength(data,i);
+    end;
+  end;
+
+FUNCTION G_queue.hasNext:boolean;
+  begin
+    result:=firstIdx<=lastIdx;
+  end;
 
 end.
 
