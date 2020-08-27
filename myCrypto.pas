@@ -376,6 +376,7 @@ FUNCTION T_sha256.getHash: T_sha256Hash;
       LenLo: longword;
 
   begin
+    {$Q-}{$R-}
     LenHi:=size shr 29;
     LenLo:=size*8;
 
@@ -395,6 +396,7 @@ FUNCTION T_sha256.getHash: T_sha256Hash;
     CurrentHash[6]:= SwapDWord(CurrentHash[6]);
     CurrentHash[7]:= SwapDWord(CurrentHash[7]);
     move(CurrentHash,result,sizeOf(CurrentHash));
+    {$Q+}{$R+}
   end;
 
 end.
