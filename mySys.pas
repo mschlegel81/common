@@ -1,6 +1,13 @@
 UNIT mySys;
 INTERFACE
-USES dos,myGenerics,sysutils,Process,{$ifdef Windows}windows,{$endif}FileUtil,Classes,LazUTF8;
+USES dos,myGenerics,sysutils,Process,
+     {$ifdef Windows}
+     windows,
+     ActiveX,
+     ComObj,
+     Variants,
+     {$endif}
+     FileUtil,Classes,LazUTF8;
 
 TYPE
   T_fileAttrib=(aExistent ,
@@ -582,46 +589,86 @@ FUNCTION T_xosPrng.dwordRandom:dword;
       leaveCriticalSection(criticalSection);
     end;
   end;
-
 CONST MEM_CHECK_KILL_INTERVAL_MS=100;
 VAR memCheckThreadsRunning:longint=0;
     memCheckKillRequests:longint=0;
     MemoryUsed:ptrint=0;
+
 FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
   CONST minCleanupInterval=10/(24*60*60); //=10 seconds
-        maxSleepMillis    =10000;         //=10 seconds
-  VAR Process:TProcess;
+        maxSleepMillis    ={$ifdef Windows}2000{$else}10000{$endif}; //=2 or 10 seconds
+  VAR {$ifdef UNIX}
+      Process:TProcess;
       output: TStringList;
       i:longint;
       tempMem:ptrint;
+      {$endif}
       lastCleanupCall:double=0;
       sleepMillis:longint;
       relUse:double;
       relGrowth:double;
       previouslyUsed:ptrint=0;
+     {$ifdef Windows}
+      FSWbemLocator      : OLEVariant;
+      FWMIService        : OLEVariant;
+      workingSetSizeQuery: OLEVariant;
+  PROCEDURE initializeWMI;
+    CONST WbemUser            ='';
+          WbemPassword        ='';
+          WbemComputer        ='localhost';
+          void:PVOID=nil;
+    begin
+      CoInitialize(void);
+      FSWbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
+      FWMIService   := FSWbemLocator.ConnectServer(WbemComputer, 'root\CIMV2', WbemUser, WbemPassword);
+      workingSetSizeQuery:='SELECT WorkingSetSize FROM Win32_Process WHERE ProcessId='+intToStr(GetProcessID);
+    end;
+
+  FUNCTION getMyWorkingSetSize:int64;
+    CONST wbemFlagForwardOnly = $00000020;
+    VAR FWbemObjectSet: OLEVariant;
+        FWbemObject   : OLEVariant;
+        oEnum         : IEnumvariant;
+        tmp           : longword;
+    begin
+      initializeWMI;
+      try
+        FWbemObjectSet:= FWMIService.ExecQuery(workingSetSizeQuery,'WQL',wbemFlagForwardOnly);
+        oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumVariant;
+        if oEnum.next(1, FWbemObject, tmp) = 0 then begin
+          result := FWbemObject.Properties_.item('WorkingSetSize').value;
+          FWbemObject:=Unassigned;
+        end else result:=-1;
+      except
+        result:=-1;
+      end;
+    end;
+  {$endif}
   begin
-    Process:=TProcess.create(nil);
+    {$ifdef Windows}
+    initializeWMI;
+    {$endif}
     {$ifdef UNIX}
+      Process:=TProcess.create(nil);
       Process.executable:='ps';
       Process.parameters.add('o');
       Process.parameters.add('rss');
       Process.parameters.add('-p');
       Process.parameters.add(intToStr(GetProcessID));
-    {$else}
-      Process.executable:='wmic';
-      Process.parameters.add('process');
-      Process.parameters.add('where');
-      Process.parameters.add('ProcessId="'+intToStr(GetProcessID)+'"');
-      Process.parameters.add('get');
-      Process.parameters.add('workingsetsize');
     {$endif}
     while (memCheckKillRequests<=0) and (memCheckThreadsRunning=1) do begin
+      {$ifdef UNIX}
       runProcess(Process,output);
       tempMem:=-1;
       for i:=0 to output.count-1 do if tempMem<0 then tempMem:=StrToInt64Def(trim(output[i]),-1);
       if tempMem<0 then MemoryUsed:=GetHeapStatus.TotalAllocated
-                   else MemoryUsed:=tempMem{$ifdef UNIX}*1024{$endif};
+                   else MemoryUsed:=tempMem*1024;
       output.destroy;
+      {$endif}
+      {$ifdef Windows}
+      MemoryUsed:=getMyWorkingSetSize;
+      {$endif}
+
       if (MemoryUsed>memoryComfortThreshold) then begin
         if (now>lastCleanupCall+minCleanupInterval) then begin
           {$ifdef debugMode}
@@ -648,7 +695,9 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
         dec(sleepMillis,MEM_CHECK_KILL_INTERVAL_MS);
       end;
     end;
+    {$ifdef UNIX}
     Process.destroy;
+    {$endif}
     interlockedDecrement(memCheckThreadsRunning);
     result:=0;
   end;
