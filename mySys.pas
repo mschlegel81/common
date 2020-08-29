@@ -589,7 +589,7 @@ FUNCTION T_xosPrng.dwordRandom:dword;
       leaveCriticalSection(criticalSection);
     end;
   end;
-CONST MEM_CHECK_KILL_INTERVAL_MS=100;
+CONST MEM_CHECK_KILL_INTERVAL_MS=10;
 VAR memCheckThreadsRunning:longint=0;
     memCheckKillRequests:longint=0;
     MemoryUsed:ptrint=0;
