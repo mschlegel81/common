@@ -618,10 +618,15 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
           WbemComputer        ='localhost';
           void:PVOID=nil;
     begin
-      CoInitialize(void);
-      FSWbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
-      FWMIService   := FSWbemLocator.ConnectServer(WbemComputer, 'root\CIMV2', WbemUser, WbemPassword);
-      workingSetSizeQuery:='SELECT WorkingSetSize FROM Win32_Process WHERE ProcessId='+intToStr(GetProcessID);
+      try
+        CoInitialize(void);
+        FSWbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
+        FWMIService   := FSWbemLocator.ConnectServer(WbemComputer, 'root\CIMV2', WbemUser, WbemPassword);
+        workingSetSizeQuery:='SELECT WorkingSetSize FROM Win32_Process WHERE ProcessId='+intToStr(GetProcessID);
+      except
+        //ignore all exceptions - memory checker is broken if WMI is not accessible
+        interLockedIncrement(memCheckKillRequests);
+      end;
     end;
 
   FUNCTION getMyWorkingSetSize:int64;
@@ -631,7 +636,6 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
         oEnum         : IEnumvariant;
         tmp           : longword;
     begin
-      initializeWMI;
       try
         FWbemObjectSet:= FWMIService.ExecQuery(workingSetSizeQuery,'WQL',wbemFlagForwardOnly);
         oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumVariant;
@@ -640,6 +644,8 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
           FWbemObject:=Unassigned;
         end else result:=-1;
       except
+        //ignore all exceptions - memory checker is broken if WMI is not accessible
+        interLockedIncrement(memCheckKillRequests);
         result:=-1;
       end;
     end;
@@ -743,7 +749,7 @@ PROCEDURE finalizeGracefully;
   VAR timeout:double;
   begin
     interLockedIncrement(memCheckKillRequests);
-    timeout:=now+ MEM_CHECK_KILL_INTERVAL_MS/(24*60*60*1000);
+    timeout:=now+10*MEM_CHECK_KILL_INTERVAL_MS/(24*60*60*1000);
     if clearConsoleProcess<>nil then clearConsoleProcess.destroy;
     while (now<timeout) and (memCheckThreadsRunning>0) do sleep(1);
     memoryCleaner.destroy;
