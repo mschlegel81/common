@@ -53,6 +53,13 @@ TYPE
       FUNCTION dwordRandom:dword;
   end;
 
+  T_taskInfo=object
+    pid,parentPID: UInt32;
+    workingSetSize: UInt64;
+    caption,commandLine:string;
+  end;
+  T_taskInfoArray = array of T_taskInfo;
+
   F_cleanupCallback=PROCEDURE;
   F_objectCleanupCallback=PROCEDURE of object;
 
@@ -86,6 +93,8 @@ FUNCTION getNumberOfCPUs:longint;
   {$ifndef debugMode}
   FUNCTION GetConsoleWindow: HWND; stdcall; external kernel32;
   {$endif}
+  FUNCTION getTaskInfo:T_taskInfoArray;
+  FUNCTION getCPULoadPercentage:longint;
 {$endif}
 PROCEDURE showConsole;
 PROCEDURE hideConsole;
@@ -166,7 +175,7 @@ PROCEDURE T_memoryCleaner.callCleanupMethods;
     end;
   end;
 
-FUNCTION getNumberOfCPUs:longint;
+FUNCTION getNumberOfCPUs: longint;
 {$ifdef Windows}
 {$WARN 5057 OFF}
   VAR SystemInfo:SYSTEM_INFO;
@@ -193,7 +202,7 @@ FUNCTION getNumberOfCPUs:longint;
   end;
 {$endif}
 
-FUNCTION getEnvironment:T_arrayOfString;
+FUNCTION getEnvironment: T_arrayOfString;
   VAR i:longint;
       s:string;
   begin
@@ -205,7 +214,7 @@ FUNCTION getEnvironment:T_arrayOfString;
     end;
   end;
 
-FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
+FUNCTION findDeeply(CONST rootPath, searchPattern: ansistring): ansistring;
   PROCEDURE recursePath(CONST path: ansistring);
     VAR info: TSearchRec;
     FUNCTION deeper:ansistring;
@@ -233,7 +242,7 @@ FUNCTION findDeeply(CONST rootPath,searchPattern:ansistring):ansistring;
     recursePath(rootPath);
   end;
 
-FUNCTION findOne(CONST searchPattern:ansistring):ansistring;
+FUNCTION findOne(CONST searchPattern: ansistring): ansistring;
   VAR info: TSearchRec;
   begin
     if findFirst(searchPattern,faAnyFile,info)=0
@@ -307,7 +316,7 @@ PROCEDURE runDetachedCommand(CONST executable: ansistring; CONST parameters: T_a
     tempProcess.free;
   end;
 
-FUNCTION myCommandLineParameters:T_arrayOfString;
+FUNCTION myCommandLineParameters: T_arrayOfString;
   VAR i:longint;
   begin
     initialize(result);
@@ -339,12 +348,12 @@ PROCEDURE clearConsole;
     end;
   end;
 
-FUNCTION containsPlaceholder(CONST S:string):boolean;
+FUNCTION containsPlaceholder(CONST S: string): boolean;
   begin
     result:=(pos('*',s)>0) or (pos('?',s)>0);
   end;
 
-FUNCTION findFileInfo(CONST pathOrPattern:string):T_fileInfoArray;
+FUNCTION findFileInfo(CONST pathOrPattern: string): T_fileInfoArray;
    VAR info: TSearchRec;
        path: ansistring;
    begin
@@ -383,7 +392,7 @@ FUNCTION findFileInfo(CONST pathOrPattern:string):T_fileInfoArray;
    end;
 
 VAR consoleShowing:longint=1;
-FUNCTION isConsoleShowing:boolean;
+FUNCTION isConsoleShowing: boolean;
   begin
     result:={$ifdef Windows}consoleShowing>=1{$else}true{$endif};
   end;
@@ -456,9 +465,74 @@ PROCEDURE deleteMyselfOnExit;
     proc.parameters.add(batName);
     proc.execute;
   end;
+
+FUNCTION getTaskInfo: T_taskInfoArray;
+  CONST
+    WbemUser            ='';
+    WbemPassword        ='';
+    WbemComputer        ='localhost';
+    wbemFlagForwardOnly = $00000020;
+  VAR
+    FSWbemLocator : OLEVariant;
+    FWMIService   : OLEVariant;
+    FWbemObjectSet: OLEVariant;
+    FWbemObject   : OLEVariant;
+    oEnum         : IEnumvariant;
+    tmp           : longword;
+    void          : PVOID=nil;
+    newEntry      : T_taskInfo;
+  begin;
+    initialize(result);
+    setLength(result,0);
+    CoInitialize(void);
+    FSWbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
+    FWMIService   := FSWbemLocator.ConnectServer(WbemComputer, 'root\CIMV2', WbemUser, WbemPassword);
+    FWbemObjectSet:= FWMIService.ExecQuery('SELECT * FROM Win32_Process','WQL',wbemFlagForwardOnly);
+    oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumVariant;
+    while oEnum.next(1, FWbemObject, tmp) = 0 do
+    begin
+      initialize(newEntry);
+      newEntry.caption       := VarToStr(FWbemObject.Properties_.item('Caption').value);
+      newEntry.pid           := FWbemObject.Properties_.item('ProcessId').value;
+      newEntry.parentPID     :=FWbemObject.Properties_.item('ParentProcessId').value;
+      newEntry.workingSetSize:=FWbemObject.Properties_.item('WorkingSetSize').value;
+      newEntry.commandLine   :=VarToStr(FWbemObject.Properties_.item('CommandLine').value);
+      FWbemObject:=Unassigned;
+    end;
+  end;
+
+FUNCTION getCPULoadPercentage: longint;
+  CONST
+    WbemUser            ='';
+    WbemPassword        ='';
+    WbemComputer        ='localhost';
+    wbemFlagForwardOnly = $00000020;
+  VAR FSWbemLocator : OLEVariant;
+      FWMIService   : OLEVariant;
+      FWbemObjectSet: OLEVariant;
+      FWbemObject   : OLEVariant;
+      oEnum         : IEnumvariant;
+      tmp           : longword;
+      void          : PVOID=nil;
+  begin
+    CoInitialize(void);
+    FSWbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
+    FWMIService   := FSWbemLocator.ConnectServer(WbemComputer, 'root\CIMV2', WbemUser, WbemPassword);
+    try
+      FWbemObjectSet:= FWMIService.ExecQuery('SELECT LoadPercentage FROM Win32_Processor','WQL',wbemFlagForwardOnly);
+      oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumVariant;
+      if oEnum.next(1, FWbemObject, tmp) = 0 then begin
+        result := FWbemObject.Properties_.item('LoadPercentage').value;
+        FWbemObject:=Unassigned;
+      end else result:=-1;
+    except
+      result:=-1;
+    end;
+  end;
+
 {$endif}
 
-PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
+PROCEDURE writeFile(CONST fileName: string; CONST lines: T_arrayOfString);
   VAR handle:text;
       i:longint;
   begin
@@ -468,7 +542,7 @@ PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
     close(handle);
   end;
 
-FUNCTION readFile(CONST fileName:string):T_arrayOfString;
+FUNCTION readFile(CONST fileName: string): T_arrayOfString;
   VAR handle:text;
   begin
     if not(fileExists(fileName)) then exit(C_EMPTY_STRING_ARRAY);
@@ -713,12 +787,12 @@ PROCEDURE T_memoryCleaner.stop;
     interLockedIncrement(memCheckKillRequests);
   end;
 
-FUNCTION getMemoryUsedInBytes:int64;
+FUNCTION getMemoryUsedInBytes: int64;
   begin
     result:=MemoryUsed;
   end;
 
-FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold:double):string;
+FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold: double): string;
   VAR val:ptrint;
   begin
     fractionOfThreshold:=MemoryUsed/memoryComfortThreshold;
@@ -728,7 +802,7 @@ FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold:double):string;
     val:=val shr 10;               result:=intToStr(val)+' GB';
   end;
 
-PROCEDURE startMemChecker(CONST threshold:int64);
+PROCEDURE startMemChecker(CONST threshold: int64);
   begin
     memoryComfortThreshold:=threshold;
     {$ifdef CPU32}
@@ -740,7 +814,7 @@ PROCEDURE startMemChecker(CONST threshold:int64);
     beginThread(@memCheckThread);
   end;
 
-FUNCTION isMemoryInComfortZone:boolean; inline;
+FUNCTION isMemoryInComfortZone: boolean;
   begin
     result:=MemoryUsed<memoryComfortThreshold;
   end;
