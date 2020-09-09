@@ -56,7 +56,7 @@ TYPE
   T_taskInfo=object
     pid,parentPID: UInt32;
     workingSetSize: UInt64;
-    caption,commandLine:string;
+    caption,commandLine:shortstring; //using ansi-strings instead seems to provoke memory leaks
   end;
   T_taskInfoArray = array of T_taskInfo;
 
@@ -494,9 +494,11 @@ FUNCTION getTaskInfo: T_taskInfoArray;
       initialize(newEntry);
       newEntry.caption       := VarToStr(FWbemObject.Properties_.item('Caption').value);
       newEntry.pid           := FWbemObject.Properties_.item('ProcessId').value;
-      newEntry.parentPID     :=FWbemObject.Properties_.item('ParentProcessId').value;
-      newEntry.workingSetSize:=FWbemObject.Properties_.item('WorkingSetSize').value;
-      newEntry.commandLine   :=VarToStr(FWbemObject.Properties_.item('CommandLine').value);
+      newEntry.parentPID     := FWbemObject.Properties_.item('ParentProcessId').value;
+      newEntry.workingSetSize:= FWbemObject.Properties_.item('WorkingSetSize').value;
+      newEntry.commandLine   := VarToStr(FWbemObject.Properties_.item('CommandLine').value);
+      setLength(result,length(result)+1);
+      result[length(result)-1]:=newEntry;
       FWbemObject:=Unassigned;
     end;
   end;
