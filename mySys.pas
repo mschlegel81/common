@@ -488,7 +488,7 @@ FUNCTION getTaskInfo: T_taskInfoArray;
     FSWbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
     FWMIService   := FSWbemLocator.ConnectServer(WbemComputer, 'root\CIMV2', WbemUser, WbemPassword);
     FWbemObjectSet:= FWMIService.ExecQuery('SELECT * FROM Win32_Process','WQL',wbemFlagForwardOnly);
-    oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumVariant;
+    oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumvariant;
     while oEnum.next(1, FWbemObject, tmp) = 0 do
     begin
       initialize(newEntry);
@@ -522,7 +522,7 @@ FUNCTION getCPULoadPercentage: longint;
     FWMIService   := FSWbemLocator.ConnectServer(WbemComputer, 'root\CIMV2', WbemUser, WbemPassword);
     try
       FWbemObjectSet:= FWMIService.ExecQuery('SELECT LoadPercentage FROM Win32_Processor','WQL',wbemFlagForwardOnly);
-      oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumVariant;
+      oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumvariant;
       if oEnum.next(1, FWbemObject, tmp) = 0 then begin
         result := FWbemObject.Properties_.item('LoadPercentage').value;
         FWbemObject:=Unassigned;
@@ -714,7 +714,7 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
     begin
       try
         FWbemObjectSet:= FWMIService.ExecQuery(workingSetSizeQuery,'WQL',wbemFlagForwardOnly);
-        oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumVariant;
+        oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumvariant;
         if oEnum.next(1, FWbemObject, tmp) = 0 then begin
           result := FWbemObject.Properties_.item('WorkingSetSize').value;
           FWbemObject:=Unassigned;
