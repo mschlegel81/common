@@ -65,7 +65,7 @@ FUNCTION percentDecode(CONST s:string):string;
 FUNCTION base92Encode(CONST src:ansistring):ansistring;
 FUNCTION base92Decode(CONST src:ansistring):ansistring;
 
-FUNCTION shortcutToString(CONST shortcut:word):string;
+FUNCTION shortcutToString(CONST ShortCut:word):string;
 
 IMPLEMENTATION
 USES LCLType;
@@ -1103,29 +1103,29 @@ FUNCTION base92Decode(CONST src:ansistring):ansistring;
     end;
   end;
 
-FUNCTION shortcutToString(CONST shortcut:word):string;
+FUNCTION shortcutToString(CONST ShortCut:word):string;
   begin
-    if shortcut and scMeta >0 then result:='Meta+' else result:='';
-    if shortcut and scShift>0 then result+='Shift+';
-    if shortcut and scCtrl >0 then result+='Ctrl+';
-    if shortcut and scAlt  >0 then result+='Alt+';
-    if chr(shortcut and 255) in ['A'..'Z'] then exit(result+chr(shortcut and 255));
-    if (shortcut and 255)=0            then exit('');
-    if (shortcut and 255)=VK_OEM_PLUS  then exit(result+'(+)');
-    if (shortcut and 255)=VK_OEM_MINUS then exit(result+'(-)');
-    if (shortcut and 255)=VK_F1        then exit(result+'F1');
-    if (shortcut and 255)=VK_F2        then exit(result+'F2');
-    if (shortcut and 255)=VK_F3        then exit(result+'F3');
-    if (shortcut and 255)=VK_F4        then exit(result+'F4');
-    if (shortcut and 255)=VK_F5        then exit(result+'F5');
-    if (shortcut and 255)=VK_F6        then exit(result+'F6');
-    if (shortcut and 255)=VK_F7        then exit(result+'F7');
-    if (shortcut and 255)=VK_F8        then exit(result+'F8');
-    if (shortcut and 255)=VK_F9        then exit(result+'F9');
-    if (shortcut and 255)=VK_F10       then exit(result+'F10');
-    if (shortcut and 255)=VK_F11       then exit(result+'F11');
-    if (shortcut and 255)=VK_F12       then exit(result+'F12');
-    result:=result+'[unresolved key '+IntToStr(shortcut and 255)+']';
+    if ShortCut and scMeta >0 then result:='Meta+' else result:='';
+    if ShortCut and scShift>0 then result+='Shift+';
+    if ShortCut and scCtrl >0 then result+='Ctrl+';
+    if ShortCut and scAlt  >0 then result+='Alt+';
+    if chr(ShortCut and 255) in ['A'..'Z'] then exit(result+chr(ShortCut and 255));
+    if (ShortCut and 255)=0            then exit('');
+    if (ShortCut and 255)=VK_OEM_PLUS  then exit(result+'(+)');
+    if (ShortCut and 255)=VK_OEM_MINUS then exit(result+'(-)');
+    if (ShortCut and 255)=VK_F1        then exit(result+'F1');
+    if (ShortCut and 255)=VK_F2        then exit(result+'F2');
+    if (ShortCut and 255)=VK_F3        then exit(result+'F3');
+    if (ShortCut and 255)=VK_F4        then exit(result+'F4');
+    if (ShortCut and 255)=VK_F5        then exit(result+'F5');
+    if (ShortCut and 255)=VK_F6        then exit(result+'F6');
+    if (ShortCut and 255)=VK_F7        then exit(result+'F7');
+    if (ShortCut and 255)=VK_F8        then exit(result+'F8');
+    if (ShortCut and 255)=VK_F9        then exit(result+'F9');
+    if (ShortCut and 255)=VK_F10       then exit(result+'F10');
+    if (ShortCut and 255)=VK_F11       then exit(result+'F11');
+    if (ShortCut and 255)=VK_F12       then exit(result+'F12');
+    result:=result+'[unresolved key '+intToStr(ShortCut and 255)+']';
   end;
 
 end.
