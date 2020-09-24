@@ -365,7 +365,14 @@ FUNCTION findFileInfo(CONST pathOrPattern: string): T_fileInfoArray;
          setLength(result, length(result)+1);
          with result[length(result)-1] do begin
            filePath:=path+info.name;
-           time:=FileDateToDateTime(info.time);
+           try
+             time:=FileDateToDateTime(info.time);
+           except
+             {$ifdef debugMode}
+             writeln('Could not convert file time to datetime. Value is: ',info.time);
+             {$endif}
+             time:=0;
+           end;
            size:=info.size;
            attributes:=[aExistent];
            if info.Attr and faReadOnly >0 then include(attributes,aReadOnly );
