@@ -1109,7 +1109,7 @@ FUNCTION shortcutToString(CONST ShortCut:word):string;
     if ShortCut and scShift>0 then result+='Shift+';
     if ShortCut and scCtrl >0 then result+='Ctrl+';
     if ShortCut and scAlt  >0 then result+='Alt+';
-    if chr(ShortCut and 255) in ['A'..'Z'] then exit(result+chr(ShortCut and 255));
+    if chr(ShortCut and 255) in ['0'..'9','A'..'Z'] then exit(result+chr(ShortCut and 255));
     if (ShortCut and 255)=0            then exit('');
     if (ShortCut and 255)=VK_OEM_PLUS  then exit(result+'(+)');
     if (ShortCut and 255)=VK_OEM_MINUS then exit(result+'(-)');
