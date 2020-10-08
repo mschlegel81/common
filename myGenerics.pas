@@ -15,6 +15,7 @@ TYPE
   PROCEDURE prepend(VAR x:M_ARRAY_TYPE; CONST y:M_VALUE_TYPE);
   PROCEDURE append(VAR x:M_ARRAY_TYPE; CONST y:M_VALUE_TYPE);
   PROCEDURE append(VAR x:M_ARRAY_TYPE; CONST y:M_ARRAY_TYPE);
+  FUNCTION arrContains(CONST x:M_ARRAY_TYPE; CONST y:M_VALUE_TYPE):boolean;
   PROCEDURE appendIfNew(VAR x:M_ARRAY_TYPE; CONST y:M_VALUE_TYPE);
   PROCEDURE dropFirst(VAR x:M_ARRAY_TYPE; CONST dropCount:longint);
   PROCEDURE dropValues(VAR x:M_ARRAY_TYPE; CONST toDrop:M_VALUE_TYPE);
@@ -241,6 +242,13 @@ PROCEDURE append(VAR x:M_ARRAY_TYPE; CONST y:M_ARRAY_TYPE);
     i0:=length(x);
     setLength(x,i0+length(y));
     for i:=0 to length(y)-1 do x[i+i0]:=y[i];
+  end;
+
+FUNCTION arrContains(CONST x:M_ARRAY_TYPE; CONST y:M_VALUE_TYPE):boolean;
+  VAR i:longint;
+  begin
+    for i:=0 to length(x)-1 do if x[i]=y then exit(true);
+    result:=false;
   end;
 
 PROCEDURE appendIfNew(VAR x:M_ARRAY_TYPE; CONST y:M_VALUE_TYPE);
