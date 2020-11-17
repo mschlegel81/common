@@ -261,7 +261,7 @@ FUNCTION T_httpListener.getRequest(CONST timeOutInMilliseconds: longint):P_httpC
 FUNCTION T_httpListener.getRawRequestSocket(CONST timeOutInMilliseconds:longint=100):TSocket;
   begin
     if not(ListenerSocket.canread(timeOutInMilliseconds))
-    then exit(0)
+    then exit(INVALID_SOCKET)
     else begin
       interLockedIncrement(openConnections);
       result:=ListenerSocket.accept;
