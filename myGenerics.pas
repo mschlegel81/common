@@ -940,6 +940,8 @@ CONSTRUCTOR G_queue.create;
 DESTRUCTOR G_queue.destroy;
   begin
     setLength(data,0);
+    firstIdx:=0;
+    lastIdx:=-1;
   end;
 
 PROCEDURE G_queue.append(CONST newValue:ENTRY_TYPE);
