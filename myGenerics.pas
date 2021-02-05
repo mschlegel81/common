@@ -169,8 +169,6 @@ TYPE
       FUNCTION isObtained:boolean;
   end;
 
-  { G_instanceRegistry }
-
   GENERIC G_instanceRegistry<ENTRY_TYPE>=object
     TYPE T_operationOnEntry=PROCEDURE(x:ENTRY_TYPE);
          T_parameterizedOperationOnEntry=PROCEDURE(x:ENTRY_TYPE;p:pointer);
@@ -208,6 +206,22 @@ TYPE
       PROCEDURE append(CONST newValue:ENTRY_TYPE);
       FUNCTION next:ENTRY_TYPE;
       FUNCTION hasNext:boolean;
+      FUNCTION getAll:ELEMENT_ARRAY;
+  end;
+
+  GENERIC G_threadsafeQueue<ENTRY_TYPE>=object
+    TYPE T_innerQueue=specialize G_queue<ENTRY_TYPE>;
+    TYPE ELEMENT_ARRAY=array of ENTRY_TYPE;
+    private
+      queueCs:TRTLCriticalSection;
+      queue:T_innerQueue;
+    public
+      CONSTRUCTOR create;
+      DESTRUCTOR destroy;
+      PROCEDURE append(CONST newValue:ENTRY_TYPE);
+      FUNCTION canGetNext(OUT v:ENTRY_TYPE):boolean;
+      FUNCTION hasNext:boolean;
+      FUNCTION getAll:ELEMENT_ARRAY;
   end;
 
 FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; {$ifndef debugMode} inline; {$endif}
@@ -363,6 +377,49 @@ FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; {$ifndef debugMode} inlin
     result:=length(x);
     for i:=1 to length(x) do result:=result*31+ord(x[i]);
     {$Q+}{$R+}
+  end;
+
+constructor G_threadsafeQueue.create;
+  begin
+    InitCriticalSection(queueCs);
+    queue.create;
+  end;
+
+destructor G_threadsafeQueue.destroy;
+  begin
+    EnterCriticalSection(queueCs);
+    queue.destroy;
+    LeaveCriticalSection(queueCs);
+    DoneCriticalSection(queueCs);
+  end;
+
+procedure G_threadsafeQueue.append(const newValue: ENTRY_TYPE);
+  begin
+    EnterCriticalSection(queueCs);
+    queue.append(newValue);
+    LeaveCriticalSection(queueCs);
+  end;
+
+function G_threadsafeQueue.canGetNext(out v: ENTRY_TYPE): boolean;
+  begin
+    EnterCriticalSection(queueCs);
+    result:=queue.hasNext;
+    if result then v:=queue.next;
+    LeaveCriticalSection(queueCs);
+  end;
+
+function G_threadsafeQueue.hasNext: boolean;
+  begin
+    EnterCriticalSection(queueCs);
+    result:=queue.hasNext;
+    LeaveCriticalSection(queueCs);
+  end;
+
+function G_threadsafeQueue.getAll: ELEMENT_ARRAY;
+  begin
+    EnterCriticalSection(queueCs);
+    result:=queue.getAll;
+    LeaveCriticalSection(queueCs);
   end;
 
 CONSTRUCTOR G_instanceRegistry.create;
@@ -977,6 +1034,23 @@ FUNCTION G_queue.next:ENTRY_TYPE;
 FUNCTION G_queue.hasNext:boolean;
   begin
     result:=firstIdx<=lastIdx;
+  end;
+
+FUNCTION G_queue.getAll:ELEMENT_ARRAY;
+  VAR i:longint;
+  begin
+    if firstIdx>lastIdx then begin
+      setLength(result,0);
+      exit(result);
+    end;
+    setLength(result,lastIdx+firstIdx+1);
+    for i:=0 to length(result)-1 do result[i]:=data[firstIdx+i];
+
+    i:=length(result) shr 1;
+    if i<MINIMUM_DATA_SIZE then i:=MINIMUM_DATA_SIZE;
+    setLength(data,i);
+    firstIdx:=0;
+    lastIdx:=-1;
   end;
 
 end.
