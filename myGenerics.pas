@@ -379,47 +379,47 @@ FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; {$ifndef debugMode} inlin
     {$Q+}{$R+}
   end;
 
-constructor G_threadsafeQueue.create;
+CONSTRUCTOR G_threadsafeQueue.create;
   begin
-    InitCriticalSection(queueCs);
+    initCriticalSection(queueCs);
     queue.create;
   end;
 
-destructor G_threadsafeQueue.destroy;
+DESTRUCTOR G_threadsafeQueue.destroy;
   begin
-    EnterCriticalSection(queueCs);
+    enterCriticalSection(queueCs);
     queue.destroy;
-    LeaveCriticalSection(queueCs);
-    DoneCriticalSection(queueCs);
+    leaveCriticalSection(queueCs);
+    doneCriticalSection(queueCs);
   end;
 
-procedure G_threadsafeQueue.append(const newValue: ENTRY_TYPE);
+PROCEDURE G_threadsafeQueue.append(CONST newValue: ENTRY_TYPE);
   begin
-    EnterCriticalSection(queueCs);
+    enterCriticalSection(queueCs);
     queue.append(newValue);
-    LeaveCriticalSection(queueCs);
+    leaveCriticalSection(queueCs);
   end;
 
-function G_threadsafeQueue.canGetNext(out v: ENTRY_TYPE): boolean;
+FUNCTION G_threadsafeQueue.canGetNext(OUT v: ENTRY_TYPE): boolean;
   begin
-    EnterCriticalSection(queueCs);
+    enterCriticalSection(queueCs);
     result:=queue.hasNext;
     if result then v:=queue.next;
-    LeaveCriticalSection(queueCs);
+    leaveCriticalSection(queueCs);
   end;
 
-function G_threadsafeQueue.hasNext: boolean;
+FUNCTION G_threadsafeQueue.hasNext: boolean;
   begin
-    EnterCriticalSection(queueCs);
+    enterCriticalSection(queueCs);
     result:=queue.hasNext;
-    LeaveCriticalSection(queueCs);
+    leaveCriticalSection(queueCs);
   end;
 
-function G_threadsafeQueue.getAll: ELEMENT_ARRAY;
+FUNCTION G_threadsafeQueue.getAll: ELEMENT_ARRAY;
   begin
-    EnterCriticalSection(queueCs);
+    enterCriticalSection(queueCs);
     result:=queue.getAll;
-    LeaveCriticalSection(queueCs);
+    leaveCriticalSection(queueCs);
   end;
 
 CONSTRUCTOR G_instanceRegistry.create;
