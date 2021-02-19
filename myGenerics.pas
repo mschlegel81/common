@@ -1043,7 +1043,7 @@ FUNCTION G_queue.getAll:ELEMENT_ARRAY;
       setLength(result,0);
       exit(result);
     end;
-    setLength(result,lastIdx+firstIdx+1);
+    setLength(result,lastIdx-firstIdx+1);
     for i:=0 to length(result)-1 do result[i]:=data[firstIdx+i];
 
     i:=length(result) shr 1;
