@@ -1560,7 +1560,7 @@ FUNCTION T_bigInt.hash:dword;
   begin
     {$Q-}{$R-}
     if isNegative then result:=1 else result:=0;
-    for i:=0 to length(digits)-1 do result:=result*127 xor ((digits[i]*11+5) shr 3);
+    for i:=0 to length(digits)-1 do result:=result*127 + ((digits[i]*11) shr 3);
     {$Q+}{$R+}
   end;
 
