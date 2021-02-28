@@ -1559,8 +1559,8 @@ FUNCTION T_bigInt.hash:dword;
   VAR i:longint;
   begin
     {$Q-}{$R-}
-    if isNegative then result:=1 else result:=0;
-    for i:=0 to length(digits)-1 do result:=result*127 + ((digits[i]*11) shr 3);
+    if isNegative then result:=1+2*length(digits) else result:=2*length(digits);
+    for i:=0 to length(digits)-1 do result:=result*dword(127) + ((digits[i]*dword(11)) shr 3);
     {$Q+}{$R+}
   end;
 
