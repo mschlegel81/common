@@ -37,6 +37,14 @@ TYPE
   T_fileInfoArray=array of T_fileInfo;
 
 TYPE
+  T_basicThread=class(TThread)
+  protected
+    PROCEDURE threadSleepMillis(CONST millisecondsToSleep:longint);
+  public
+    CONSTRUCTOR create(CONST prio:TThreadPriority=tpNormal);
+    DESTRUCTOR destroy; override;
+  end;
+
   T_xosPrng = object
     private
       criticalSection:TRTLCriticalSection;
@@ -105,10 +113,55 @@ PROCEDURE startMemChecker(CONST threshold:int64);
 FUNCTION isMemoryInComfortZone:boolean;
 FUNCTION getMemoryUsedInBytes:int64;
 FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold:double):string;
+FUNCTION getGlobalRunningThreads:longint;
+FUNCTION getGlobalThreads:longint;
+PROCEDURE threadStartsSleeping;
+PROCEDURE threadStopsSleeping;
 VAR memoryCleaner:T_memoryCleaner;
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
     memoryComfortThreshold:int64={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
+    globalRunningThreads:longint=0;
+    globalThreads:longint=0;
+
+FUNCTION getGlobalRunningThreads:longint;
+  begin result:=globalRunningThreads;  end;
+
+FUNCTION getGlobalThreads:longint;
+  begin result:=globalThreads;  end;
+
+PROCEDURE threadStartsSleeping;
+  begin
+    interlockedDecrement(globalRunningThreads);
+  end;
+
+PROCEDURE threadStopsSleeping;
+  begin
+    interLockedIncrement(globalRunningThreads);
+  end;
+
+CONSTRUCTOR T_basicThread.create(CONST prio:TThreadPriority);
+  begin
+    inherited create(false);
+    FreeOnTerminate := true;
+    Priority:=prio;
+    interLockedIncrement(globalRunningThreads);
+    interLockedIncrement(globalThreads);
+  end;
+
+DESTRUCTOR T_basicThread.destroy;
+  begin
+    inherited destroy;
+    interlockedDecrement(globalRunningThreads);
+    interlockedDecrement(globalThreads);
+  end;
+
+PROCEDURE T_basicThread.threadSleepMillis(CONST millisecondsToSleep:longint);
+  begin
+    threadStartsSleeping;
+    sleep(millisecondsToSleep);
+    threadStopsSleeping;
+  end;
 
 CONSTRUCTOR T_memoryCleaner.create;
   begin
@@ -820,6 +873,7 @@ PROCEDURE startMemChecker(CONST threshold: int64);
     {$endif}
     if (memCheckThreadsRunning>0) then exit;
     interLockedIncrement(memCheckThreadsRunning);
+    //TODO: Encapsulate all threads in descendants of T_basicThread
     beginThread(@memCheckThread);
   end;
 
