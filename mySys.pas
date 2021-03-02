@@ -71,19 +71,26 @@ TYPE
   F_cleanupCallback=PROCEDURE;
   F_objectCleanupCallback=PROCEDURE of object;
 
-  T_memoryCleaner=object
+  T_memoryCleaner=class(T_basicThread)
     private
+      MemoryUsed:ptrint;
       cleanerCs:TRTLCriticalSection;
       methods:array of F_cleanupCallback;
       methods2:array of F_objectCleanupCallback;
-      CONSTRUCTOR create;
-      DESTRUCTOR destroy;
+    protected
+      PROCEDURE execute; override;
     public
+      memoryComfortThreshold:int64;
+      CONSTRUCTOR create;
+      DESTRUCTOR destroy; override;
       PROCEDURE registerCleanupMethod(CONST m:F_cleanupCallback);
       PROCEDURE registerObjectForCleanup(CONST m:F_objectCleanupCallback);
       PROCEDURE unregisterObjectForCleanup(CONST m:F_objectCleanupCallback);
       PROCEDURE callCleanupMethods;
-      PROCEDURE stop;
+
+      FUNCTION isMemoryInComfortZone:boolean;
+      FUNCTION getMemoryUsedInBytes:int64;
+      FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold:double):string;
   end;
 
 FUNCTION getEnvironment:T_arrayOfString;
@@ -109,10 +116,6 @@ PROCEDURE hideConsole;
 FUNCTION isConsoleShowing:boolean;
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
-PROCEDURE startMemChecker(CONST threshold:int64);
-FUNCTION isMemoryInComfortZone:boolean;
-FUNCTION getMemoryUsedInBytes:int64;
-FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold:double):string;
 FUNCTION getGlobalRunningThreads:longint;
 FUNCTION getGlobalThreads:longint;
 PROCEDURE threadStartsSleeping;
@@ -120,7 +123,6 @@ PROCEDURE threadStopsSleeping;
 VAR memoryCleaner:T_memoryCleaner;
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
-    memoryComfortThreshold:int64={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
     globalRunningThreads:longint=0;
     globalThreads:longint=0;
 
@@ -143,7 +145,7 @@ PROCEDURE threadStopsSleeping;
 CONSTRUCTOR T_basicThread.create(CONST prio:TThreadPriority);
   begin
     inherited create(false);
-    FreeOnTerminate := true;
+    FreeOnTerminate := false;
     Priority:=prio;
     interLockedIncrement(globalRunningThreads);
     interLockedIncrement(globalThreads);
@@ -165,8 +167,11 @@ PROCEDURE T_basicThread.threadSleepMillis(CONST millisecondsToSleep:longint);
 
 CONSTRUCTOR T_memoryCleaner.create;
   begin
+    inherited create(tpLower);
+    MemoryUsed:=0;
     setLength(methods,0);
     initCriticalSection(cleanerCs);
+    memoryComfortThreshold:={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
   end;
 
 DESTRUCTOR T_memoryCleaner.destroy;
@@ -725,13 +730,10 @@ FUNCTION T_xosPrng.dwordRandom:dword;
       leaveCriticalSection(criticalSection);
     end;
   end;
-CONST MEM_CHECK_KILL_INTERVAL_MS=10;
-VAR memCheckThreadsRunning:longint=0;
-    memCheckKillRequests:longint=0;
-    MemoryUsed:ptrint=0;
 
-FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
-  CONST minCleanupInterval=10/(24*60*60); //=10 seconds
+PROCEDURE T_memoryCleaner.execute;
+  CONST MEM_CHECK_KILL_INTERVAL_MS=100;
+        minCleanupInterval=10/(24*60*60); //=10 seconds
         maxSleepMillis    ={$ifdef Windows}2000{$else}10000{$endif}; //=2 or 10 seconds
   VAR {$ifdef UNIX}
       Process:TProcess;
@@ -761,7 +763,7 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
         workingSetSizeQuery:='SELECT WorkingSetSize FROM Win32_Process WHERE ProcessId='+intToStr(GetProcessID);
       except
         //ignore all exceptions - memory checker is broken if WMI is not accessible
-        interLockedIncrement(memCheckKillRequests);
+        Terminate;
       end;
     end;
 
@@ -781,7 +783,7 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
         end else result:=-1;
       except
         //ignore all exceptions - memory checker is broken if WMI is not accessible
-        interLockedIncrement(memCheckKillRequests);
+        Terminate;
         result:=-1;
       end;
     end;
@@ -798,7 +800,7 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
       Process.parameters.add('-p');
       Process.parameters.add(intToStr(GetProcessID));
     {$endif}
-    while (memCheckKillRequests<=0) and (memCheckThreadsRunning=1) do begin
+    while not(Terminated) do begin
       {$ifdef UNIX}
       runProcess(Process,output);
       tempMem:=-1;
@@ -829,32 +831,26 @@ FUNCTION memCheckThread({$WARN 5024 OFF}p:pointer):ptrint;
         relUse:=1-relUse;
         sleepMillis:=round(maxSleepMillis*relUse);
       end;
-      while (sleepMillis>0) and (memCheckKillRequests=0) do begin
+      while (sleepMillis>0) and not(Terminated) do begin
         ThreadSwitch;
         if sleepMillis>MEM_CHECK_KILL_INTERVAL_MS
-        then sleep(MEM_CHECK_KILL_INTERVAL_MS)
-        else sleep(sleepMillis);
+        then threadSleepMillis(MEM_CHECK_KILL_INTERVAL_MS)
+        else threadSleepMillis(sleepMillis);
         dec(sleepMillis,MEM_CHECK_KILL_INTERVAL_MS);
       end;
     end;
     {$ifdef UNIX}
     Process.destroy;
     {$endif}
-    interlockedDecrement(memCheckThreadsRunning);
-    result:=0;
+    Terminate;
   end;
 
-PROCEDURE T_memoryCleaner.stop;
+FUNCTION T_memoryCleaner.getMemoryUsedInBytes: int64;
   begin
-    interLockedIncrement(memCheckKillRequests);
+    result:=memoryCleaner.MemoryUsed;
   end;
 
-FUNCTION getMemoryUsedInBytes: int64;
-  begin
-    result:=MemoryUsed;
-  end;
-
-FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold: double): string;
+FUNCTION T_memoryCleaner.getMemoryUsedAsString(OUT fractionOfThreshold: double): string;
   VAR val:ptrint;
   begin
     fractionOfThreshold:=MemoryUsed/memoryComfortThreshold;
@@ -864,20 +860,7 @@ FUNCTION getMemoryUsedAsString(OUT fractionOfThreshold: double): string;
     val:=val shr 10;               result:=intToStr(val)+' GB';
   end;
 
-PROCEDURE startMemChecker(CONST threshold: int64);
-  begin
-    memoryComfortThreshold:=threshold;
-    {$ifdef CPU32}
-    //1.5GB max for 32bit programs
-    if memoryComfortThreshold>3 shl 29 then memoryComfortThreshold:=3 shl 29;
-    {$endif}
-    if (memCheckThreadsRunning>0) then exit;
-    interLockedIncrement(memCheckThreadsRunning);
-    //TODO: Encapsulate all threads in descendants of T_basicThread
-    beginThread(@memCheckThread);
-  end;
-
-FUNCTION isMemoryInComfortZone: boolean;
+FUNCTION T_memoryCleaner.isMemoryInComfortZone: boolean;
   begin
     result:=MemoryUsed<memoryComfortThreshold;
   end;
@@ -885,15 +868,13 @@ FUNCTION isMemoryInComfortZone: boolean;
 PROCEDURE finalizeGracefully;
   VAR timeout:double;
   begin
-    interLockedIncrement(memCheckKillRequests);
-    timeout:=now+10*MEM_CHECK_KILL_INTERVAL_MS/(24*60*60*1000);
+    memoryCleaner.Terminate;
     if clearConsoleProcess<>nil then clearConsoleProcess.destroy;
-    while (now<timeout) and (memCheckThreadsRunning>0) do sleep(1);
-    memoryCleaner.destroy;
+    FreeAndNil(memoryCleaner);
   end;
 
 INITIALIZATION
-  memoryCleaner.create;
+  memoryCleaner:=T_memoryCleaner.create;
 
 FINALIZATION
   finalizeGracefully;
