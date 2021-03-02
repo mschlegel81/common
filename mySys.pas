@@ -41,7 +41,7 @@ TYPE
   protected
     PROCEDURE threadSleepMillis(CONST millisecondsToSleep:longint);
   public
-    CONSTRUCTOR create(CONST prio:TThreadPriority=tpNormal);
+    CONSTRUCTOR create(CONST prio:TThreadPriority=tpNormal; CONST createSuspended:boolean=false);
     DESTRUCTOR destroy; override;
   end;
 
@@ -143,10 +143,10 @@ PROCEDURE threadStopsSleeping;
     interLockedIncrement(globalRunningThreads);
   end;
 
-CONSTRUCTOR T_basicThread.create(CONST prio:TThreadPriority);
+CONSTRUCTOR T_basicThread.create(CONST prio:TThreadPriority; CONST createSuspended:boolean);
   begin
-    inherited create(false);
-    FreeOnTerminate := false;
+    inherited create(createSuspended);
+    FreeOnTerminate := not(createSuspended);
     Priority:=prio;
     interLockedIncrement(globalRunningThreads);
     interLockedIncrement(globalThreads);
