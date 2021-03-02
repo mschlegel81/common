@@ -120,6 +120,7 @@ FUNCTION getGlobalRunningThreads:longint;
 FUNCTION getGlobalThreads:longint;
 PROCEDURE threadStartsSleeping;
 PROCEDURE threadStopsSleeping;
+CONST GLOBAL_THREAD_LIMIT=256;
 VAR memoryCleaner:T_memoryCleaner;
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
