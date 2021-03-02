@@ -124,8 +124,8 @@ CONST GLOBAL_THREAD_LIMIT=256;
 VAR memoryCleaner:T_memoryCleaner;
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
-    globalRunningThreads:longint=0;
-    globalThreads:longint=0;
+    globalRunningThreads:longint=1; //The main thread is already running
+    globalThreads:longint=1;
 
 FUNCTION getGlobalRunningThreads:longint;
   begin result:=globalRunningThreads;  end;
@@ -867,7 +867,6 @@ FUNCTION T_memoryCleaner.isMemoryInComfortZone: boolean;
   end;
 
 PROCEDURE finalizeGracefully;
-  VAR timeout:double;
   begin
     memoryCleaner.Terminate;
     if clearConsoleProcess<>nil then clearConsoleProcess.destroy;
