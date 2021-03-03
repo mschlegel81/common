@@ -27,6 +27,7 @@ CONST
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:T_charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
 
+FUNCTION canonicalFileName(CONST s:string):string;
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
 FUNCTION isBlank(CONST s: ansistring): boolean;
 FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT isValid: boolean): ansistring; inline;
@@ -69,6 +70,14 @@ FUNCTION shortcutToString(CONST ShortCut:word):string;
 
 IMPLEMENTATION
 USES LCLType;
+
+FUNCTION canonicalFileName(CONST s:string):string;
+  VAR isValidDummy:boolean;
+  begin
+    result:=ansiReplaceStr(replaceRecursively(ansiReplaceStr(expandFileName(s),'\','/'),'//','/',isValidDummy),'/',DirectorySeparator);
+    if result[length(result)]=DirectorySeparator then result:=copy(result,1,length(result)-1);
+  end;
+
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
   TYPE TcellInfo=record
     cellType:(ctLeftAlignedString,ctRightAlignedString,ctNumeric);

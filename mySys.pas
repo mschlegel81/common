@@ -161,6 +161,7 @@ DESTRUCTOR T_basicThread.destroy;
 
 PROCEDURE T_basicThread.threadSleepMillis(CONST millisecondsToSleep:longint);
   begin
+    if Terminated then exit;
     threadStartsSleeping;
     sleep(millisecondsToSleep);
     threadStopsSleeping;
@@ -169,6 +170,7 @@ PROCEDURE T_basicThread.threadSleepMillis(CONST millisecondsToSleep:longint);
 CONSTRUCTOR T_memoryCleaner.create;
   begin
     inherited create(tpLower);
+    FreeOnTerminate:=false;
     MemoryUsed:=0;
     setLength(methods,0);
     initCriticalSection(cleanerCs);
@@ -870,6 +872,7 @@ PROCEDURE finalizeGracefully;
   begin
     memoryCleaner.Terminate;
     if clearConsoleProcess<>nil then clearConsoleProcess.destroy;
+    while not(memoryCleaner.Finished) do sleep(1);
     FreeAndNil(memoryCleaner);
   end;
 
