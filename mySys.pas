@@ -120,6 +120,7 @@ FUNCTION getGlobalRunningThreads:longint;
 FUNCTION getGlobalThreads:longint;
 PROCEDURE threadStartsSleeping;
 PROCEDURE threadStopsSleeping;
+PROCEDURE threadSleepMillis(CONST millisecondsToSleep:longint);
 CONST GLOBAL_THREAD_LIMIT=256;
 VAR memoryCleaner:T_memoryCleaner;
 IMPLEMENTATION
@@ -157,6 +158,13 @@ DESTRUCTOR T_basicThread.destroy;
     inherited destroy;
     interlockedDecrement(globalRunningThreads);
     interlockedDecrement(globalThreads);
+  end;
+
+PROCEDURE threadSleepMillis(CONST millisecondsToSleep:longint);
+  begin
+    threadStartsSleeping;
+    sleep(millisecondsToSleep);
+    threadStopsSleeping;
   end;
 
 PROCEDURE T_basicThread.threadSleepMillis(CONST millisecondsToSleep:longint);
