@@ -811,6 +811,7 @@ PROCEDURE T_memoryCleaner.execute;
       Process.parameters.add('-p');
       Process.parameters.add(intToStr(GetProcessID));
     {$endif}
+    threadStartsSleeping; //this one is considered idle
     while not(Terminated) do begin
       {$ifdef UNIX}
       runProcess(Process,output);
@@ -845,14 +846,15 @@ PROCEDURE T_memoryCleaner.execute;
       while (sleepMillis>0) and not(Terminated) do begin
         ThreadSwitch;
         if sleepMillis>MEM_CHECK_KILL_INTERVAL_MS
-        then threadSleepMillis(MEM_CHECK_KILL_INTERVAL_MS)
-        else threadSleepMillis(sleepMillis);
+        then sleep(MEM_CHECK_KILL_INTERVAL_MS)
+        else sleep(sleepMillis);
         dec(sleepMillis,MEM_CHECK_KILL_INTERVAL_MS);
       end;
     end;
     {$ifdef UNIX}
     Process.destroy;
     {$endif}
+    threadStopsSleeping;
     Terminate;
   end;
 
