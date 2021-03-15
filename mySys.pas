@@ -121,7 +121,7 @@ FUNCTION getGlobalThreads:longint;
 PROCEDURE threadStartsSleeping;
 PROCEDURE threadStopsSleeping;
 PROCEDURE threadSleepMillis(CONST millisecondsToSleep:longint);
-CONST GLOBAL_THREAD_LIMIT=256;
+CONST GLOBAL_THREAD_LIMIT={$ifdef CPU64}500{$else}100{$endif};
 VAR memoryCleaner:T_memoryCleaner;
 IMPLEMENTATION
 VAR numberOfCPUs:longint=0;
