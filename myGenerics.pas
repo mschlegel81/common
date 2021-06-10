@@ -207,6 +207,7 @@ TYPE
       FUNCTION next:ENTRY_TYPE;
       FUNCTION hasNext:boolean;
       FUNCTION getAll:ELEMENT_ARRAY;
+      FUNCTION fill:longint;
   end;
 
   GENERIC G_threadsafeQueue<ENTRY_TYPE>=object
@@ -1051,6 +1052,11 @@ FUNCTION G_queue.getAll:ELEMENT_ARRAY;
     setLength(data,i);
     firstIdx:=0;
     lastIdx:=-1;
+  end;
+
+FUNCTION G_queue.fill:longint;
+  begin
+    result:=lastIdx-firstIdx+1;
   end;
 
 end.
