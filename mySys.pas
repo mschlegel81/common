@@ -71,22 +71,24 @@ TYPE
   F_cleanupCallback=PROCEDURE;
   F_objectCleanupCallback=PROCEDURE of object;
 
+  T_cleanupLevel=0..5;
+
   T_memoryCleaner=class(T_basicThread)
     private
       MemoryUsed:ptrint;
       cleanerCs:TRTLCriticalSection;
-      methods:array of F_cleanupCallback;
-      methods2:array of F_objectCleanupCallback;
+      methods :array[T_cleanupLevel] of array of F_cleanupCallback;
+      methods2:array[T_cleanupLevel] of array of F_objectCleanupCallback;
     protected
       PROCEDURE execute; override;
     public
       memoryComfortThreshold:int64;
       CONSTRUCTOR create;
       DESTRUCTOR destroy; override;
-      PROCEDURE registerCleanupMethod(CONST m:F_cleanupCallback);
-      PROCEDURE registerObjectForCleanup(CONST m:F_objectCleanupCallback);
+      PROCEDURE registerCleanupMethod     (CONST level: T_cleanupLevel; CONST m:F_cleanupCallback);
+      PROCEDURE registerObjectForCleanup  (CONST level: T_cleanupLevel; CONST m:F_objectCleanupCallback);
       PROCEDURE unregisterObjectForCleanup(CONST m:F_objectCleanupCallback);
-      PROCEDURE callCleanupMethods;
+      PROCEDURE callCleanupMethods        (CONST upToIncludingLevel:T_cleanupLevel);
 
       FUNCTION isMemoryInComfortZone:boolean;
       FUNCTION getMemoryUsedInBytes:int64;
@@ -176,69 +178,80 @@ PROCEDURE T_basicThread.threadSleepMillis(CONST millisecondsToSleep:longint);
   end;
 
 CONSTRUCTOR T_memoryCleaner.create;
+  VAR l:longint;
   begin
     inherited create(tpLower);
     FreeOnTerminate:=false;
     MemoryUsed:=0;
-    setLength(methods,0);
+    for l in T_cleanupLevel do setLength(methods [l],0);
+    for l in T_cleanupLevel do setLength(methods2[l],0);
     initCriticalSection(cleanerCs);
     memoryComfortThreshold:={$ifdef UNIX}1 shl 30{$else}{$ifdef CPU32}1 shl 30{$else}4 shl 30{$endif}{$endif};
   end;
 
 DESTRUCTOR T_memoryCleaner.destroy;
+  VAR l:longint;
   begin
     enterCriticalSection(cleanerCs);
-    setLength(methods,0);
+    for l in T_cleanupLevel do setLength(methods [l],0);
+    for l in T_cleanupLevel do setLength(methods2[l],0);
     leaveCriticalSection(cleanerCs);
     doneCriticalSection(cleanerCs);
   end;
 
-PROCEDURE T_memoryCleaner.registerCleanupMethod(CONST m:F_cleanupCallback);
+PROCEDURE T_memoryCleaner.registerCleanupMethod(CONST level: T_cleanupLevel; CONST m:F_cleanupCallback);
   begin
     enterCriticalSection(cleanerCs);
     try
-      setLength(methods,length(methods)+1);
-      methods[length(methods)-1]:=m;
+      setLength(methods[level],length(methods[level])+1);
+      methods[level,length(methods[level])-1]:=m;
     finally
       leaveCriticalSection(cleanerCs);
     end;
   end;
 
-PROCEDURE T_memoryCleaner.registerObjectForCleanup(CONST m:F_objectCleanupCallback);
+PROCEDURE T_memoryCleaner.registerObjectForCleanup(CONST level: T_cleanupLevel; CONST m:F_objectCleanupCallback);
   begin
     enterCriticalSection(cleanerCs);
     try
-      setLength(methods2,length(methods2)+1);
-      methods2[length(methods2)-1]:=m;
+      setLength(methods2[level],length(methods2[level])+1);
+      methods2[level,length(methods2[level])-1]:=m;
     finally
       leaveCriticalSection(cleanerCs);
     end;
   end;
 
 PROCEDURE T_memoryCleaner.unregisterObjectForCleanup(CONST m:F_objectCleanupCallback);
-  VAR i:longint=0;
+  VAR l:longint;
+      i:longint=0;
   begin
     enterCriticalSection(cleanerCs);
     try
-      while i<length(methods2) do begin
-        if methods2[i]=m then begin
-          methods2[i]:=methods2[length(methods2)-1];
-          setLength   (methods2,length(methods2)-1);
-        end else inc(i);
+      for l in T_cleanupLevel do begin
+        i:=0;
+        while i<length(methods2[l]) do begin
+          if methods2[l,i]=m then begin
+            methods2[l,i]:=methods2[l ,length(methods2[l])-1];
+            setLength     (methods2[l],length(methods2[l])-1);
+          end else inc(i);
+        end;
       end;
     finally
       leaveCriticalSection(cleanerCs);
     end;
   end;
 
-PROCEDURE T_memoryCleaner.callCleanupMethods;
+PROCEDURE T_memoryCleaner.callCleanupMethods(CONST upToIncludingLevel:T_cleanupLevel);
+  VAR l :T_cleanupLevel;
   VAR m :F_cleanupCallback;
       m2:F_objectCleanupCallback;
   begin
     enterCriticalSection(cleanerCs);
     try
-      for m  in methods  do m();
-      for m2 in methods2 do m2();
+      for l:=0 to upToIncludingLevel do begin
+        for m  in methods [l] do m();
+        for m2 in methods2[l] do m2();
+      end;
     finally
       leaveCriticalSection(cleanerCs);
     end;
@@ -753,10 +766,11 @@ PROCEDURE T_memoryCleaner.execute;
       tempMem:ptrint;
       {$endif}
       lastCleanupCall:double=0;
-      sleepMillis:longint;
-      relUse:double;
-      relGrowth:double;
-      previouslyUsed:ptrint=0;
+      sleepMillis    :longint;
+      cleanupLevel   :T_cleanupLevel=0;
+      relUse         :double;
+      relGrowth      :double;
+      previouslyUsed :ptrint=0;
      {$ifdef Windows}
       FSWbemLocator      : OLEVariant;
       FWMIService        : OLEVariant;
@@ -830,11 +844,13 @@ PROCEDURE T_memoryCleaner.execute;
           {$ifdef debugMode}
           writeln(stdErr,'Memory panic (',MemoryUsed,' | ',MemoryUsed/memoryComfortThreshold*100:0:3,'% used) - calling cleanup methods');
           {$endif}
-          memoryCleaner.callCleanupMethods;
+          memoryCleaner.callCleanupMethods(cleanupLevel);
+          if cleanupLevel<high(T_cleanupLevel) then inc(cleanupLevel);
           lastCleanupCall:=now;
         end;
         sleepMillis:=0;
       end else begin
+        cleanupLevel:=0;
         relUse   :=      MemoryUsed                /memoryComfortThreshold;
         relGrowth:=10.0*(MemoryUsed-previouslyUsed)/memoryComfortThreshold;
         previouslyUsed:=MemoryUsed;

@@ -107,7 +107,7 @@ CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST model:HuffmanModel);
     initCriticalSection(codeCs);
     initialized:=false;
     myModel:=model;
-    memoryCleaner.registerObjectForCleanup(@clean);
+    memoryCleaner.registerObjectForCleanup(1,@clean);
   end;
 
 CONST DEFAULT_MODEL:{$i huffman_model_default.inc}
