@@ -1778,7 +1778,7 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
       result.smallFactors[0]:=B.toInt;
       exit;
     end;
-    r:=B;
+    r.create(B);
     if B.isNegative then append(result.smallFactors,-1);
 
     if r.relevantBits<=31 then begin
