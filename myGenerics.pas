@@ -208,6 +208,7 @@ TYPE
       FUNCTION hasNext:boolean;
       FUNCTION getAll:ELEMENT_ARRAY;
       FUNCTION fill:longint;
+      FUNCTION isQueued(CONST value:ENTRY_TYPE):boolean;
   end;
 
   GENERIC G_threadsafeQueue<ENTRY_TYPE>=object
@@ -223,6 +224,8 @@ TYPE
       FUNCTION canGetNext(OUT v:ENTRY_TYPE):boolean;
       FUNCTION hasNext:boolean;
       FUNCTION getAll:ELEMENT_ARRAY;
+      FUNCTION isQueued(CONST value:ENTRY_TYPE):boolean;
+      PROCEDURE appendIfNew(CONST newValue:ENTRY_TYPE);
   end;
 
 FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; {$ifndef debugMode} inline; {$endif}
@@ -420,6 +423,20 @@ FUNCTION G_threadsafeQueue.getAll: ELEMENT_ARRAY;
   begin
     enterCriticalSection(queueCs);
     result:=queue.getAll;
+    leaveCriticalSection(queueCs);
+  end;
+
+FUNCTION G_threadsafeQueue.isQueued(CONST value:ENTRY_TYPE):boolean;
+  begin
+    enterCriticalSection(queueCs);
+    result:=queue.isQueued(value);
+    leaveCriticalSection(queueCs);
+  end;
+
+PROCEDURE G_threadsafeQueue.appendIfNew(CONST newValue:ENTRY_TYPE);
+  begin
+    enterCriticalSection(queueCs);
+    if not(queue.isQueued(newValue)) then queue.append(newValue);
     leaveCriticalSection(queueCs);
   end;
 
@@ -1057,6 +1074,13 @@ FUNCTION G_queue.getAll:ELEMENT_ARRAY;
 FUNCTION G_queue.fill:longint;
   begin
     result:=lastIdx-firstIdx+1;
+  end;
+
+FUNCTION G_queue.isQueued(CONST value:ENTRY_TYPE):boolean;
+  VAR i:longint;
+  begin
+    result:=false;
+    for i:=firstIdx to lastIdx do if data[i]=value then exit(true);
   end;
 
 end.
