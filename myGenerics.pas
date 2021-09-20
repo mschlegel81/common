@@ -196,11 +196,12 @@ TYPE
 
   GENERIC G_queue<ENTRY_TYPE>=object
     TYPE ELEMENT_ARRAY=array of ENTRY_TYPE;
+         EQUALS_METHOD=FUNCTION(CONST x,y:ENTRY_TYPE):boolean;
     private
       CONST MINIMUM_DATA_SIZE=16;
       VAR firstIdx,lastIdx:longint;
           data:ELEMENT_ARRAY;
-     public
+    public
       CONSTRUCTOR create;
       DESTRUCTOR destroy;
       PROCEDURE append(CONST newValue:ENTRY_TYPE);
@@ -208,7 +209,7 @@ TYPE
       FUNCTION hasNext:boolean;
       FUNCTION getAll:ELEMENT_ARRAY;
       FUNCTION fill:longint;
-      FUNCTION isQueued(CONST value:ENTRY_TYPE):boolean;
+      FUNCTION isQueued(CONST value:ENTRY_TYPE; CONST equals:EQUALS_METHOD):boolean;
   end;
 
   GENERIC G_threadsafeQueue<ENTRY_TYPE>=object
@@ -224,8 +225,8 @@ TYPE
       FUNCTION canGetNext(OUT v:ENTRY_TYPE):boolean;
       FUNCTION hasNext:boolean;
       FUNCTION getAll:ELEMENT_ARRAY;
-      FUNCTION isQueued(CONST value:ENTRY_TYPE):boolean;
-      PROCEDURE appendIfNew(CONST newValue:ENTRY_TYPE);
+      FUNCTION isQueued(CONST value:ENTRY_TYPE; CONST equals:T_innerQueue.EQUALS_METHOD):boolean;
+      PROCEDURE appendIfNew(CONST newValue:ENTRY_TYPE; CONST equals:T_innerQueue.EQUALS_METHOD);
   end;
 
 FUNCTION hashOfAnsiString(CONST x:ansistring):PtrUInt; {$ifndef debugMode} inline; {$endif}
@@ -426,17 +427,17 @@ FUNCTION G_threadsafeQueue.getAll: ELEMENT_ARRAY;
     leaveCriticalSection(queueCs);
   end;
 
-FUNCTION G_threadsafeQueue.isQueued(CONST value:ENTRY_TYPE):boolean;
+FUNCTION G_threadsafeQueue.isQueued(CONST value:ENTRY_TYPE; CONST equals:T_innerQueue.EQUALS_METHOD):boolean;
   begin
     enterCriticalSection(queueCs);
-    result:=queue.isQueued(value);
+    result:=queue.isQueued(value,equals);
     leaveCriticalSection(queueCs);
   end;
 
-PROCEDURE G_threadsafeQueue.appendIfNew(CONST newValue:ENTRY_TYPE);
+PROCEDURE G_threadsafeQueue.appendIfNew(CONST newValue:ENTRY_TYPE; CONST equals:T_innerQueue.EQUALS_METHOD);
   begin
     enterCriticalSection(queueCs);
-    if not(queue.isQueued(newValue)) then queue.append(newValue);
+    if not(queue.isQueued(newValue,equals)) then queue.append(newValue);
     leaveCriticalSection(queueCs);
   end;
 
@@ -1076,11 +1077,11 @@ FUNCTION G_queue.fill:longint;
     result:=lastIdx-firstIdx+1;
   end;
 
-FUNCTION G_queue.isQueued(CONST value:ENTRY_TYPE):boolean;
+FUNCTION G_queue.isQueued(CONST value:ENTRY_TYPE; CONST equals:EQUALS_METHOD):boolean;
   VAR i:longint;
   begin
     result:=false;
-    for i:=firstIdx to lastIdx do if data[i]=value then exit(true);
+    for i:=firstIdx to lastIdx do if equals(data[i],value) then exit(true);
   end;
 
 end.
