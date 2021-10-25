@@ -61,8 +61,9 @@ TYPE
     private
       subCodes:array[-1..255] of P_huffmanCode;
       initialized:boolean;
-      myModel:HuffmanModel;
-      codeCs:TRTLCriticalSection;
+      myModel    :HuffmanModel;
+      busy       :longint;
+      codeCs     :TRTLCriticalSection;
       PROCEDURE initialize(CONST conservative:boolean);
       PROCEDURE initialize(CONST model:array of T_modelEntry);
       PROCEDURE initialize;
@@ -77,7 +78,7 @@ TYPE
 FUNCTION huffyDecode(CONST s:ansistring; CONST model:HuffmanModel):ansistring;
 FUNCTION huffyEncode(CONST s:ansistring; CONST model:HuffmanModel):ansistring;
 IMPLEMENTATION
-USES mySys;
+USES mySys,sysutils;
 VAR huffmanCode:array[HuffmanModel] of T_twoLevelHuffmanCode;
 
 OPERATOR +(CONST x,y:T_symbolFrequency):T_symbolFrequency;
@@ -107,6 +108,7 @@ CONSTRUCTOR T_twoLevelHuffmanCode.create(CONST model:HuffmanModel);
     initCriticalSection(codeCs);
     initialized:=false;
     myModel:=model;
+    busy:=0;
     memoryCleaner.registerObjectForCleanup(1,@clean);
   end;
 
@@ -186,6 +188,7 @@ PROCEDURE T_twoLevelHuffmanCode.initialize(CONST model:array of T_modelEntry);
 PROCEDURE T_twoLevelHuffmanCode.clean;
   VAR i:longint;
   begin
+    if busy>0 then exit;
     enterCriticalSection(codeCs);
     try
       if initialized then begin
@@ -201,6 +204,7 @@ PROCEDURE T_twoLevelHuffmanCode.clean;
 DESTRUCTOR T_twoLevelHuffmanCode.destroy;
   begin
     memoryCleaner.unregisterObjectForCleanup(@clean);
+    while busy>0 do sleep(1);
     clean;
     doneCriticalSection(codeCs);
   end;
@@ -210,7 +214,7 @@ FUNCTION T_twoLevelHuffmanCode.encode(CONST s: ansistring): ansistring;
       i:longint;
       prevSymbol:word=DEFAULT_PREV_SYMBOL;
   begin
-    enterCriticalSection(codeCs);
+    interLockedIncrement(busy);
     initialize;
     try
       resultArr.create;
@@ -222,7 +226,7 @@ FUNCTION T_twoLevelHuffmanCode.encode(CONST s: ansistring): ansistring;
       result:=resultArr.getRawDataAsString;
       resultArr.destroy;
     finally
-      leaveCriticalSection(codeCs);
+      interlockedDecrement(busy);
     end;
   end;
 
@@ -231,7 +235,7 @@ FUNCTION T_twoLevelHuffmanCode.decode(CONST s: ansistring): ansistring;
       prevSymbol:word=DEFAULT_PREV_SYMBOL;
       nextSymbol:word;
   begin
-    enterCriticalSection(codeCs);
+    interLockedIncrement(busy);
     initialize;
     try
       result:='';
@@ -243,7 +247,7 @@ FUNCTION T_twoLevelHuffmanCode.decode(CONST s: ansistring): ansistring;
       end;
       inputArr.destroy;
     finally
-      leaveCriticalSection(codeCs);
+      interlockedDecrement(busy);
     end;
   end;
 
