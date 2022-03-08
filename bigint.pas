@@ -1903,6 +1903,7 @@ FUNCTION isPrime(CONST n:longint ):boolean;
     end;
 
   begin
+    if (n<=1) then exit(false);
     if (n<48) then exit(byte(n) in [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47]);
     if (n<2209) then exit(not(isComposite));
 
