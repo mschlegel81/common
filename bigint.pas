@@ -125,7 +125,7 @@ FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclus
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION factorizeSmall(n:longint):T_arrayOfLongint;
 FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_factorizationResult;
-FUNCTION isPrime(CONST n:longint ):boolean;
+FUNCTION isPrime(CONST n:int64 ):boolean;
 FUNCTION isPrime(CONST B:T_bigInt):boolean;
 FUNCTION bigDigits(CONST value,base:T_bigInt):T_arrayOfBigint;
 FUNCTION newFromBigDigits(CONST digits:T_arrayOfBigint; CONST base:T_bigInt):T_bigInt;
@@ -1861,35 +1861,57 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
     end;
   end;
 
-FUNCTION millerRabinTest(CONST n,a:longint):boolean;
-  VAR n1,d,t,p:int64;
-      j:longint=1;
-      k:longint;
-  begin
-    n1:=int64(n)-1;
-    d :=n shr 1;
-    while not(odd(d)) do begin
-      d:=d shr 1;
-      inc(j);
-    end;
-    //1<=j<=63, 1<=d<=2^63-1
-    t:=a;
-    p:=a;
-    while (d>1) do begin
-      d:=d shr 1;
-      p:=p*p mod n;
-      if odd(d) then t:=t*p mod n;
-    end;
-    if (t=1) or (t=n1) then exit(true);
-    for k:=1 to j-1 do begin
-      t:=t*t mod n;
-      if t=n1 then exit(true);
-      if t<=1 then break;
-    end;
-    result:=false;
-  end;
+FUNCTION isPrime(CONST n:int64):boolean;
+  FUNCTION millerRabinTest(CONST n,a:int64):boolean;
+    FUNCTION modularMultiply(x,y:int64):int64;
+      VAR d:qword;
+          mp2:int64;
+          i:longint;
+      begin
+        if (x or y) and 9223372034707292160=0
+        then result:=x*y mod n
+        else begin
+          d:=0;
+          mp2:=n shr 1;
+          for i:=0 to 62 do begin
+            if d>mp2 then d:=(d shl 1)-n else d:=d shl 1;
+            if (x and 4611686018427387904)>0 then d+=y;
+            if d>=n then d-=n;
+            x:=x shl 1;
+          end;
+          result:=d;
+        end;
+      end;
 
-FUNCTION isPrime(CONST n:longint ):boolean;
+    VAR n1,d,t,p:int64;
+        j:longint=1;
+        k:longint;
+    begin
+      n1:=int64(n)-1;
+      d :=n shr 1;
+      while not(odd(d)) do begin
+        d:=d shr 1;
+        inc(j);
+      end;
+      //1<=j<=63, 1<=d<=2^63-1
+      t:=a;
+      p:=a;
+      while (d>1) do begin
+        d:=d shr 1;
+        //p:=p*p mod n;
+        p:=modularMultiply(p,p);
+        if odd(d) then t:=modularMultiply(t,p);//t:=t*p mod n;
+      end;
+      if (t=1) or (t=n1) then exit(true);
+      for k:=1 to j-1 do begin
+        //t:=t*t mod n;
+        t:=modularMultiply(t,t);
+        if t=n1 then exit(true);
+        if t<=1 then break;
+      end;
+      result:=false;
+    end;
+
   FUNCTION isComposite:boolean;
     VAR x:int64=1;
         y:int64=2*3*5*7*11*13*17*19*23*29*31*37*41*43*47;
@@ -1905,12 +1927,53 @@ FUNCTION isPrime(CONST n:longint ):boolean;
   begin
     if (n<=1) then exit(false);
     if (n<48) then exit(byte(n) in [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47]);
-    if (n<2209) then exit(not(isComposite));
-
-    result:=millerRabinTest(n,2) and
-            millerRabinTest(n,3) and
-            millerRabinTest(n,5) and
-            millerRabinTest(n,7);
+    if isComposite then exit(false)
+    else if n<2209 then exit(true); //2209=47*47
+    if n< 9080191
+    then exit(millerRabinTest(n,31) and
+              millerRabinTest(n,73)) else
+    if n<25326001
+    then exit(millerRabinTest(n,2) and
+              millerRabinTest(n,3) and
+              millerRabinTest(n,5)) else
+    if n < 4759123141
+    then exit(millerRabinTest(n,2) and
+              millerRabinTest(n,7) and
+              millerRabinTest(n,61)) else
+    if n < 2152302898747   //[41bit] it is enough to test a =   array[0..4] of byte=(2,3,5,7,11);
+    then exit(millerRabinTest(n, 2) and
+              millerRabinTest(n, 3) and
+              millerRabinTest(n, 5) and
+              millerRabinTest(n, 7) and
+              millerRabinTest(n,11)) else
+    if n < 3474749660383   //[42bit] it is enough to test a =   array[0..5] of byte=(2,3,5,7,11,13);
+    then exit(millerRabinTest(n, 2) and
+              millerRabinTest(n, 3) and
+              millerRabinTest(n, 5) and
+              millerRabinTest(n, 7) and
+              millerRabinTest(n,11) and
+              millerRabinTest(n,13)) else
+    if n < 341550071728321 //[49bit] it is enough to test a = array[0..6] of byte=(2,3,5,7,11,13,17);
+    then exit(millerRabinTest(n, 2) and
+              millerRabinTest(n, 3) and
+              millerRabinTest(n, 5) and
+              millerRabinTest(n, 7) and
+              millerRabinTest(n,11) and
+              millerRabinTest(n,13) and
+              millerRabinTest(n,17)) else
+    //if n < 18446744073709551616 = 2^64, it is enough to test a = 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, and 37.
+    result:=millerRabinTest(n, 2) and
+            millerRabinTest(n, 3) and
+            millerRabinTest(n, 5) and
+            millerRabinTest(n, 7) and
+            millerRabinTest(n,11) and
+            millerRabinTest(n,13) and
+            millerRabinTest(n,17) and
+            millerRabinTest(n,19) and
+            millerRabinTest(n,23) and
+            millerRabinTest(n,29) and
+            millerRabinTest(n,31) and
+            millerRabinTest(n,37);
   end;
 
 FUNCTION isPrime(CONST B:T_bigInt):boolean;
@@ -1951,12 +2014,16 @@ FUNCTION isPrime(CONST B:T_bigInt):boolean;
       result:=false;
     end;
 
-  CONST pr:array[0..53] of byte=(2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251);
+  CONST
+    pr_79Bit:array[0..12] of byte=(2,3,5,7,11,13,17,19,23,29,31,37,41);
+    pr:array[0..53] of byte=(2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251);
   VAR a:byte;
   begin
-    if B.compare(1) in [CR_EQUAL,CR_LESSER] then exit(false);
-    if isComposite then exit(false);
-    for a in pr do if not(bigMillerRabinTest(B,a)) then exit(false);
+    if B.isNegative then exit(false);
+    if B.canBeRepresentedAsInt64(false) then exit(isPrime(B.toInt));
+    if (B.compare(1) in [CR_EQUAL,CR_LESSER]) or isComposite then exit(false);
+    if B.relevantBits<79 then begin for a in pr_79Bit do if not(bigMillerRabinTest(B,a)) then exit(false) end
+    else                      begin for a in pr       do if not(bigMillerRabinTest(B,a)) then exit(false) end;
     result:=true;
   end;
 
