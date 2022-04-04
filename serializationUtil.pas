@@ -156,6 +156,7 @@ CONSTRUCTOR T_inputStreamWrapper.create(CONST stream_: TStream);
 
 CONSTRUCTOR T_inputStreamWrapper.createToReadFromFile(CONST fileName: string);
   begin
+    inherited create;
     try
       stream:=TFileStream.create(fileName,fmOpenRead);
     except
