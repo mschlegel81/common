@@ -44,6 +44,7 @@ TYPE
       FUNCTION readSingle:single;
       FUNCTION readChar:char;
       FUNCTION readAnsiString:ansistring; virtual;
+      FUNCTION readShortString:shortstring; virtual;
       FUNCTION readNaturalNumber:qword;
       FUNCTION readInteger:int64;
   end;
@@ -62,6 +63,7 @@ TYPE
       //For debugging
       FUNCTION streamPos:longint;
       FUNCTION readAnsiString:ansistring; virtual;
+      FUNCTION readShortString:shortstring; virtual;
   end;
 
   P_outputStreamWrapper=^T_outputStreamWrapper;
@@ -87,6 +89,7 @@ TYPE
       PROCEDURE writeSingle(CONST value:single);
       PROCEDURE writeChar(CONST value:char);
       PROCEDURE writeAnsiString(CONST value:ansistring); virtual;
+      PROCEDURE writeShortString(CONST value:shortstring); virtual;
       PROCEDURE writeNaturalNumber(CONST value:qword);
       PROCEDURE writeInteger(CONST value:int64);
   end;
@@ -105,6 +108,7 @@ TYPE
       //For debugging
       FUNCTION streamPos:longint;
       PROCEDURE writeAnsiString(CONST value:ansistring); virtual;
+      PROCEDURE writeShortString(CONST value:shortstring); virtual;
   end;
 
   T_serializable=object
@@ -210,6 +214,19 @@ FUNCTION T_inputStreamWrapper.readAnsiString: ansistring;
     if earlyEndOfFileError then result:='';
   end;
 
+FUNCTION T_inputStreamWrapper.readShortString:shortstring;
+  VAR i:int64;
+  begin
+    i:=readNaturalNumber;
+    if i>255 then begin
+      logWrongTypeError;
+      exit('');
+    end;
+    setLength(result,i);
+    if length(result)>0 then read(result[1],length(result));
+    if earlyEndOfFileError then result:='';
+  end;
+
 FUNCTION T_bufferedInputStreamWrapper.readAnsiString: ansistring;
   VAR i:int64;
   begin
@@ -226,6 +243,25 @@ FUNCTION T_bufferedInputStreamWrapper.readAnsiString: ansistring;
       else begin read(result[i+1],length(result)-i); i:=length(result); end;
     end;
     if earlyEndOfFileError then result:='';
+  end;
+
+FUNCTION T_bufferedInputStreamWrapper.readShortString:shortstring;
+  VAR i:int64;
+  begin
+    i:=readNaturalNumber;
+    if i>255 then begin
+      logWrongTypeError;
+      setLength(result,0);
+      exit(result);
+    end;
+    setLength(result,i);
+    i:=0;
+    while i<length(result) do begin
+      if (length(result)-i)>C_bufferSize
+      then begin read(result[i+1],C_bufferSize); inc(i,C_bufferSize); end
+      else begin read(result[i+1],length(result)-i); i:=length(result); end;
+    end;
+    if earlyEndOfFileError then setLength(result,0);
   end;
 
 FUNCTION T_inputStreamWrapper.readNaturalNumber: qword;
@@ -362,7 +398,23 @@ PROCEDURE T_outputStreamWrapper.writeAnsiString(CONST value: ansistring);
     if length(value)>0 then write(value[1],length(value));
   end;
 
+PROCEDURE T_outputStreamWrapper.writeShortString(CONST value:shortstring);
+  begin
+    writeNaturalNumber(length(value));
+    if length(value)>0 then write(value[1],length(value));
+  end;
+
 PROCEDURE T_bufferedOutputStreamWrapper.writeAnsiString(CONST value:ansistring);
+  VAR i:longint;
+  begin
+    writeNaturalNumber(length(value));
+    if length(value)>C_bufferSize then begin
+      flush;
+      if length(value)>0 then inherited write(value[1],length(value));
+    end else for i:=1 to length(value) do writeChar(value[i]);
+  end;
+
+PROCEDURE T_bufferedOutputStreamWrapper.writeShortString(CONST value:shortstring);
   VAR i:longint;
   begin
     writeNaturalNumber(length(value));
