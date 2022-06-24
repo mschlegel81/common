@@ -1863,9 +1863,9 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
 
 FUNCTION isPrime(CONST n:int64):boolean;
   FUNCTION millerRabinTest(CONST n,a:int64):boolean;
-    FUNCTION modularMultiply(x,y:int64):int64;
+    FUNCTION modularMultiply(x,y:qword):int64;
       VAR d:qword;
-          mp2:int64;
+          mp2:qword;
           i:longint;
       begin
         if (x or y) and 9223372034707292160=0
@@ -1874,9 +1874,11 @@ FUNCTION isPrime(CONST n:int64):boolean;
           d:=0;
           mp2:=n shr 1;
           for i:=0 to 62 do begin
-            if d>mp2 then d:=(d shl 1)-n else d:=d shl 1;
+            if d>mp2
+            then d:=(d shl 1)-qword(n)
+            else d:= d shl 1;
             if (x and 4611686018427387904)>0 then d+=y;
-            if d>=n then d-=n;
+            if d>=qword(n) then d-=qword(n);
             x:=x shl 1;
           end;
           result:=d;
