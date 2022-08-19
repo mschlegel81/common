@@ -290,6 +290,14 @@ PROCEDURE T_bufferedInputStreamWrapper.read(VAR targetBuffer; CONST count: longi
   //Initial: buffer: [. . . . a b c d e f g . . . .]
   //         offset:          ^             ^ : fill
   begin
+    if count>C_bufferSize then begin
+      stream.Seek(stream.position+bufferOffset-bufferFill,soBeginning);
+      actuallyRead:=stream.read(targetBuffer,count);
+
+      bufferFill:=0; bufferOffset:=0;
+      if actuallyRead<>count then earlyEndOfFileError:=true;
+      exit;
+    end;
     if count>bufferFill-bufferOffset then begin
       if bufferFill>bufferOffset then move(buffer[bufferOffset],buffer,bufferFill-bufferOffset);
       dec(bufferFill,bufferOffset);
@@ -457,8 +465,12 @@ PROCEDURE T_bufferedOutputStreamWrapper.flush;
 PROCEDURE T_bufferedOutputStreamWrapper.write(CONST sourceBuffer; CONST count: longint);
   begin
     if bufferFill+count>length(buffer) then flush;
-    move(sourceBuffer,buffer[bufferFill],count);
-    inc(bufferFill,count);
+    if bufferFill+count>length(buffer) then begin
+      inherited write(sourceBuffer,count);
+    end else begin
+      move(sourceBuffer,buffer[bufferFill],count);
+      inc(bufferFill,count);
+    end;
   end;
 
 FUNCTION T_bufferedOutputStreamWrapper.streamPos:longint;
