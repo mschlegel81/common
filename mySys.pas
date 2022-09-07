@@ -408,26 +408,40 @@ FUNCTION myCommandLineParameters: T_arrayOfString;
 
 VAR clearConsoleProcess:TProcess=nil;
 PROCEDURE clearConsole;
+  {$ifdef Windows}
+  CONST origin: COORD=(x:0;y:0);
+  VAR
+    sequence:PCWSTR=#27+'[2J';
+    hStdOut: handle;
+    originalMode,newMode,written: dword;
+  {$endif}
   begin
     if FileTruncate(StdOutputHandle,0) then exit;
+    {$ifdef Windows}
+    flush(StdOut);
+    hStdOut:=GetStdHandle(STD_OUTPUT_HANDLE);
+    if not getConsoleMode(hStdOut,originalMode) then exit;
+    newMode:=originalMode or ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    if not SetConsoleMode(hStdOut,newMode) then exit;
+    WriteConsoleW(hStdOut,sequence,length(sequence),written,nil);
+    //sequence:=#27+'[3J';
+    //WriteConsoleW(hStdOut,sequence,length(sequence),written,nil);
+    SetConsoleMode(hStdOut,originalMode);
+    SetConsoleCursorPosition(hStdOut,origin);
+    {$endif}
+    {$ifdef LINUX}
     if clearConsoleProcess=nil then begin
       clearConsoleProcess := TProcess.create(nil);
       clearConsoleProcess.options:=clearConsoleProcess.options+[poWaitOnExit];
-      {$ifdef LINUX}
       clearConsoleProcess.executable := 'sh';
       clearConsoleProcess.parameters.add('-c');
       clearConsoleProcess.parameters.add('clear');
-      {$else}
-      clearConsoleProcess.executable := 'cmd';
-      clearConsoleProcess.parameters.add('/C');
-      clearConsoleProcess.parameters.add('cls');
-      {$endif}
     end;
     try
       flush(StdOut);
       clearConsoleProcess.execute;
-    except
-    end;
+    except end;
+    {$endif}
   end;
 
 FUNCTION containsPlaceholder(CONST S: string): boolean;

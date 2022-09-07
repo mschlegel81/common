@@ -78,6 +78,16 @@ FUNCTION canonicalFileName(CONST s:string):string;
     if result[length(result)]=DirectorySeparator then result:=copy(result,1,length(result)-1);
   end;
 
+FUNCTION TrimRightRetainingSpecials(CONST S: string): string;
+  CONST MY_WHITESPACE:T_charSet=[#0..#7,#16..' '];
+  VAR l:integer;
+  begin
+    l := length(s);
+    while (l>0) and (s[l] in MY_WHITESPACE) do
+     dec(l);
+    result := copy(s,1,l);
+  end ;
+
 FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
   TYPE TcellInfo=record
     cellType:(ctLeftAlignedString,ctRightAlignedString,ctNumeric);
@@ -201,7 +211,7 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
       result[i]:='';
       for j:=0 to length(matrix[i])-1 do result[i]:=result[i]+matrix[i][j].txt;
       setLength(matrix[i],0);
-      result[i]:=trimRight(result[i]);
+      result[i]:=TrimRightRetainingSpecials(result[i]);
     end;
     setLength(matrix,0);
   end;
