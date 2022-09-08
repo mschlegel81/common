@@ -411,22 +411,19 @@ PROCEDURE clearConsole;
   {$ifdef Windows}
   CONST origin: COORD=(x:0;y:0);
   VAR
-    sequence:PCWSTR=#27+'[2J';
     hStdOut: handle;
-    originalMode,newMode,written: dword;
+    csbi:TCONSOLESCREENBUFFERINFO;
+    conSize,written: dword;
   {$endif}
   begin
     if FileTruncate(StdOutputHandle,0) then exit;
     {$ifdef Windows}
     flush(StdOut);
     hStdOut:=GetStdHandle(STD_OUTPUT_HANDLE);
-    if not getConsoleMode(hStdOut,originalMode) then exit;
-    newMode:=originalMode or ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-    if not SetConsoleMode(hStdOut,newMode) then exit;
-    WriteConsoleW(hStdOut,sequence,length(sequence),written,nil);
-    //sequence:=#27+'[3J';
-    //WriteConsoleW(hStdOut,sequence,length(sequence),written,nil);
-    SetConsoleMode(hStdOut,originalMode);
+    if not GetConsoleScreenBufferInfo(hStdOut,csbi) then exit;
+    conSize:=dword(csbi.dwSize.x)*dword(csbi.dwSize.Y);
+    if not FillConsoleOutputCharacter(hStdOut,' ',conSize,origin,written) then exit;
+    if not FillConsoleOutputAttribute(hStdOut,csbi.wAttributes,conSize,origin,written) then exit;
     SetConsoleCursorPosition(hStdOut,origin);
     {$endif}
     {$ifdef LINUX}
