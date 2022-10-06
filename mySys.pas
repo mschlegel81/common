@@ -621,12 +621,19 @@ FUNCTION getCPULoadPercentage: longint;
     FSWbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
     FWMIService   := FSWbemLocator.ConnectServer(WbemComputer, 'root\CIMV2', WbemUser, WbemPassword);
     try
-      FWbemObjectSet:= FWMIService.ExecQuery('SELECT LoadPercentage FROM Win32_Processor','WQL',wbemFlagForwardOnly);
+      FWbemObjectSet:= FWMIService.ExecQuery('SELECT * FROM Win32_PerfFormattedData_PerfOS_Processor WHERE name=''_Total''','WQL',wbemFlagForwardOnly);
       oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumvariant;
       if oEnum.next(1, FWbemObject, tmp) = 0 then begin
-        result := FWbemObject.Properties_.item('LoadPercentage').value;
+        result := FWbemObject.Properties_.item('PercentProcessorTime').value;
         FWbemObject:=Unassigned;
-      end else result:=-1;
+      end else begin
+        FWbemObjectSet:= FWMIService.ExecQuery('SELECT LoadPercentage FROM Win32_Processor','WQL',wbemFlagForwardOnly);
+        oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumvariant;
+        if oEnum.next(1, FWbemObject, tmp) = 0 then begin
+          result := FWbemObject.Properties_.item('LoadPercentage').value;
+          FWbemObject:=Unassigned;
+        end else result:=-1;
+      end;
     except
       result:=-1;
     end;
