@@ -489,6 +489,12 @@ FUNCTION DiscreteFourierTransform(CONST X:T_arrayOfComplex; CONST inverse:boolea
   end;
 
 FUNCTION FastFourierTransform(CONST X:T_arrayOfComplex; CONST inverse:boolean):T_arrayOfComplex;
+  CONST Q3a:T_Complex=(re:-0.5;im:-0.86602540378443837);
+        Q3b:T_Complex=(re:-0.5;im: 0.86602540378443837);
+        Q5a:T_Complex=(re: 0.3090169943749474; im:-0.951056516295153);
+        Q5b:T_Complex=(re:-0.8090169943749474; im:-0.587785252292473);
+        Q5c:T_Complex=(re:-0.8090169943749474; im: 0.587785252292473);
+        Q5d:T_Complex=(re: 0.3090169943749474; im: 0.951056516295153);
   VAR N1:longint=2;
       N2:longint;
       commonFactor:double;
@@ -525,7 +531,32 @@ FUNCTION FastFourierTransform(CONST X:T_arrayOfComplex; CONST inverse:boolean):T
       else commonFactor:=1;
       for i:=0 to N2-1 do result[   i]:=(innerFT[0,i]+innerFT[1,i])*commonFactor;
       for i:=0 to N2-1 do result[N2+i]:=(innerFT[0,i]-innerFT[1,i])*commonFactor;
-      //TODO Implement special cases 3, 5, ... (?)
+    end else if N1=3 then begin
+      if inverse then begin
+        commonFactor:=1/3;
+        for i:=0 to N2-1 do result[      i]:=(innerFT[0,i]+innerFT[1,i]    +innerFT[2,i]    )*commonFactor;
+        for i:=0 to N2-1 do result[   N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q3b+innerFT[2,i]*Q3a)*commonFactor;
+        for i:=0 to N2-1 do result[N2+N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q3a+innerFT[2,i]*Q3b)*commonFactor;
+      end else begin
+        for i:=0 to N2-1 do result[      i]:=(innerFT[0,i]+innerFT[1,i]    +innerFT[2,i]    );
+        for i:=0 to N2-1 do result[   N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q3a+innerFT[2,i]*Q3b);
+        for i:=0 to N2-1 do result[N2+N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q3b+innerFT[2,i]*Q3a);
+      end;
+    end else if N1=5 then begin
+      if inverse then begin
+        commonFactor:=1/5;
+        for i:=0 to N2-1 do result[            i]:=(innerFT[0,i]+innerFT[1,i]    +innerFT[2,i]    +innerFT[3,i]    +innerFT[4,i]    )*commonFactor;
+        for i:=0 to N2-1 do result[         N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q5d+innerFT[2,i]*Q5c+innerFT[3,i]*Q5b+innerFT[4,i]*Q5a)*commonFactor;
+        for i:=0 to N2-1 do result[      N2+N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q5c+innerFT[2,i]*Q5a+innerFT[3,i]*Q5d+innerFT[4,i]*Q5b)*commonFactor;
+        for i:=0 to N2-1 do result[   N2+N2+N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q5b+innerFT[2,i]*Q5d+innerFT[3,i]*Q5a+innerFT[4,i]*Q5c)*commonFactor;
+        for i:=0 to N2-1 do result[N2+N2+N2+N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q5a+innerFT[2,i]*Q5b+innerFT[3,i]*Q5c+innerFT[4,i]*Q5d)*commonFactor;
+      end else begin
+        for i:=0 to N2-1 do result[            i]:=(innerFT[0,i]+innerFT[1,i]    +innerFT[2,i]    +innerFT[3,i]    +innerFT[4,i]    );
+        for i:=0 to N2-1 do result[         N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q5a+innerFT[2,i]*Q5b+innerFT[3,i]*Q5c+innerFT[4,i]*Q5d);
+        for i:=0 to N2-1 do result[      N2+N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q5b+innerFT[2,i]*Q5d+innerFT[3,i]*Q5a+innerFT[4,i]*Q5c);
+        for i:=0 to N2-1 do result[   N2+N2+N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q5c+innerFT[2,i]*Q5a+innerFT[3,i]*Q5d+innerFT[4,i]*Q5b);
+        for i:=0 to N2-1 do result[N2+N2+N2+N2+i]:=(innerFT[0,i]+innerFT[1,i]*Q5d+innerFT[2,i]*Q5c+innerFT[3,i]*Q5b+innerFT[4,i]*Q5a);
+      end;
     end else begin
       setLength(innerX,N2);
       //Map    0,0 0,1 0,2 ...    0,N2-1     (N1 arrays of length N2 each)
