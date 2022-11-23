@@ -500,7 +500,7 @@ FUNCTION FastFourierTransform(CONST X:T_arrayOfComplex; CONST inverse:boolean):T
       commonFactor:double;
       innerX ,
       innerFT:array of T_arrayOfComplex;
-      i,k:longint;
+      i,j,k:longint;
   begin
     N2:=length(x);
     //Find smallest divider of length(X) by trial division
@@ -511,7 +511,13 @@ FUNCTION FastFourierTransform(CONST X:T_arrayOfComplex; CONST inverse:boolean):T
 
     setLength(innerX ,N1);
     for i:=0 to N1-1 do setLength(innerX[i],N2);
-    for i:=0 to length(X)-1 do innerX[i mod N1,i div N1]:=X[i];
+    j:=0;
+    k:=0;
+    for i:=0 to length(X)-1 do begin
+      innerX[j,k]:=X[i];
+      inc(j);
+      if j>=N1 then begin j:=0; inc(k); end;
+    end;
 
     setLength(innerFT,N1);
     for i:=0 to N1-1 do innerFT[i]:=FastFourierTransform(innerX[i],inverse);
@@ -568,11 +574,18 @@ FUNCTION FastFourierTransform(CONST X:T_arrayOfComplex; CONST inverse:boolean):T
       //     ...            ...
       //     0,N2-1         ... N1-1,N2-1
       for i:=0 to N2-1 do setLength(innerX[i],N1);
-      for i:=0 to length(X)-1 do innerX[i div N1,i mod N1]:=innerFT[i mod N1,i div N1];
+
+      for j:=0 to N2-1 do for k:=0 to N1-1 do innerX[j,k]:=innerFT[k,j];
       //Note: N1 is prime by construction, so...
       setLength(innerFT,N2);
       for i:=0 to N2-1 do innerFT[i]:=DiscreteFourierTransform(innerX[i],inverse);
-      for i:=0 to length(X)-1 do result[i]:=innerFT[i mod N2,i div N2];
+      j:=0;
+      k:=0;
+      for i:=0 to length(X)-1 do begin
+        result[i]:=innerFT[j,k];
+        inc(j);
+        if j>=N2 then begin j:=0; inc(k); end;
+      end;
     end;
   end;
 
