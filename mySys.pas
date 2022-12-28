@@ -113,8 +113,8 @@ FUNCTION getNumberOfCPUs:longint;
   FUNCTION getTaskInfo:T_taskInfoArray;
   FUNCTION getCPULoadPercentage:longint;
 {$endif}
-PROCEDURE showConsole;
-PROCEDURE hideConsole;
+FUNCTION showConsole:boolean;
+FUNCTION hideConsole:boolean;
 FUNCTION isConsoleShowing:boolean;
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
@@ -497,16 +497,17 @@ FUNCTION isConsoleShowing: boolean;
     result:={$ifdef Windows}consoleShowing>=1{$else}true{$endif};
   end;
 
-PROCEDURE showConsole;
+FUNCTION showConsole:boolean;
   begin
     inc(consoleShowing);
     if consoleShowing<1 then consoleShowing:=1;
+    result:=true;
     {$ifdef Windows}{$ifndef debugMode}
     ShowWindow(GetConsoleWindow, SW_SHOW);
     {$endif}{$endif}
   end;
 
-PROCEDURE hideConsole;
+FUNCTION hideConsole:boolean;
   begin
     dec(consoleShowing);
     if consoleShowing<=0 then begin
@@ -514,7 +515,8 @@ PROCEDURE hideConsole;
       ShowWindow(GetConsoleWindow, SW_HIDE);
       {$endif}{$endif}
       if consoleShowing<0 then consoleShowing:=0;
-    end;
+      result:=true;
+    end else result:=false;
   end;
 
 FUNCTION isValidFilename(CONST fileName: string; CONST requirePathExistence:boolean=true) : boolean;
