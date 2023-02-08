@@ -120,7 +120,18 @@ TYPE
     PROCEDURE saveToFile(CONST fileName:string);
   end;
 
+FUNCTION serialVersionOf(CONST s:string; CONST versionOffset:dword):dword;
 IMPLEMENTATION
+
+FUNCTION serialVersionOf(CONST s: string; CONST versionOffset: dword): dword;
+  VAR i:longint;
+  begin
+    {$Q-}{$R-}
+    result:=length(s)+versionOffset;
+    for i:=1 to length(s) do result:=result*31+ord(s[i]);
+    {$Q+}{$R+}
+  end;
+
 CONSTRUCTOR T_abstractStreamWrapper.create;
   begin
     wrongTypeError     :=false;
