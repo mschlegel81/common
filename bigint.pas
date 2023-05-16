@@ -123,6 +123,7 @@ TYPE
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
+{This function works safely for n<=2^45; for larger numbers arithmetic overflows may occur}
 FUNCTION factorizeSmall(n:int64):T_factorizationResult;
 FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_factorizationResult;
 FUNCTION isPrime(CONST n:int64 ):boolean;
@@ -1584,6 +1585,8 @@ FUNCTION factorizeSmall(n:int64):T_factorizationResult;
       end;
     end;
 
+  FUNCTION floor64(CONST d:double):int64; begin result:=trunc(d); if frac(d)<0 then dec(result); end;
+  FUNCTION ceil64 (CONST d:double):int64; begin result:=trunc(d); if frac(d)>0 then inc(result); end;
   VAR p,k,x:int64;
       rootOfY:int64;
       skipIdx:longint=0;
@@ -1635,10 +1638,8 @@ FUNCTION factorizeSmall(n:int64):T_factorizationResult;
     end;
     //Lehman...
     sixthRootOfN:=power(n,1/6)*0.25;
-    writeln('Factorizing ',n);
     for k:=1 to floor(power(n,1/3)) do begin
-      sqrt4KN:=2.0*sqrt(1.0*k*n);
-      writeln('scanning k=',k,'; x = ',ceil64(sqrt4KN),'..',floor64(sqrt4KN+sixthRootOfN/sqrt(k)),' (',sqrt4KN:0:3,',',sixthRootOfN/sqrt(k):0:3,')');
+      sqrt4KN:=2.0*sqrt(k*n);
       for x:=ceil64(sqrt4KN) to floor64(sqrt4KN+sixthRootOfN/sqrt(k)) do begin
         if isSquare(int64(x)*x-4*n*k,rootOfY) then begin
           p:=gcd(x+rootOfY,n);
@@ -1876,7 +1877,6 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
     then kMax:=trunc(temp)
     else kMax:=9223372036854774000;
     k:=1;
-    writeln('Factorizing ',r.toString);
     if not(isPrime(r)) then while (k<=kMax) and not(lehmannTestCompleted) and ((continue=nil) or continue()) do begin
       bigFourKN:=r*k;
       bigFourKN.shlInc(false);
@@ -1888,7 +1888,6 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
         while squareIsLesser(x,bigFourKN) do inc(x);
         xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //<= 4*r^(4/3)+r^(1/6)/(4*sqrt(r^(1/3))) -> r< 59172824724903
 
-        writeln('scanning k=',k,'; x = ',x,'..',xMax);
         while x<=xMax do begin
           if (continue<>nil) and not(continue()) then exit;
           bigY:=squareOfMinus4kn(x);
