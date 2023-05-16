@@ -123,7 +123,7 @@ TYPE
 
 FUNCTION randomInt(CONST randomSource:F_rand32Source        ; CONST maxValExclusive:T_bigInt):T_bigInt;
 FUNCTION randomInt(CONST randomSource:F_rand32SourceOfObject; CONST maxValExclusive:T_bigInt):T_bigInt;
-FUNCTION factorizeSmall(n:longint):T_arrayOfLongint;
+FUNCTION factorizeSmall(n:int64):T_factorizationResult;
 FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_factorizationResult;
 FUNCTION isPrime(CONST n:int64 ):boolean;
 FUNCTION isPrime(CONST B:T_bigInt):boolean;
@@ -1566,45 +1566,105 @@ FUNCTION T_bigInt.hash:dword;
 
 CONST primes:array[0..144] of word=(3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,809,811,821,823,827,829,839);
 CONST skip:array[0..47] of byte=(10,2,4,2,4,6,2,6,4,2,4,6,6,2,6,4,2,6,4,6,8,4,2,4,2,4,8,6,4,6,2,4,6,2,6,6,4,2,4,6,2,6,4,2,4,2,10,2);
-FUNCTION factorizeSmall(n:longint):T_arrayOfLongint;
-  VAR p:longint;
+FUNCTION factorizeSmall(n:int64):T_factorizationResult;
+  FUNCTION isSquare(CONST y:int64; OUT rootOfY:int64):boolean;
+    CONST SQUARE_LOW_BYTE_VALUES:set of byte=[0,1,4,9,16,17,25,33,36,41,49,57,64,65,68,73,81,89,97,100,105,113,121,129,132,137,144,145,153,161,164,169,177,185,193,196,201,209,217,225,228,233,241,249];
+    begin
+      if (y>=0) and (byte(y and 255) in SQUARE_LOW_BYTE_VALUES) then begin
+        rootOfY:=round(sqrt(y));
+        result:=rootOfY*rootOfY=y;
+      end else result:=false;
+    end;
+
+  FUNCTION gcd(x,y:int64):int64; inline;
+    begin
+      result:=x;
+      while (y<>0) do begin
+        x:=result mod y; result:=y; y:=x;
+      end;
+    end;
+
+  VAR p,k,x:int64;
+      rootOfY:int64;
       skipIdx:longint=0;
+      sqrt4KN,sixthRootOfN: double;
   begin
     initialize(result);
-    setLength(result,0);
+    setLength(result.smallFactors,0);
     if n<0 then begin
       n:=-n;
-      append(result,-1);
+      append(result.smallFactors,-1);
       if n=1 then exit(result);
     end;
     if n=1 then begin
-      append(result,1);
+      append(result.smallFactors,1);
       exit(result);
     end;
     while (n>0) and not(odd(n)) do begin
       n:=n shr 1;
-      append(result,2);
+      append(result.smallFactors,2);
     end;
     for p in primes do begin
       if (int64(p)*p>n) then begin
-        if n>1 then append(result,n);
+        if n>1 then append(result.smallFactors,n);
         exit;
       end;
       while n mod p=0 do begin
         n:=n div p;
-        append(result,p);
+        append(result.smallFactors,p);
       end;
     end;
     p:=primes[length(primes)-1]+skip[length(skip)-1]; //=841
-    while int64(p)*p<=n do begin
+    while int64(p)*p*p<=n do begin
       while n mod p=0 do begin
         n:=n div p;
-        append(result,p);
+        append(result.smallFactors,p);
       end;
       inc(p,skip[skipIdx]);
       skipIdx:=(skipIdx+1) mod length(skip);
     end;
-    if n>1 then append(result,n);
+    if n=1 then exit(result);
+    if isPrime(n) then begin
+      if n<=maxLongint
+      then append(result.smallFactors,n)
+      else begin
+        setLength(result.bigFactors,1);
+        result.bigFactors[0].fromInt(n);
+      end;
+      exit(result);
+    end;
+    //Lehman...
+    sixthRootOfN:=power(n,1/6)*0.25;
+    for k:=1 to floor(power(n,1/3)) do begin
+      sqrt4KN:=sqrt(4.0*k*n);
+      for x:=ceil64(sqrt4KN) to floor64(sqrt4KN+sixthRootOfN/sqrt(k)) do begin
+        if isSquare(int64(x)*x-4*n*k,rootOfY) then begin
+          p:=gcd(x+rootOfY,n);
+          if p<=maxLongint
+          then append(result.smallFactors,p)
+          else begin
+            setLength(result.bigFactors,1);
+            result.bigFactors[0].fromInt(p);
+          end;
+          p:=n div p;
+          if p<=maxLongint
+          then append(result.smallFactors,p)
+          else begin
+            setLength(result.bigFactors,length(result.bigFactors)+1);
+            result.bigFactors[length(result.bigFactors)-1].fromInt(p);
+          end;
+          exit(result);
+        end;
+      end;
+    end;
+    if n>1 then begin
+      if n<=maxLongint
+      then append(result.smallFactors,n)
+      else begin
+        setLength(result.bigFactors,1);
+        result.bigFactors[0].fromInt(n);
+      end;
+    end;
   end;
 
 FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_factorizationResult;
@@ -1781,8 +1841,8 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
     r.create(B);
     if B.isNegative then append(result.smallFactors,-1);
 
-    if r.relevantBits<=31 then begin
-      result.smallFactors:=factorizeSmall(r.toInt);
+    if r.relevantBits<=63 then begin
+      result:=factorizeSmall(r.toInt);
       exit;
     end else begin
       if isPrime(r) then begin
