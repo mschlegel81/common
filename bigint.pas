@@ -1842,22 +1842,30 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
     if B.isNegative then append(result.smallFactors,-1);
 
     if r.relevantBits<=63 then begin
-      result:=factorizeSmall(r.toInt);
+      try
+        result:=factorizeSmall(r.toInt);
+        lehmannTestCompleted:=true;
+      except
+        lehmannTestCompleted:=false;
+        setLength(result.smallFactors,0);
+        for k:=0 to length(result.bigFactors)-1 do result.bigFactors[k].clear;
+        setLength(result.bigFactors,0);
+      end;
+      if lehmannTestCompleted then exit;
+    end;
+
+    if isPrime(r) then begin
+      setLength(result.bigFactors,1);
+      result.bigFactors[0]:=r;
+      exit(result);
+    end;
+    result:=basicFactorize(r,furtherFactorsPossible);
+    if not(furtherFactorsPossible) then begin
+      if not(r.compare(1) in [CR_LESSER,CR_EQUAL]) then begin
+        setLength(result.bigFactors,length(result.bigFactors)+1);
+        result.bigFactors[length(result.bigFactors)-1]:=r;
+      end;
       exit;
-    end else begin
-      if isPrime(r) then begin
-        setLength(result.bigFactors,1);
-        result.bigFactors[0]:=r;
-        exit(result);
-      end;
-      result:=basicFactorize(r,furtherFactorsPossible);
-      if not(furtherFactorsPossible) then begin
-        if not(r.compare(1) in [CR_LESSER,CR_EQUAL]) then begin
-          setLength(result.bigFactors,length(result.bigFactors)+1);
-          result.bigFactors[length(result.bigFactors)-1]:=r;
-        end;
-        exit;
-      end;
     end;
 
     sixthRootOfR:=power(r.toFloat,1/6);
