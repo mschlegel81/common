@@ -1635,8 +1635,10 @@ FUNCTION factorizeSmall(n:int64):T_factorizationResult;
     end;
     //Lehman...
     sixthRootOfN:=power(n,1/6)*0.25;
+    writeln('Factorizing ',n);
     for k:=1 to floor(power(n,1/3)) do begin
-      sqrt4KN:=sqrt(4.0*k*n);
+      sqrt4KN:=2.0*sqrt(1.0*k*n);
+      writeln('scanning k=',k,'; x = ',ceil64(sqrt4KN),'..',floor64(sqrt4KN+sixthRootOfN/sqrt(k)),' (',sqrt4KN:0:3,',',sixthRootOfN/sqrt(k):0:3,')');
       for x:=ceil64(sqrt4KN) to floor64(sqrt4KN+sixthRootOfN/sqrt(k)) do begin
         if isSquare(int64(x)*x-4*n*k,rootOfY) then begin
           p:=gcd(x+rootOfY,n);
@@ -1854,11 +1856,11 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
       if lehmannTestCompleted then exit;
     end;
 
-    if isPrime(r) then begin
-      setLength(result.bigFactors,1);
-      result.bigFactors[0]:=r;
-      exit(result);
-    end;
+    //if isPrime(r) then begin
+    //  setLength(result.bigFactors,1);
+    //  result.bigFactors[0]:=r;
+    //  exit(result);
+    //end;
     result:=basicFactorize(r,furtherFactorsPossible);
     if not(furtherFactorsPossible) then begin
       if not(r.compare(1) in [CR_LESSER,CR_EQUAL]) then begin
@@ -1874,15 +1876,19 @@ FUNCTION factorize(CONST B:T_bigInt; CONST continue:T_dynamicContinueFlag):T_fac
     then kMax:=trunc(temp)
     else kMax:=9223372036854774000;
     k:=1;
+    writeln('Factorizing ',r.toString);
     if not(isPrime(r)) then while (k<=kMax) and not(lehmannTestCompleted) and ((continue=nil) or continue()) do begin
       bigFourKN:=r*k;
       bigFourKN.shlInc(false);
       bigFourKN.shlInc(false);
+
       if r.compare(59172824724903) in [CR_LESSER,CR_EQUAL] then begin
         temp:=sqrt(bigFourKN.toFloat);
         x:=ceil64(temp); //<= 4*r^(4/3) < 2^63 ->  r < 2^(61*3/4) = 59172824724903
         while squareIsLesser(x,bigFourKN) do inc(x);
         xMax:=floor64(temp+sixthRootOfR/(4*sqrt(k))); //<= 4*r^(4/3)+r^(1/6)/(4*sqrt(r^(1/3))) -> r< 59172824724903
+
+        writeln('scanning k=',k,'; x = ',x,'..',xMax);
         while x<=xMax do begin
           if (continue<>nil) and not(continue()) then exit;
           bigY:=squareOfMinus4kn(x);
