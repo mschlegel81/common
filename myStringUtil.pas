@@ -410,7 +410,7 @@ FUNCTION isIdentifier(CONST s: ansistring; CONST allowDot: boolean): boolean;
       dotAllowed: boolean;
   begin
     dotAllowed:=allowDot;
-    result:=(length(s)>=1) and (s[1] in ['a'..'z', 'A'..'Z']);
+    result:=(length(s)>=1) and (s[1] in ['a'..'z', 'A'..'Z', '_']);
     i:=2;
     while result and (i<=length(s)) do
       if (s [i] in IDENTIFIER_CHARS) then inc(i)
