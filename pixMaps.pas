@@ -14,6 +14,7 @@ CONST
   MAX_HEIGHT_OR_WIDTH=9999;
   C_maxImageDimensions:T_imageDimensions=(width:MAX_HEIGHT_OR_WIDTH;height:MAX_HEIGHT_OR_WIDTH);
 TYPE
+  F_stopRequested=FUNCTION ():boolean of object;
   GENERIC G_pixelMap<PIXEL_TYPE>=object
     TYPE PIXEL_POINTER=^PIXEL_TYPE;
          SELF_TYPE=specialize G_pixelMap<PIXEL_TYPE>;
@@ -36,7 +37,7 @@ TYPE
       FUNCTION pixelCount:longint;
       FUNCTION diagonal:double;
       FUNCTION getClone:P_SELF_TYPE;
-      PROCEDURE blur(CONST relativeXBlur:double; CONST relativeYBlur:double);
+      PROCEDURE blur(CONST relativeXBlur,relativeYBlur:double; CONST stopRequested:F_stopRequested=nil);
       PROCEDURE boxBlur(CONST relativeXBlur:double; CONST relativeYBlur:double);
       PROCEDURE flip;
       PROCEDURE flop;
@@ -47,6 +48,7 @@ TYPE
       PROCEDURE clear;
       PROCEDURE copyFromPixMap(VAR srcImage: G_pixelMap);
       PROCEDURE simpleScaleDown(powerOfTwo:byte);
+      FUNCTION constantFalse:boolean;
   end;
 
 FUNCTION transpose(CONST dim:T_imageDimensions):T_imageDimensions;
@@ -176,19 +178,21 @@ FUNCTION G_pixelMap.getClone: P_SELF_TYPE;
     move(data^,result^.data^,dataSize);
   end;
 
-PROCEDURE G_pixelMap.blur(CONST relativeXBlur: double; CONST relativeYBlur: double);
+PROCEDURE G_pixelMap.blur(CONST relativeXBlur,relativeYBlur:double; CONST stopRequested:F_stopRequested=nil);
   VAR kernel:T_arrayOfDouble;
       temp:SELF_TYPE;
       ptmp:PIXEL_POINTER;
       x,y,z:longint;
       sum:PIXEL_TYPE;
       weight:double;
+      shouldStop:F_stopRequested;
   begin
+    if stopRequested=nil then shouldStop:=@constantFalse else shouldStop:=stopRequested;
     temp.create(dim.width,dim.height);
     ptmp:=temp.data;
     kernel:=getSmoothingKernel(relativeXBlur/100*diagonal);
     //blur in x-direction:-----------------------------------------------
-    for y:=0 to dim.height-1 do for x:=0 to dim.width-1 do begin
+    for y:=0 to dim.height-1 do if not shouldStop() then for x:=0 to dim.width-1 do begin
       sum:=BLACK; weight:=0;
       for z:=max(-x,1-length(kernel)) to min(dim.width-x,length(kernel))-1 do begin
         sum   :=sum   +data[x+z+y*dim.width]*kernel[abs(z)];
@@ -202,7 +206,7 @@ PROCEDURE G_pixelMap.blur(CONST relativeXBlur: double; CONST relativeYBlur: doub
     setLength(kernel,0);
     kernel:=getSmoothingKernel(relativeYBlur/100*diagonal);
     //blur in y-direction:---------------------------------------------------
-    for x:=0 to dim.width-1 do for y:=0 to dim.height-1 do begin
+    for x:=0 to dim.width-1 do if not shouldStop() then for y:=0 to dim.height-1 do begin
       sum:=BLACK; weight:=0;
       for z:=max(-y,1-length(kernel)) to min(dim.height-y,length(kernel))-1 do begin
         sum   :=sum   +ptmp[x+(z+y)*dim.width]*kernel[abs(z)];
@@ -395,6 +399,9 @@ PROCEDURE G_pixelMap.simpleScaleDown(powerOfTwo: byte);
       powerOfTwo:=powerOfTwo shr 1;
     end;
   end;
+
+FUNCTION G_pixelMap.constantFalse:boolean;
+  begin result:=false; end;
 
 {FUNCTION FastBitmapToBitmap(FastBitmap: TFastBitmap; Bitmap: TBitmap);
 VAR
