@@ -1,7 +1,7 @@
 UNIT myStringUtil;
 
 INTERFACE
-USES math, strutils, sysutils,  myGenerics, zstream, Classes, huffman, LazUTF8;
+USES math, strutils, sysutils,  myGenerics, zstream, Classes, LazUTF8;
 
 TYPE T_charSet=set of char;
      T_byteSet=set of byte;
@@ -18,11 +18,6 @@ CONST
   C_shiftInChar       = #15;
 
   C_compression_gzip             :byte=1;
-  C_compression_huffman_default  :byte=2;
-  C_compression_huffman_lucky    :byte=3;
-  C_compression_huffman_numbers  :byte=4;
-  C_compression_huffman_wikipedia:byte=5;
-  C_compression_huffman_mnh      :byte=6;
 
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:T_charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
@@ -811,12 +806,7 @@ FUNCTION compressString(CONST src: ansistring; CONST algorithmsToConsider:T_byte
     if length(src)=0 then exit(src);
     if src[1] in [#1..#4,#35..#38] then result:=#35+src
                                    else result:=    src;
-    if 1 in algorithmsToConsider then checkAlternative(gzip_compressString(src),#36);
-    if 2 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_DEFAULT  ),#37);
-    if 3 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_LUCKY    ),#38);
-    if 4 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_NUMBERS  ),#1);
-    if 5 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_WIKIPEDIA),#2);
-    if 6 in algorithmsToConsider then checkAlternative(huffyEncode(src,hm_MNH      ),#3);
+    if C_compression_gzip in algorithmsToConsider then checkAlternative(gzip_compressString(src),#36);
   end;
 
 FUNCTION decompressString(CONST src:ansistring):ansistring;
@@ -825,11 +815,6 @@ FUNCTION decompressString(CONST src:ansistring):ansistring;
     case src[1] of
       #35: exit(                      copy(src,2,length(src)-1));
       #36: exit(gzip_decompressString(copy(src,2,length(src)-1)));
-      #37: exit(huffyDecode(          copy(src,2,length(src)-1),hm_DEFAULT  ));
-      #38: exit(huffyDecode(          copy(src,2,length(src)-1),hm_LUCKY    ));
-       #1: exit(huffyDecode(          copy(src,2,length(src)-1),hm_NUMBERS  ));
-       #2: exit(huffyDecode(          copy(src,2,length(src)-1),hm_WIKIPEDIA));
-       #3: exit(huffyDecode(          copy(src,2,length(src)-1),hm_MNH      ));
     end;
     result:=src;
   end;
