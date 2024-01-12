@@ -1,0 +1,53 @@
+bigrams(line:String)->begin
+  local B:=line.bytes.ord;
+  B.size<2 ? void : [B.leading,B.tail].transpose;
+end;
+
+datastore BIGRAM_COUNTS:=[].toMap;
+
+updateBigramCounts->BIGRAM_COUNTS:=
+  allFiles('C:\dev\private',['*.txt','*.mnh','*.pas'])
+  .pMap((file)->note('Reading: ',file) orElse
+                file.fileLines
+                    .each(line,line.bigrams,|)
+                    .elementFrequency)
+  .agg((x,y)->mergeMaps(x,y,::+))
+  .filter((key,count)->count>1)
+  .toMap;
+
+@SuppressUnusedWarning
+ensureBigramCounts:=BIGRAM_COUNTS.isVoid ? updateBigramCounts : BIGRAM_COUNTS;
+
+Base:=map([0..255],(x)->[x,1]).toMap;
+
+memoized defaultFrequency->BIGRAM_COUNTS.map((key,value)->key[0]=>value).{$L.getInner(1).group($L.getInner(0),::+)};
+
+memoized frequencyByPredecessor->
+BIGRAM_COUNTS.map((key,value)->key|value).group(0)
+.map((key,value)->key=>group(value.getInner(2),value.getInner(1),(x,y)->fail(x,'-',y)))
+.toMap;
+
+memoized defaultState->begin
+  local s:=[0..255].minus(frequencyByPredecessor.getInner(0)).min;
+  assert(!isVoid(s));
+  s;
+end;
+
+tabulate(freqMap:Map)-> freqMap.mergeMaps(Base,::orElse).sort.getInner(1).join(",");
+
+main->begin
+  printf("CONST initialState=#{[0..255].minus(frequencyByPredecessor.getInner(0)).min};");
+  print('PROCEDURE ensureModel;');
+  printf('  CONST F_D: T_freqTable=(%s);',tabulate(defaultFrequency));
+  frequencyByPredecessor.sort.map((key,value)->printf('        F_{key}: T_freqTable=({tabulate(value)});'));
+  print('  begin');
+  local initialState:=void;
+  [0..255].each(key,begin
+    local sourceData:=frequencyByPredecessor[key].isVoid
+                      ? begin initialState:=initialState orElse key; 'F_D'; end
+                      : f'F_{key}';
+    printf("    buildCode({sourceData}, decode_tree[#{key}], encode_table[#{key}]);");
+  end);
+  assert(!isVoid(initialState));
+  print('  end;');
+end;

@@ -1,7 +1,7 @@
 UNIT myStringUtil;
 
 INTERFACE
-USES math, strutils, sysutils,  myGenerics, zstream, Classes, LazUTF8;
+USES math, strutils, sysutils,  myGenerics, zstream, Classes, LazUTF8, customCompression;
 
 TYPE T_charSet=set of char;
      T_byteSet=set of byte;
@@ -17,7 +17,10 @@ CONST
   C_shiftOutChar      = #14;
   C_shiftInChar       = #15;
 
-  C_compression_gzip             :byte=1;
+  C_compression_find_shortest=255;
+  C_compression_none         =0;
+  C_compression_gzip         =1;
+  C_compression_custom       =2;
 
   BLANK_TEXT = '';
   IDENTIFIER_CHARS:T_charSet=['a'..'z','A'..'Z','0'..'9','.','_'];
@@ -49,7 +52,7 @@ FUNCTION StripHTML(CONST S: string): string;
 FUNCTION ensureSysEncoding(CONST s:ansistring):ansistring;
 FUNCTION ensureUtf8Encoding(CONST s:ansistring):ansistring;
 
-FUNCTION compressString(CONST src: ansistring; CONST algorithmsToConsider:T_byteSet):ansistring;
+FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
 FUNCTION decompressString(CONST src:ansistring):ansistring;
 FUNCTION tokenSplit(CONST stringToSplit:ansistring; CONST language:string='MNH'):T_arrayOfString;
 FUNCTION ansistringInfo(VAR s:ansistring):string;
@@ -794,7 +797,7 @@ FUNCTION gzip_decompressString(CONST ASrc:ansistring):ansistring;
     end;
   end;
 
-FUNCTION compressString(CONST src: ansistring; CONST algorithmsToConsider:T_byteSet):ansistring;
+FUNCTION compressString(CONST src: ansistring; CONST algorithm:byte):ansistring;
   PROCEDURE checkAlternative(CONST alternativeSuffix:ansistring; CONST c0:char);
     VAR alternative:ansistring;
     begin
@@ -802,11 +805,24 @@ FUNCTION compressString(CONST src: ansistring; CONST algorithmsToConsider:T_byte
       if length(alternative)<length(result) then result:=alternative;
     end;
 
+  FUNCTION no_compress:string;
+    begin
+      if src[1] in [#1..#4,#35..#38] then result:=#35+src
+                                     else result:=    src;
+    end;
+
   begin
-    if length(src)=0 then exit(src);
-    if src[1] in [#1..#4,#35..#38] then result:=#35+src
-                                   else result:=    src;
-    if C_compression_gzip in algorithmsToConsider then checkAlternative(gzip_compressString(src),#36);
+    case algorithm of
+      C_compression_find_shortest: begin
+        if length(src)=0 then exit(src);
+        result:=no_compress;
+        checkAlternative(gzip_compressString(src),#36);
+        checkAlternative(customCompression.compress(src),#37);
+      end;
+      C_compression_none   : result:=no_compress;
+      C_compression_gzip   : result:=#36+gzip_compressString(src);
+      C_compression_custom : result:=#37+customCompression.compress(src);
+    end;
   end;
 
 FUNCTION decompressString(CONST src:ansistring):ansistring;
@@ -815,6 +831,7 @@ FUNCTION decompressString(CONST src:ansistring):ansistring;
     case src[1] of
       #35: exit(                      copy(src,2,length(src)-1));
       #36: exit(gzip_decompressString(copy(src,2,length(src)-1)));
+      #37: exit(customCompression.decompress(copy(src,2,length(src)-1)));
     end;
     result:=src;
   end;
