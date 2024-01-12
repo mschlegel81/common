@@ -830,6 +830,7 @@ FUNCTION decompress(CONST s: string): string;
       prevSymbol:char=initialState;
       stillReading:boolean=true;
       nextSymbol: char;
+      outputBuffer:shortstring='';
 
   FUNCTION decode(CONST node:P_node):char;
     begin
@@ -858,10 +859,17 @@ FUNCTION decompress(CONST s: string): string;
     result:='';
     while (inputArr.hasNextBit) and stillReading do begin
       nextSymbol:=decode(decode_tree[prevSymbol]);
-      if stillReading then result+=nextSymbol;
+      if stillReading then begin
+        outputBuffer+=nextSymbol;
+        if length(outputBuffer)>=255 then begin
+          result+=outputBuffer;
+          outputBuffer:='';
+        end;
+      end;
       prevSymbol:=nextSymbol;
     end;
     inputArr.destroy;
+    result+=outputBuffer;
   end;
 
 INITIALIZATION
