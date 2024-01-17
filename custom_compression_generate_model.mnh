@@ -6,7 +6,7 @@ end;
 datastore BIGRAM_COUNTS:=[].toMap;
 
 updateBigramCounts->BIGRAM_COUNTS:=
-  allFiles('C:\dev\private',['*.txt','*.mnh','*.pas'])
+  allFiles('C:\dev\private',['*.txt','*.mnh'])
   .pMap((file)->note('Reading: ',file) orElse
                 file.fileLines
                     .each(line,line.bigrams,|)
@@ -27,13 +27,9 @@ BIGRAM_COUNTS.map((key,value)->key|value).group(0)
 .map((key,value)->key=>group(value.getInner(2),value.getInner(1),(x,y)->fail(x,'-',y)))
 .toMap;
 
-memoized defaultState->begin
-  local s:=[0..255].minus(frequencyByPredecessor.getInner(0)).min;
-  assert(!isVoid(s));
-  s;
-end;
-
 tabulate(freqMap:Map)-> freqMap.mergeMaps(Base,::orElse).sort.getInner(1).join(",");
+
+main('update')->updateBigramCounts;
 
 main->begin
   printf("CONST initialState=#{[0..255].minus(frequencyByPredecessor.getInner(0)).min};");
