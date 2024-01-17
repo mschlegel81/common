@@ -15,9 +15,6 @@ updateBigramCounts->BIGRAM_COUNTS:=
   .filter((key,count)->count>1)
   .toMap;
 
-@SuppressUnusedWarning
-ensureBigramCounts:=BIGRAM_COUNTS.isVoid ? updateBigramCounts : BIGRAM_COUNTS;
-
 Base:=map([0..255],(x)->[x,1]).toMap;
 
 memoized defaultFrequency->BIGRAM_COUNTS.map((key,value)->key[0]=>value).{$L.getInner(1).group($L.getInner(0),::+)};
