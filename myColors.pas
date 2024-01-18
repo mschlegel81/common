@@ -71,7 +71,7 @@ FUNCTION gammaHSV      (CONST c:T_hsvColor;      CONST gH,gS,gV:single):T_hsvCol
 FUNCTION invert        (CONST c:T_rgbFloatColor):T_rgbFloatColor;
 FUNCTION absCol        (CONST c:T_rgbFloatColor):T_rgbFloatColor;
 FUNCTION calcErr       (CONST c00,c01,c02,c10,c11,c12,c20,c21,c22:T_rgbFloatColor):double; inline;
-FUNCTION colDiff       (CONST x,y:T_rgbFloatColor):double;
+FUNCTION colDiff       (CONST x,y:T_rgbFloatColor):double; inline;
 FUNCTION subjectiveColDiff(CONST x,y:T_rgbFloatColor):double; inline;
 FUNCTION innerProduct  (CONST x,y:T_rgbFloatColor):double;
 
