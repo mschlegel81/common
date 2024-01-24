@@ -299,8 +299,8 @@ FUNCTION transpose(CONST dim:T_imageDimensions):T_imageDimensions;
     result.height:=dim.width;
   end;
 
-PROCEDURE G_pixelMap.rotRight;
-  VAR x,y:longint;
+PROCEDURE G_pixelMap.rotLeft;
+    VAR x,y:longint;
       temp:P_SELF_TYPE;
       tempDat:PIXEL_POINTER;
   begin
@@ -314,7 +314,7 @@ PROCEDURE G_pixelMap.rotRight;
     dispose(temp,destroy);
   end;
 
-PROCEDURE G_pixelMap.rotLeft;
+PROCEDURE G_pixelMap.rotRight;
   VAR x,y:longint;
       temp:P_SELF_TYPE;
       tempDat:PIXEL_POINTER;
