@@ -116,6 +116,7 @@ FUNCTION getNumberOfCPUs:longint;
 FUNCTION showConsole:boolean;
 FUNCTION hideConsole:boolean;
 FUNCTION isConsoleShowing:boolean;
+PROCEDURE detachFromConsole;
 PROCEDURE writeFile(CONST fileName:string; CONST lines:T_arrayOfString);
 FUNCTION readFile(CONST fileName:string):T_arrayOfString;
 FUNCTION getGlobalRunningThreads:longint;
@@ -492,23 +493,27 @@ FUNCTION findFileInfo(CONST pathOrPattern: string): T_fileInfoArray;
    end;
 
 VAR consoleShowing:longint=1;
+    hasConsole:boolean=true;
 FUNCTION isConsoleShowing: boolean;
   begin
-    result:={$ifdef Windows}consoleShowing>=1{$else}true{$endif};
+    result:={$ifdef Windows}hasConsole and (consoleShowing>=1){$else}true{$endif};
   end;
 
 FUNCTION showConsole:boolean;
   begin
     inc(consoleShowing);
     if consoleShowing<1 then consoleShowing:=1;
-    result:=true;
-    {$ifdef Windows}{$ifndef debugMode}
-    ShowWindow(GetConsoleWindow, SW_SHOW);
-    {$endif}{$endif}
+    if hasConsole then begin
+      result:=true;
+      {$ifdef Windows}{$ifndef debugMode}
+      ShowWindow(GetConsoleWindow, SW_SHOW);
+      {$endif}{$endif}
+    end else result:=false;
   end;
 
 FUNCTION hideConsole:boolean;
   begin
+    if not(hasConsole) then exit(true);
     dec(consoleShowing);
     if consoleShowing<=0 then begin
       {$ifdef Windows}{$ifndef debugMode}
@@ -517,6 +522,16 @@ FUNCTION hideConsole:boolean;
       if consoleShowing<0 then consoleShowing:=0;
       result:=true;
     end else result:=false;
+  end;
+
+PROCEDURE detachFromConsole;
+  begin
+    {$ifdef Windows}{$ifndef debugMode}
+    if hasConsole then begin
+      FreeConsole;
+      hasConsole:=false;
+    end;
+    {$endif}{$endif}
   end;
 
 FUNCTION isValidFilename(CONST fileName: string; CONST requirePathExistence:boolean=true) : boolean;
