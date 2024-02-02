@@ -16,6 +16,7 @@ CONST
   C_carriageReturnChar= #13;
   C_shiftOutChar      = #14;
   C_shiftInChar       = #15;
+  C_escape            = #27;
 
   C_compression_find_shortest=255;
   C_compression_none         =0;
@@ -30,7 +31,7 @@ FUNCTION formatTabs(CONST s: T_arrayOfString): T_arrayOfString;
 FUNCTION isBlank(CONST s: ansistring): boolean;
 FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT isValid: boolean): ansistring; inline;
 FUNCTION replaceOne(CONST original, lookFor, replaceBy: ansistring): ansistring; inline;
-FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stringEncoding; OUT nonescapableFound:boolean): ansistring;
+FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stringEncoding; OUT nonescapableFound:boolean; CONST lengthLimit:longint=maxLongint): ansistring;
 FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parsedLength: longint): ansistring;
 FUNCTION isIdentifier(CONST s: ansistring; CONST allowDot: boolean): boolean;
 FUNCTION isFilename(CONST s: ansistring; CONST acceptedExtensions:array of string):boolean;
@@ -252,8 +253,8 @@ FUNCTION replaceRecursively(CONST original, lookFor, replaceBy: ansistring; OUT 
     end;
   end;
 
-FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stringEncoding; OUT nonescapableFound:boolean): ansistring;
-  CONST javaEscapes:array[0..9,0..1] of char=(('\','\'),(C_backspaceChar ,'b'),
+FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stringEncoding; OUT nonescapableFound:boolean; CONST lengthLimit:longint=maxLongint): ansistring;
+  CONST javaEscapes:array[0..10,0..1] of char=(('\','\'),(C_backspaceChar ,'b'),
                                               (C_tabChar ,'t'),
                                               (C_lineBreakChar,'n'),
                                               (C_invisibleTabChar,'v'),
@@ -261,8 +262,79 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stri
                                               (C_carriageReturnChar,'r'),
                                               (C_shiftInChar,'i'),
                                               (C_shiftOutChar,'o'),
+                                              (C_escape,'e'),
                                               ('"','"'));
         javaEscapable:T_charSet=[C_backspaceChar,C_tabChar,C_lineBreakChar,C_invisibleTabChar,C_formFeedChar,C_carriageReturnChar,C_shiftInChar,C_shiftOutChar];
+  //TODO: Reimplement escapeString to take length limit into account. Reimplement unescapeString to match behaviour.
+
+  //CONST DELIM='''';
+  //FUNCTION escapeUtf8InPascal:ansistring;
+  //  var CurP, EndP: PChar;
+  //      Len: Integer;
+  //      ACodePoint: shortstring;
+  //      tmp:ShortString='';
+  //      next:shortString;
+  //      mode:(mode_startup,mode_hash,mode_escaped)=mode_startup;
+  //      collectedLength:longint=0;
+  //  begin
+  //    result:='';
+  //    CurP := PChar(S);        // if S='' then PChar(S) returns a pointer to #0
+  //    EndP := CurP + length(S);
+  //    while CurP < EndP do begin
+  //      Len := UTF8CodepointSize(CurP);
+  //      SetLength(ACodePoint, Len);
+  //      Move(CurP^, ACodePoint[1], Len);
+  //      if len=1 then case ACodePoint[1] of
+  //        #0..#31,#127..#255: begin
+  //          if mode=mode_escaped
+  //          then next:='''#'+intToStr(ord(ACodePoint[1]))
+  //          else next:=  '#'+intToStr(ord(ACodePoint[1]));
+  //          mode:=mode_hash;
+  //          collectedLength+=length(next);
+  //        end;
+  //        DELIM: begin
+  //          if mode=mode_escaped
+  //          then next:=      DELIM+DELIM
+  //          else next:=DELIM+DELIM+DELIM;
+  //          mode:=mode_escaped;
+  //          collectedLength+=length(next);
+  //        end;
+  //        else begin
+  //          if mode=mode_escaped
+  //          then next:=      ACodePoint
+  //          else next:=DELIM+ACodePoint;
+  //          mode:=mode_escaped;
+  //          collectedLength+=length(next);
+  //        end;
+  //      end else begin
+  //        if mode=mode_escaped
+  //        then begin
+  //          next:=      ACodePoint;
+  //          collectedLength+=1;
+  //        end else begin
+  //          next:=DELIM+ACodePoint;
+  //          collectedLength+=2;
+  //        end;
+  //        mode:=mode_escaped;
+  //      end;
+  //      inc(CurP, Len);
+  //      if collectedLength-4>=lengthLimit then begin
+  //        if mode=mode_escaped then next:=DELIM else next:='';
+  //        exit(result+tmp+next);
+  //      end;
+  //      if length(tmp)+length(next)>255 then begin
+  //        result+=tmp;
+  //        tmp:=next;
+  //      end else tmp+=next;
+  //    end;
+  //    result+=tmp;
+  //  end;
+  //
+  //FUNCTION escapeUtf8InJava:ansistring;
+  //  begin
+  //
+  //  end;
+
   FUNCTION isJavaEscapable:boolean;
     VAR c:char;
     begin
