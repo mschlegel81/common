@@ -265,75 +265,6 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stri
                                               (C_escape,'e'),
                                               ('"','"'));
         javaEscapable:T_charSet=[C_backspaceChar,C_tabChar,C_lineBreakChar,C_invisibleTabChar,C_formFeedChar,C_carriageReturnChar,C_shiftInChar,C_shiftOutChar,C_escape];
-  //TODO: Reimplement escapeString to take length limit into account. Reimplement unescapeString to match behaviour.
-
-  //CONST DELIM='''';
-  //FUNCTION escapeUtf8InPascal:ansistring;
-  //  var CurP, EndP: PChar;
-  //      Len: Integer;
-  //      ACodePoint: shortstring;
-  //      tmp:ShortString='';
-  //      next:shortString;
-  //      mode:(mode_startup,mode_hash,mode_escaped)=mode_startup;
-  //      collectedLength:longint=0;
-  //  begin
-  //    result:='';
-  //    CurP := PChar(S);        // if S='' then PChar(S) returns a pointer to #0
-  //    EndP := CurP + length(S);
-  //    while CurP < EndP do begin
-  //      Len := UTF8CodepointSize(CurP);
-  //      SetLength(ACodePoint, Len);
-  //      Move(CurP^, ACodePoint[1], Len);
-  //      if len=1 then case ACodePoint[1] of
-  //        #0..#31,#127..#255: begin
-  //          if mode=mode_escaped
-  //          then next:='''#'+intToStr(ord(ACodePoint[1]))
-  //          else next:=  '#'+intToStr(ord(ACodePoint[1]));
-  //          mode:=mode_hash;
-  //          collectedLength+=length(next);
-  //        end;
-  //        DELIM: begin
-  //          if mode=mode_escaped
-  //          then next:=      DELIM+DELIM
-  //          else next:=DELIM+DELIM+DELIM;
-  //          mode:=mode_escaped;
-  //          collectedLength+=length(next);
-  //        end;
-  //        else begin
-  //          if mode=mode_escaped
-  //          then next:=      ACodePoint
-  //          else next:=DELIM+ACodePoint;
-  //          mode:=mode_escaped;
-  //          collectedLength+=length(next);
-  //        end;
-  //      end else begin
-  //        if mode=mode_escaped
-  //        then begin
-  //          next:=      ACodePoint;
-  //          collectedLength+=1;
-  //        end else begin
-  //          next:=DELIM+ACodePoint;
-  //          collectedLength+=2;
-  //        end;
-  //        mode:=mode_escaped;
-  //      end;
-  //      inc(CurP, Len);
-  //      if collectedLength-4>=lengthLimit then begin
-  //        if mode=mode_escaped then next:=DELIM else next:='';
-  //        exit(result+tmp+next);
-  //      end;
-  //      if length(tmp)+length(next)>255 then begin
-  //        result+=tmp;
-  //        tmp:=next;
-  //      end else tmp+=next;
-  //    end;
-  //    result+=tmp;
-  //  end;
-  //
-  //FUNCTION escapeUtf8InJava:ansistring;
-  //  begin
-  //
-  //  end;
 
   FUNCTION isJavaEscapable:boolean;
     VAR c:char;
@@ -441,6 +372,7 @@ FUNCTION unescapeString(CONST input: ansistring; CONST offset:longint; OUT parse
               'v': result:=result+copy(input,i0,i1-i0+1)+#11 ;
               'f': result:=result+copy(input,i0,i1-i0+1)+#12 ;
               'r': result:=result+copy(input,i0,i1-i0+1)+#13 ;
+              'e': result:=result+copy(input,i0,i1-i0+1)+C_escape;
               else result:=result+copy(input,i0,i1-i0+1)+input[i+1];
             end;
             inc(i,2);
