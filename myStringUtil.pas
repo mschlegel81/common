@@ -264,7 +264,7 @@ FUNCTION escapeString(CONST s: ansistring; CONST style:T_escapeStyle; enc:T_stri
                                               (C_shiftOutChar,'o'),
                                               (C_escape,'e'),
                                               ('"','"'));
-        javaEscapable:T_charSet=[C_backspaceChar,C_tabChar,C_lineBreakChar,C_invisibleTabChar,C_formFeedChar,C_carriageReturnChar,C_shiftInChar,C_shiftOutChar];
+        javaEscapable:T_charSet=[C_backspaceChar,C_tabChar,C_lineBreakChar,C_invisibleTabChar,C_formFeedChar,C_carriageReturnChar,C_shiftInChar,C_shiftOutChar,C_escape];
   //TODO: Reimplement escapeString to take length limit into account. Reimplement unescapeString to match behaviour.
 
   //CONST DELIM='''';
