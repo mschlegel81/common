@@ -583,6 +583,7 @@ PROCEDURE deleteMyselfOnExit;
     proc.execute;
   end;
 
+VAR lastTaskCount:longint=10;
 FUNCTION getTaskInfo: T_taskInfoArray;
   CONST
     WbemUser            ='';
@@ -598,9 +599,10 @@ FUNCTION getTaskInfo: T_taskInfoArray;
     tmp           : longword;
     void          : PVOID=nil;
     newEntry      : T_taskInfo;
+    resultFill    : longint=0;
   begin;
     initialize(result);
-    setLength(result,0);
+    setLength(result,lastTaskCount);
     CoInitialize(void);
     FSWbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
     FWMIService   := FSWbemLocator.ConnectServer(WbemComputer, 'root\CIMV2', WbemUser, WbemPassword);
@@ -608,17 +610,19 @@ FUNCTION getTaskInfo: T_taskInfoArray;
     oEnum         := IUnknown(FWbemObjectSet._NewEnum) as IEnumvariant;
     while oEnum.next(1, FWbemObject, tmp) = 0 do
     begin
-      initialize(newEntry);
       newEntry.caption       := VarToStr(FWbemObject.Properties_.item('Caption').value);
       newEntry.pid           := FWbemObject.Properties_.item('ProcessId').value;
       newEntry.parentPID     := FWbemObject.Properties_.item('ParentProcessId').value;
       newEntry.workingSetSize:= FWbemObject.Properties_.item('WorkingSetSize').value;
       newEntry.userModeTime  := FWbemObject.Properties_.item('UserModeTime').value;
       newEntry.commandLine   := VarToStr(FWbemObject.Properties_.item('CommandLine').value);
-      setLength(result,length(result)+1);
-      result[length(result)-1]:=newEntry;
+      if resultFill>=length(result) then setLength(result,round(resultFill*1.2+2));
+      result[resultFill]:=newEntry;
+      inc(resultFill);
       FWbemObject:=Unassigned;
     end;
+    setLength(result,resultFill);
+    lastTaskCount:=resultFill;
   end;
 
 FUNCTION getCPULoadPercentage: longint;
