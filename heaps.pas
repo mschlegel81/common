@@ -26,6 +26,7 @@ GENERIC T_binaryHeap<T>=object
     PROCEDURE insert(CONST v:T);
     PROCEDURE insert(CONST v:T; CONST Priority:double);
     FUNCTION extractHighestPrio:T;
+    FUNCTION maxPrio:double;
     PROPERTY size:longint read fill;
     FUNCTION getAll:T_payloadArray;
 end;
@@ -157,6 +158,12 @@ FUNCTION T_binaryHeap.extractHighestPrio: T;
       items[0]:=items[fill];
       bubbleDown;
     end;
+  end;
+
+FUNCTION T_binaryHeap.maxPrio:double;
+  begin
+    assert(fill>0);
+    result:=items[0].prio;
   end;
 
 FUNCTION T_binaryHeap.getAll: T_payloadArray;
