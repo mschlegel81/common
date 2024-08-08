@@ -1,5 +1,5 @@
 bigrams(line:String)->begin
-  local B:=line.bytes.ord;
+  B:=line.bytes.ord;
   B.size<2 ? void : [B.leading,B.tail].transpose;
 end;
 
@@ -34,11 +34,12 @@ main->begin
   printf('  CONST F_D: T_freqTable=(%s);',tabulate(defaultFrequency));
   frequencyByPredecessor.sort.map((key,value)->printf('        F_{key}: T_freqTable=({tabulate(value)});'));
   print('  begin');
-  local initialState:=void;
+  initialState:=void;
   [0..255].each(key,begin
-    local sourceData:=frequencyByPredecessor[key].isVoid
-                      ? begin initialState:=initialState orElse key; 'F_D'; end
-                      : f'F_{key}';
+    @SuppressUnusedWarning
+    sourceData:=frequencyByPredecessor[key].isVoid
+                ? begin initialState:=initialState orElse key; 'F_D'; end
+                : f'F_{key}';
     printf("    buildCode({sourceData}, decode_tree[#{key}], encode_table[#{key}]);");
   end);
   assert(!isVoid(initialState));
