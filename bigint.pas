@@ -106,7 +106,7 @@ TYPE
       FUNCTION greatestCommonDivider(CONST other:T_bigInt):T_bigInt;
       FUNCTION greatestCommonDivider(CONST other:int64):int64;
       FUNCTION modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInverse:boolean):T_bigInt;
-      FUNCTION iSqrt(CONST computeEvenIfNotSquare:boolean; CONST roundingMode:T_roundingMode; OUT isSquare:boolean):T_bigInt;
+      FUNCTION iSqrt  (CONST computeEvenIfNotSquare:boolean; CONST roundingMode:T_roundingMode; OUT isSquare:boolean):T_bigInt;
       FUNCTION iLog2(OUT isPowerOfTwo:boolean):longint;
       FUNCTION hammingWeight:longint;
       FUNCTION getRawBytes:T_arrayOfByte;
@@ -1452,12 +1452,8 @@ FUNCTION T_bigInt.modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInvers
 
 FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; CONST roundingMode:T_roundingMode; OUT isSquare:boolean):T_bigInt;
   CONST SQUARE_LOW_BYTE_VALUES:set of byte=[0,1,4,9,16,17,25,33,36,41,49,57,64,65,68,73,81,89,97,100,105,113,121,129,132,137,144,145,153,161,164,169,177,185,193,196,201,209,217,225,228,233,241,249];
-  VAR resDt,temp:T_bigInt;
-      done:boolean=false;
-      step:longint=0;
-      selfShl16:T_bigInt;
+  VAR x,d,tmp,tmp2:T_bigInt;
       {$ifndef debugMode}intRoot:int64;{$endif}
-      floatSqrt:double;
   begin
     if negative or isZero then begin
       isSquare:=length(digits)=0;
@@ -1479,31 +1475,38 @@ FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; CONST roundingMode
       exit;
     end else if relevantBits<102 then begin
       result.fromFloat(sqrt(toFloat),RM_DOWN);
-      temp:=result*result;
-      isSquare:=equals(temp);
+      tmp:=result*result;
+      isSquare:=equals(tmp);
       exit;
     end;
     {$endif}
-    //compute the square root of this*2^16, validate by checking lower 8 bits
-    selfShl16.create(self);
-    selfShl16.multWith(1 shl 16);
-    floatSqrt:=sqrt(toFloat)*256;
-    if isInfinite(floatSqrt) or isNan(floatSqrt) then begin
-      result.createZero;
-      result.setBit(selfShl16.relevantBits shr 1+1,true);
-    end else result.fromFloat(floatSqrt,RM_DOWN);
-    repeat
-      selfShl16.divMod(result,resDt,temp);     //resDt = y div x@pre; temp = y mod x@pre
-      isSquare:=temp.isZero;
-      temp:=resDt + result;                //temp = y div x@pre + x@pre
-      isSquare:=isSquare and not odd(temp.digits[0]);
-      temp.shiftRightOneBit;
-      done:=result.equals(temp);
-      result:=temp;
-      inc(step);
-    until done or (step>100);
 
-    isSquare:=isSquare and ((result.digits[0] and 255)=0);
+    x.create(self);
+    x.shiftRight(-16);
+    result.createZero;
+    d.createZero;
+    d.setBit((1+x.relevantBits div 2)*2,true);
+    while x.compare(d)=CR_LESSER do d.shiftRight(2);
+
+    while not d.isZero do begin
+      tmp:=result+d;
+      if x.compare(tmp) in [CR_GREATER,CR_EQUAL] then begin
+        //x-= result + d
+        tmp2:=x-tmp;
+        x.clear;
+        x:=tmp2;
+        //result:=result shr 1 + d;
+        result.shiftRightOneBit;
+        tmp2:=result+d;
+        result.clear;
+        result:=tmp2;
+      end else
+        result.shiftRightOneBit;
+      tmp.clear;
+      d.shiftRight(2);
+    end;
+
+    isSquare:=x.isZero and ((result.digits[0] and 255)=0);
     case roundingMode of
       RM_UP     : if (result.digits[0] and 255)=0 then begin
                     result.shiftRight(8);
@@ -1517,8 +1520,11 @@ FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; CONST roundingMode
                     result.shiftRight(8);
                     result.incAbsValue(1);
                   end;
-       else result.shiftRight(8);
+      else result.shiftRight(8);
     end;
+    x.clear;
+    d.clear;
+
   end;
 
 FUNCTION T_bigInt.iLog2(OUT isPowerOfTwo:boolean):longint;
