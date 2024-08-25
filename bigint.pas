@@ -577,8 +577,10 @@ FUNCTION T_bigInt.toInt: int64;
   begin
     if length(digits)>0 then begin
       result:=digits[0];
+      {$Q-}{$R-}
       if length(digits)>1 then inc(result,int64(digits[1]) shl BITS_PER_DIGIT);
       if negative then result:=-result;
+      {$Q+}{$R+}
     end else result:=0;
   end;
 
