@@ -36,7 +36,6 @@ main->begin
   print('  begin');
   initialState:=void;
   [0..255].each(key,begin
-    @SuppressUnusedWarning
     sourceData:=frequencyByPredecessor[key].isVoid
                 ? begin initialState:=initialState orElse key; 'F_D'; end
                 : f'F_{key}';
