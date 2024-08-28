@@ -1456,7 +1456,7 @@ FUNCTION T_bigInt.modularInverse(CONST modul:T_bigInt; OUT thereIsAModularInvers
 FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; CONST roundingMode:T_roundingMode; OUT isSquare:boolean):T_bigInt;
   CONST SQUARE_LOW_BYTE_VALUES:set of byte=[0,1,4,9,16,17,25,33,36,41,49,57,64,65,68,73,81,89,97,100,105,113,121,129,132,137,144,145,153,161,164,169,177,185,193,196,201,209,217,225,228,233,241,249];
   VAR x,d,tmp,tmp2:T_bigInt;
-      {$ifndef debugMode}intRoot:int64;{$endif}
+      {$ifndef debugMode}floatRoot:double; intRoot:int64;{$endif}
   begin
     if negative or isZero then begin
       isSquare:=length(digits)=0;
@@ -1472,12 +1472,17 @@ FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; CONST roundingMode
     end;
     {$ifndef debugMode}
     if canBeRepresentedAsInt64 then begin
-      intRoot:=trunc(sqrt(toFloat));
+      floatRoot:=sqrt(toFloat);
+      case roundingMode of
+        RM_DOWN   : intRoot:=trunc (floatRoot);
+        RM_UP     : intRoot:=ceil64(floatRoot);
+        RM_DEFAULT: intRoot:=round (floatRoot);
+      end;
       result.fromInt(intRoot);
       isSquare:=toInt=intRoot*intRoot;
       exit;
     end else if relevantBits<102 then begin
-      result.fromFloat(sqrt(toFloat),RM_DOWN);
+      result.fromFloat(sqrt(toFloat),roundingMode);
       tmp:=result*result;
       isSquare:=equals(tmp);
       exit;
@@ -1485,7 +1490,6 @@ FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; CONST roundingMode
     {$endif}
 
     x.create(self);
-    x.shiftRight(-16);
     result.createZero;
     d.createZero;
     d.setBit((1+x.relevantBits div 2)*2,true);
@@ -1511,23 +1515,11 @@ FUNCTION T_bigInt.iSqrt(CONST computeEvenIfNotSquare:boolean; CONST roundingMode
 
     isSquare:=x.isZero and ((result.digits[0] and 255)=0);
     case roundingMode of
-      RM_UP     : if (result.digits[0] and 255)=0 then begin
-                    result.shiftRight(8);
-                  end else begin
-                    result.shiftRight(8);
-                    result.incAbsValue(1);
-                  end;
-      RM_DEFAULT: if (result.digits[0] and 255)<127 then begin
-                    result.shiftRight(8);
-                  end else begin
-                    result.shiftRight(8);
-                    result.incAbsValue(1);
-                  end;
-      else result.shiftRight(8);
+      RM_UP     : if not x.isZero                 then result.incAbsValue(1);
+      RM_DEFAULT: if x.compare(result)=CR_GREATER then result.incAbsValue(1);
     end;
     x.clear;
     d.clear;
-
   end;
 
 FUNCTION T_bigInt.iLog2(OUT isPowerOfTwo:boolean):longint;
