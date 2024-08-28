@@ -505,7 +505,7 @@ PROCEDURE T_bigInt.fromString(CONST s: string);
     end;
     while i<=length(s) do begin
       chunkSize:=length(s)-i+1;
-      if chunkSize>4 then chunkSize:=4;
+      if chunkSize>MAX_CHUNK_SIZE then chunkSize:=MAX_CHUNK_SIZE;
       chunkValue:=strToInt(copy(s,i,chunkSize));
       multWith(CHUNK_FACTOR[chunkSize]);
       incAbsValue(chunkValue);
@@ -934,7 +934,7 @@ PROCEDURE T_bigInt.multWith(CONST b: T_bigInt);
   end;
 
 PROCEDURE T_bigInt.incAbsValue(CONST positiveIncrement: DigitType);
-  VAR carry:int64;
+  VAR carry:CarryType;
       k:longint;
   begin
     carry:=positiveIncrement;
@@ -947,6 +947,7 @@ PROCEDURE T_bigInt.incAbsValue(CONST positiveIncrement: DigitType);
       carry+=digits[k];
       digits[k]:=carry and DIGIT_MAX_VALUE;
       carry:=carry shr BITS_PER_DIGIT;
+      inc(k);
     end;
   end;
 
