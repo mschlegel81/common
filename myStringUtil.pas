@@ -524,7 +524,7 @@ FUNCTION split(CONST s:ansistring; CONST splitters:T_arrayOfString; CONST retain
       if endsOnSplitter and retainSplitters then appendToResult(copy(s,splitterStart,splitterEnd-splitterStart));
       nextSplitterPos(partStart,splitterStart,splitterEnd);
     end;
-    if endsOnSplitter and not retainSplitters then appendToResult('');
+    if endsOnSplitter and not retainSplitters or (resultLen=0) then appendToResult('');
     setLength(result,resultLen);
   end;
 
